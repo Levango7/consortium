@@ -1,11 +1,11 @@
 package org.wisdom.consortium.entity;
 
+
 import lombok.*;
 
 import javax.persistence.*;
 import java.util.List;
 
-@Entity
 @Table(name = "header")
 @Getter
 @Setter
@@ -14,11 +14,26 @@ import java.util.List;
 @Builder
 public class Block {
     @Id
-    @Column(name = "block_hash")
+    @Column(name = "block_hash", nullable = false)
     private byte[] hash;
+
+    @Column(name = "block_version", nullable = false)
+    private int version;
+
+    @Column(name = "hash_prev", nullable = false)
+    private byte[] hashPrev;
+
+    @Column(name = "merkle_root", nullable = false)
+    private byte[] merkleRoot;
 
     @Column(name = "block_height", nullable = false)
     private long height;
+
+    @Column(name = "block_created_at", nullable = false)
+    private long createdAt;
+
+    @Column(name = "block_payload", nullable = false)
+    private byte[] payload;
 
     @OneToMany(cascade = CascadeType.ALL,
             fetch = FetchType.EAGER)

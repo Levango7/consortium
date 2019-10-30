@@ -3,6 +3,7 @@ package org.wisdom.consortium.service;
 import org.springframework.stereotype.Service;
 import org.wisdom.common.Block;
 import org.wisdom.common.BlockStore;
+import org.wisdom.common.BlockStoreListener;
 import org.wisdom.common.Header;
 
 import java.util.List;
@@ -10,6 +11,11 @@ import java.util.Optional;
 
 @Service
 public class BlockStoreService implements BlockStore {
+    @Override
+    public void subscribe(BlockStoreListener... listeners) {
+
+    }
+
     @Override
     public Block getGenesis() {
         return null;

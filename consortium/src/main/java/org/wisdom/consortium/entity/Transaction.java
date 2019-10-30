@@ -15,7 +15,7 @@ import java.util.List;
 @Builder
 public class Transaction {
     public static void sortTransactions(List<Transaction> transactions) {
-        transactions.sort(Comparator.comparingInt(Transaction::getIndex));
+        transactions.sort(Comparator.comparingInt(Transaction::getPosition));
     }
 
     @Column(name = "block_hash")
@@ -25,5 +25,5 @@ public class Transaction {
     @Column(name = "transaction_hash")
     private byte[] transactionHash;
 
-    int index;
+    int position;
 }

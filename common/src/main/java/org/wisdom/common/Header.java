@@ -13,17 +13,14 @@ import java.util.stream.Stream;
 public class Header implements Cloneable<Header> {
     private int version;
 
-    @NonNull
     private HexBytes hashPrev;
 
-    @NonNull
     private HexBytes merkleRoot;
 
     private long height;
 
     private long createdAt;
 
-    @NonNull
     private HexBytes payload;
 
     private HexBytes hash;

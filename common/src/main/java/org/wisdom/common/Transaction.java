@@ -10,10 +10,12 @@ import java.util.stream.Stream;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Transaction implements Cloneable<Transaction>{
+public class Transaction implements Cloneable<Transaction> {
     private int version;
 
     private int type;
+
+    private long createdAt;
 
     private long nonce;
 
@@ -33,14 +35,15 @@ public class Transaction implements Cloneable<Transaction>{
     public Transaction clone() {
         return builder().version(version)
                 .type(type).nonce(nonce)
-                .from(from).gasPrice(gasPrice)
-                .amount(amount).payload(payload)
-                .to(to).signature(signature).build();
+                .createdAt(createdAt).from(from)
+                .gasPrice(gasPrice).amount(amount)
+                .payload(payload).to(to)
+                .signature(signature).build();
     }
 
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    public int size(){
+    public int size() {
         return Constants.INTEGER_SIZE * 2 + Constants.LONG_SIZE * 3 +
                 Stream.of(from, payload, to, signature)
                         .map(bytes -> bytes == null ? 0 : bytes.size())
