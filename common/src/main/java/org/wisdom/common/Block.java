@@ -29,6 +29,10 @@ public class Block implements Cloneable<Block>, Chained{
         header = new Header();
     }
 
+    public Block(Header header){
+        this.header = header;
+    }
+
     public Block clone() {
         Block b = new Block();
         b.header = header.clone();

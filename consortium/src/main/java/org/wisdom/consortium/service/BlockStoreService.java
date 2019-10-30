@@ -114,7 +114,10 @@ public class BlockStoreService implements BlockStore {
 
     @Override
     public List<Block> getBlocksBetween(long startHeight, long stopHeight) {
-        return null;
+        List<Block> blocks = getHeadersBetween(startHeight, stopHeight)
+                .stream().map(Block::new).collect(Collectors.toList());
+        getBlocksFromHeaders(blocks);
+        return blocks;
     }
 
     @Override
