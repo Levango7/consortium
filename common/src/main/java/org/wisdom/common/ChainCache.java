@@ -49,30 +49,14 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>> {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * deep copy
-     *
-     * @return
-     */
     public ChainCache<T> clone() {
         ChainCache<T> copied = new ChainCache<>();
         copied.nodes = new HashMap<>(nodes);
-        copied.childrenHashes = new HashMap<>();
-        for (String key : childrenHashes.keySet()) {
-            copied.childrenHashes.put(key, new HashSet<>(childrenHashes.get(key)));
-        }
-        copied.heightIndex = new TreeMap<>();
-        for (Long key : heightIndex.keySet()) {
-            copied.heightIndex.put(key, new HashSet<>(heightIndex.get(key)));
-        }
+        copied.childrenHashes = new HashMap<>(childrenHashes);
+        copied.heightIndex = new TreeMap<>(heightIndex);
         return copied;
     }
 
-    /**
-     * return b's descendant blocks, inclusive b
-     *
-     * @param node
-     */
     public List<T> getDescendantBlocks(T node) {
         LinkedList<Set<String>> descendantBlocksHash = new LinkedList<>();
         String key = node.getHash().toString();
@@ -98,17 +82,12 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>> {
         return getNodes(all);
     }
 
-    // sort by length descending
     public List<List<T>> getAllForks() {
-        List<List<T>> res = new ArrayList<>();
-        for (String k : getLeavesHash()) {
-            List<T> chain = getAncestors(nodes.get(k));
-            chain.add(nodes.get(k));
-            res.add(chain);
-        }
-        if (res.size() > 1) {
-            res.sort(Comparator.comparingLong(List::size));
-        }
+        List<List<T>> res = getLeavesHash().stream()
+                .map(k -> nodes.get(k))
+                .map(this::getAncestors)
+                .sorted(Comparator.comparingLong(List::size))
+                .collect(Collectors.toList());
         Collections.reverse(res);
         return res;
     }
@@ -207,7 +186,7 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>> {
         return getNodes(nodes.keySet());
     }
 
-    public @NonNull List<T> popLongestChain() {
+    public List<T> popLongestChain() {
         List<List<T>> res = getAllForks();
         if (res.size() == 0) {
             return new ArrayList<>();

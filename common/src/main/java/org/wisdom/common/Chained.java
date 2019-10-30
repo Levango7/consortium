@@ -1,7 +1,6 @@
 package org.wisdom.common;
 
-public interface Chained {
+public interface Chained extends Hashed{
     HexBytes getHashPrev();
-    HexBytes getHash();
     long getHeight();
 }
