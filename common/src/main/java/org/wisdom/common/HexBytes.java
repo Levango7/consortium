@@ -30,6 +30,10 @@ public class HexBytes {
         return bytes;
     }
 
+    public int size(){
+        return bytes == null ? 0: bytes.length;
+    }
+
     public String toString(){
         if (hexCache != null) return hexCache;
         hexCache = Hex.encodeHexString(bytes);

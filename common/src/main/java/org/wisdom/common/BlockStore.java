@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BlockStore {
+    void subscribe(BlockStoreListener... listeners);
+
     Block getGenesis();
 
     boolean hasBlock(byte[] hash);

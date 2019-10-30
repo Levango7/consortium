@@ -1,6 +1,8 @@
 package org.wisdom.common;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 
 import java.util.List;
@@ -14,10 +16,12 @@ public class Block extends Header {
         setHeight(header.getHeight());
         setCreatedAt(header.getCreatedAt());
         setPayload(header.getPayload());
+        setHash(header.getHash());
     }
 
     @Getter
     @Setter
+    @NonNull
     private List<Transaction> body;
 
     public Block clone() {
@@ -25,5 +29,12 @@ public class Block extends Header {
         b.copyFromHeader(this);
         b.setBody(body.stream().map(Transaction::clone).collect(Collectors.toList()));
         return b;
+    }
+
+    @JsonIgnore
+    public int size(){
+        return super.size() + body.stream()
+                .map(Transaction::size)
+                .reduce(0, Integer::sum);
     }
 }

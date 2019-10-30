@@ -1,6 +1,9 @@
 package org.wisdom.common;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+
+import java.util.stream.Stream;
 
 @Getter
 @Setter
@@ -14,17 +17,17 @@ public class Transaction implements Cloneable<Transaction>{
 
     private long nonce;
 
-    private byte[] from;
+    private HexBytes from;
 
     private long gasPrice;
 
     private long amount;
 
-    public byte[] payload;
+    public HexBytes payload;
 
-    private byte[] to;
+    private HexBytes to;
 
-    private byte[] signature;
+    private HexBytes signature;
 
     @Override
     public Transaction clone() {
@@ -33,5 +36,14 @@ public class Transaction implements Cloneable<Transaction>{
                 .from(from).gasPrice(gasPrice)
                 .amount(amount).payload(payload)
                 .to(to).signature(signature).build();
+    }
+
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    public int size(){
+        return Constants.INTEGER_SIZE * 2 + Constants.LONG_SIZE * 3 +
+                Stream.of(from, payload, to, signature)
+                        .map(bytes -> bytes == null ? 0 : bytes.size())
+                        .reduce(0, Integer::sum);
     }
 }
