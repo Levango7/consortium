@@ -31,6 +31,8 @@ public class Transaction implements Cloneable<Transaction> {
 
     private HexBytes signature;
 
+    private HexBytes hash;
+
     @Override
     public Transaction clone() {
         return builder().version(version)

@@ -4,12 +4,15 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import javax.persistence.EntityManager;
 
 
 @EnableAsync
@@ -30,4 +33,10 @@ public class Start {
         SimpleModule module = new SimpleModule();
         return mapper.registerModule(module);
     }
+
+    @Bean
+    public JPAQueryFactory jpaQueryFactory(EntityManager entityManager){
+        return new JPAQueryFactory(entityManager);
+    }
+
 }

@@ -1,24 +1,46 @@
 package org.wisdom.consortium.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.wisdom.common.Block;
 import org.wisdom.common.BlockStore;
 import org.wisdom.common.BlockStoreListener;
 import org.wisdom.common.Header;
+import org.wisdom.consortium.dao.BlockDao;
 
+import javax.annotation.PostConstruct;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class BlockStoreService implements BlockStore {
-    @Override
-    public void subscribe(BlockStoreListener... listeners) {
+    @Autowired
+    private BlockDao blockDao;
+
+    private List<BlockStoreListener> listeners;
+
+    private void emitNewBlockWritten(Block block){
+        listeners.forEach(x -> x.onBlockWritten(block));
+    }
+
+    private void emitNewBestBlock(Block block){
+        listeners.forEach(x -> x.onNewBestBlock(block));
+    }
+
+    @PostConstruct
+    public void init(){
 
     }
 
     @Override
+    public void subscribe(BlockStoreListener... listeners) {
+        this.listeners.addAll(Arrays.asList(listeners));
+    }
+
+    @Override
     public Block getGenesis() {
-        return null;
+        return blockDao.getBlockByHeight(0).get();
     }
 
     @Override

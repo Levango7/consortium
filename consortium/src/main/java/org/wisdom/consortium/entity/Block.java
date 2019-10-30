@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Block {
+public class Block extends AbstractHeader{
     @Id
     @Column(name = "block_hash", nullable = false)
     private byte[] hash;

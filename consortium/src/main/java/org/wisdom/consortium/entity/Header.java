@@ -14,7 +14,7 @@ import javax.persistence.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Header {
+public class Header extends AbstractHeader{
     @Id
     @Column(name = "block_hash", nullable = false)
     private byte[] hash;
