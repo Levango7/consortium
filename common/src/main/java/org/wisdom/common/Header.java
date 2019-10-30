@@ -1,6 +1,5 @@
 package org.wisdom.common;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 @Getter
@@ -9,15 +8,23 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class Header implements Cloneable<Header>{
-    @JsonIgnore
+    private long version;
+
+    private HexBytes hashPrev;
+
+    private HexBytes merkleRoot;
+
     private long height;
 
-    private long timeStamp;
+    private long createdAt;
+
+    private HexBytes payload;
 
     @Override
     public Header clone() {
-        return builder()
-                .height(height)
-                .timeStamp(timeStamp).build();
+        return builder().version(version)
+                .hashPrev(hashPrev).merkleRoot(merkleRoot)
+                .height(height).createdAt(createdAt)
+                .payload(payload).build();
     }
 }

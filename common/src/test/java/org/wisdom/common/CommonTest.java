@@ -25,10 +25,10 @@ public class CommonTest {
         ));
         System.out.println(mapper.writeValueAsString(new Block()));
 
-        Header header = mapper.readValue("{\"timeStamp\":\"100\"}", Header.class);
-        Block block = mapper.readValue("{\"timeStamp\":\"100\", \"body\" : [\"a\"] }", Block.class);
-        System.out.println(header.getTimeStamp());
-        System.out.println(block.getTimeStamp());
-        System.out.println(block.getBody().get(0));
+        Header header = mapper.readValue("{\"createdAt\":\"100\"}", Header.class);
+        Block block = mapper.readValue("{\"createdAt\":\"100\", \"body\" : [{\"type\": 100}] }", Block.class);
+        System.out.println(header.getCreatedAt());
+        System.out.println(block.getCreatedAt());
+        System.out.println(block.getBody().get(0).getType());
     }
 }

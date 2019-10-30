@@ -18,6 +18,10 @@ public class HexBytes {
     private byte[] bytes;
     private String hexCache;
 
+    public static String encode(byte[] bytes){
+        return Hex.encodeHexString(bytes);
+    }
+
     public static HexBytes parse(String hex) throws DecoderException{
         return new HexBytes(hex);
     }
