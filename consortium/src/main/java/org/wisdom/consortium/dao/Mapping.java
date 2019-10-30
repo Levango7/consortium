@@ -1,8 +1,8 @@
 package org.wisdom.consortium.dao;
 
 import org.wisdom.common.HexBytes;
-import org.wisdom.consortium.entity.AbstractHeader;
 import org.wisdom.consortium.entity.Block;
+import org.wisdom.consortium.entity.HeaderAdapter;
 import org.wisdom.consortium.entity.Transaction;
 
 import java.util.ArrayList;
@@ -24,7 +24,7 @@ public class Mapping {
         return res;
     }
 
-    public static org.wisdom.common.Header getFromHeaderEntity(AbstractHeader header){
+    public static org.wisdom.common.Header getFromHeaderEntity(HeaderAdapter header){
         return org.wisdom.common.Header.builder()
                 .hash(new HexBytes(header.getHash()))
                 .version(header.getVersion())

@@ -1,7 +1,7 @@
 package org.wisdom.consortium.dao;
 
-import org.wisdom.consortium.entity.Header;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.wisdom.consortium.entity.Header;
 
 import java.util.List;
 import java.util.Optional;
