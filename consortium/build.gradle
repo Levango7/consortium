@@ -1,0 +1,49 @@
+plugins {
+    id 'org.springframework.boot' version '2.2.0.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.8.RELEASE'
+    id 'java'
+}
+
+group = 'org.wisdom'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+repositories {
+    maven {
+        url 'http://maven.aliyun.com/nexus/content/groups/public/'
+    }
+    maven {
+        url 'http://maven.aliyun.com/nexus/content/repositories/jcenter'
+    }
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.springframework.boot:spring-boot-starter-actuator'
+    compile 'org.springframework.boot:spring-boot-starter-web'
+    compile 'org.postgresql:postgresql'
+    compile 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    testCompile 'org.springframework.boot:spring-boot-starter-test'
+    testCompile "junit:junit"
+
+    compile project(':common')
+    compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
+    annotationProcessor 'org.projectlombok:lombok:1.18.10'
+}
+
+task copyDependencies(type: Copy) {
+    from configurations.runtime
+    destinationDir = file('build/libs/lib')
+}
+
+bootRun {
+//    jvmArgs = ["-javaagent:build/libs/lib/quasar-core-0.7.10.jar"]
+    main = "com.salpadding.demo.DemoApplication"
+}
+
+bootRun.dependsOn += copyDependencies
+
+test {
+    useJUnitPlatform()
+}

@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    url: ${DATA_SOURCE_URL:jdbc:postgresql://localhost:5432/your-data-base}
+    username: ${DB_USERNAME:username}
+    password: ${DB_PASSWORD:password}
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+
+
+consortium:
+  config: ${CONFIG_FILE:}
