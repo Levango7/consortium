@@ -1,6 +1,5 @@
 package org.wisdom.common;
 
-
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.apache.commons.codec.DecoderException;
