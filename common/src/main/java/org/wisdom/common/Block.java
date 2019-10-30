@@ -18,6 +18,7 @@ public class Block implements Cloneable<Block>, Chained{
     // extend from header
     @JsonIgnore
     @Delegate(excludes = ExcludedMethods.class)
+    @Setter
     private Header header;
 
     @Getter

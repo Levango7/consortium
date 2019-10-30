@@ -7,5 +7,5 @@ import java.util.Collection;
 import java.util.List;
 
 public interface TransactionDao extends JpaRepository<Transaction, String> {
-    List<Transaction> getTransactionsByBlockHashIn(Collection<byte[]> blockHashes);
+    List<Transaction> findTransactionsByBlockHashIn(Collection<byte[]> blockHashes);
 }

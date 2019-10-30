@@ -1,22 +1,28 @@
 package org.wisdom.consortium.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.wisdom.common.Block;
-import org.wisdom.common.BlockStore;
-import org.wisdom.common.BlockStoreListener;
-import org.wisdom.common.Header;
+import org.wisdom.common.*;
 import org.wisdom.consortium.dao.BlockDao;
+import org.wisdom.consortium.dao.HeaderDao;
+import org.wisdom.consortium.dao.Mapping;
+import org.wisdom.consortium.dao.TransactionDao;
 
 import javax.annotation.PostConstruct;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class BlockStoreService implements BlockStore {
     @Autowired
     private BlockDao blockDao;
+
+    @Autowired
+    private HeaderDao headerDao;
+
+    @Autowired
+    private TransactionDao transactionDao;
 
     private List<BlockStoreListener> listeners;
 
@@ -26,6 +32,28 @@ public class BlockStoreService implements BlockStore {
 
     private void emitNewBestBlock(Block block){
         listeners.forEach(x -> x.onNewBestBlock(block));
+    }
+
+    private void getBlocksFromHeaders(Collection<Block> headers){
+        List<org.wisdom.consortium.entity.Transaction> transactions = transactionDao.findTransactionsByBlockHashIn(
+                headers.stream().map(h -> h.getHash().getBytes()).collect(Collectors.toList())
+        );
+
+        Map<String, List<org.wisdom.consortium.entity.Transaction>> transactionLists = new HashMap<>();
+        transactions.forEach(t -> {
+            String key = HexBytes.encode(t.getBlockHash());
+            transactionLists.putIfAbsent(HexBytes.encode(t.getBlockHash()), new ArrayList<>());
+            transactionLists.get(key).add(t);
+        });
+
+        for(Block b: headers){
+            List<org.wisdom.consortium.entity.Transaction> list = transactionLists.get(b.getHash().toString());
+            if (list == null){
+                continue;
+            }
+            list.sort((x, y) -> x.getPosition() - y.getPosition());
+            b.setBody(list.stream().map(Mapping::getFromTransactionEntity).collect(Collectors.toList()));
+        }
     }
 
     @PostConstruct
@@ -40,32 +68,32 @@ public class BlockStoreService implements BlockStore {
 
     @Override
     public Block getGenesis() {
-        return blockDao.getBlockByHeight(0).get();
+        return Mapping.getFromBlockEntity(blockDao.findTopByOrderByHeightAsc().get());
     }
 
     @Override
     public boolean hasBlock(byte[] hash) {
-        return false;
+        return headerDao.getByHash(hash).isPresent();
     }
 
     @Override
     public Header getBestHeader() {
-        return null;
+        return Mapping.getFromHeaderEntity(headerDao.findTopByOrderByHeightAsc().get());
     }
 
     @Override
     public Block getBestBlock() {
-        return null;
+        return Mapping.getFromBlockEntity(blockDao.findTopByOrderByHeightAsc().get());
     }
 
     @Override
     public Optional<Header> getHeader(byte[] hash) {
-        return Optional.empty();
+        return headerDao.getByHash(hash).map(Mapping::getFromHeaderEntity);
     }
 
     @Override
     public Optional<Block> getBlock(byte[] hash) {
-        return Optional.empty();
+        return blockDao.getByHash(hash).map(Mapping::getFromBlockEntity);
     }
 
     @Override
@@ -80,7 +108,8 @@ public class BlockStoreService implements BlockStore {
 
     @Override
     public List<Header> getHeadersBetween(long startHeight, long stopHeight) {
-        return null;
+        return headerDao.getHeadersByHeightBetween(startHeight, stopHeight).stream()
+                .map(Mapping::getFromHeaderEntity).collect(Collectors.toList());
     }
 
     @Override
