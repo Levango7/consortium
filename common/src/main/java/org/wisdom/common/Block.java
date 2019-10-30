@@ -9,7 +9,7 @@ import lombok.experimental.Delegate;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Block implements Cloneable<Block>{
+public class Block implements Cloneable<Block>, Chained{
     private static abstract class ExcludedMethods{
         public abstract Block clone();
         public abstract int size();

@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Header implements Cloneable<Header> {
+public class Header implements Cloneable<Header>, Chained {
     private int version;
 
     private HexBytes hashPrev;
