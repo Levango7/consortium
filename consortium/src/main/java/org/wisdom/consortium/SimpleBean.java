@@ -32,7 +32,7 @@ public class SimpleBean {
 //                    Mapping.getFromBlockEntity(getBlock(i))
 //            );
 //        }
-//        blockStoreService.getBlockByHeight(0);
+//        blockStoreService.getHeadersBetween(1, 100);
     }
 
     private Block getBlock(long height){
