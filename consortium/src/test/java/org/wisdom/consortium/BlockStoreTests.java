@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.wisdom.common.Block;
 import org.wisdom.common.BlockStore;
+import org.wisdom.common.Header;
 import org.wisdom.consortium.dao.Mapping;
 import org.wisdom.util.BigEndian;
 
@@ -51,5 +52,28 @@ public class BlockStoreTests {
         assert new String(best.getBody().get(0).getHash().getBytes()).equals("90");
         assert new String(best.getBody().get(1).getHash().getBytes()).equals("91");
         assert new String(best.getBody().get(2).getHash().getBytes()).equals("92");
+    }
+
+    @Test
+    public void testGetBestHeader(){
+        Header best = blockStore.getBestHeader();
+        assert best.getHeight() == 9L;
+        assert best.getVersion() == 1;
+        assert Arrays.equals(best.getHash().getBytes(), BigEndian.encodeInt64(9L));
+        assert Arrays.equals(best.getHashPrev().getBytes(), BYTES);
+        assert Arrays.equals(best.getMerkleRoot().getBytes(), BYTES);
+        assert Arrays.equals(best.getPayload().getBytes(), BYTES);
+    }
+
+    @Test
+    public void testGetHeader(){
+        assert blockStore.getHeader(BigEndian.encodeInt64(5)).isPresent();
+        assert !blockStore.getHeader(BigEndian.encodeInt64(-1)).isPresent();
+    }
+
+    @Test
+    public void testGetBlock(){
+        assert blockStore.getBlock(BigEndian.encodeInt64(5)).isPresent();
+        assert !blockStore.getBlock(BigEndian.encodeInt64(-1)).isPresent();
     }
 }
