@@ -173,11 +173,10 @@ public class BlockStoreService implements BlockStore {
 
     @Override
     public Optional<Header> getAncestorHeader(byte[] hash, long ancestorHeight) {
-        Optional<org.wisdom.consortium.entity.Header> header = headerDao.findById(hash);
-        return header.map(h -> headerDao.findByHeightBetweenOrderByHeight(ancestorHeight, h.getHeight()))
+        Optional<Header> header = getHeader(hash);
+        return header.map(h -> getHeadersBetween(ancestorHeight, h.getHeight()))
                 .map(ChainCache::new)
-                .flatMap(c -> c.getAncestor(header.get(), ancestorHeight))
-                .map(Mapping::getFromHeaderEntity);
+                .flatMap(c -> c.getAncestor(header.get(), ancestorHeight));
     }
 
     @Override
@@ -188,15 +187,13 @@ public class BlockStoreService implements BlockStore {
 
     @Override
     public List<Header> getAncestorHeaders(byte[] hash, int limit) {
-        Optional<org.wisdom.consortium.entity.Header> header = headerDao.findById(hash);
+        Optional<Header> header = getHeader(hash);
         return header.map(h ->
-                    headerDao.findByHeightBetweenOrderByHeightDesc(
-                            header.get().getHeight() - limit + 1, h.getHeight(), PageRequest.of(0, limit)
+                    getHeadersBetween(
+                            header.get().getHeight() - limit + 1, h.getHeight(), limit)
                     )
-        )
                 .map(ChainCache::new)
                 .map(c -> c.getAncestors(header.get()))
-                .map(Mapping::getFromHeaderEntities)
                 .orElse(new ArrayList<>());
     }
 

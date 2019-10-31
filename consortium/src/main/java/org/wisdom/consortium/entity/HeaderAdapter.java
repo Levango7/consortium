@@ -1,7 +1,6 @@
 package org.wisdom.consortium.entity;
 
 import lombok.*;
-import org.wisdom.common.Chained;
 
 import javax.persistence.*;
 
@@ -17,7 +16,7 @@ import javax.persistence.*;
         @Index(name = "block_height_index", columnList = "block_height"),
         @Index(name = "block_created_at_index", columnList = "block_created_at")
 })
-public class HeaderAdapter implements Chained {
+public class HeaderAdapter{
     @Id
     @Column(name = "block_hash", nullable = false)
     private byte[] hash;
