@@ -5,23 +5,20 @@ import org.wisdom.consortium.entity.Block;
 import org.wisdom.consortium.entity.HeaderAdapter;
 import org.wisdom.consortium.entity.Transaction;
 
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class Mapping {
     public static org.wisdom.common.Block getFromBlockEntity(Block block){
         org.wisdom.common.Header header = getFromHeaderEntity(block);
-        org.wisdom.common.Block res = new org.wisdom.common.Block();
-        res.setHeader(header);
-        if(block.getBody() == null){
-            block.setBody(new ArrayList<>());
-            return res;
-        }
-        res.setBody(block.getBody().stream()
-                .map(Mapping::getFromTransactionEntity)
-                .collect(Collectors.toList())
-        );
+        org.wisdom.common.Block res = new org.wisdom.common.Block(header);
+        res.setBody(getFromTransactionsEntity(block.getBody()));
         return res;
+    }
+
+    public static List<org.wisdom.common.Block> getFromBlocksEntity(Collection<Block> blocks){
+        return blocks.stream().map(Mapping::getFromBlockEntity).collect(Collectors.toList());
     }
 
     public static org.wisdom.common.Header getFromHeaderEntity(HeaderAdapter header){
@@ -36,6 +33,10 @@ public class Mapping {
                 .build();
     }
 
+    public static List<org.wisdom.common.Header> getFromHeadersEntity(Collection<? extends HeaderAdapter> headers){
+        return headers.stream().map(Mapping::getFromHeaderEntity).collect(Collectors.toList());
+    }
+
     public static org.wisdom.common.Transaction getFromTransactionEntity(Transaction transaction){
         return org.wisdom.common.Transaction.builder().version(transaction.getVersion())
                 .type(transaction.getType()).createdAt(transaction.getCreatedAt())
@@ -44,5 +45,12 @@ public class Mapping {
                 .payload(new HexBytes(transaction.getPayload())).to(new HexBytes(transaction.getTo()))
                 .signature(new HexBytes(transaction.getSignature())).hash(new HexBytes(transaction.getHash()))
                 .build();
+    }
+
+    public static List<org.wisdom.common.Transaction> getFromTransactionsEntity(Collection<Transaction> transactions){
+        return transactions.stream()
+                .sorted((x, y) -> x.getPosition() - y.getPosition())
+                .map(Mapping::getFromTransactionEntity)
+                .collect(Collectors.toList());
     }
 }

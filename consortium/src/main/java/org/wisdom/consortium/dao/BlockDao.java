@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BlockDao extends JpaRepository<Block, byte[]> {
-    Optional<Block> getByHash(byte[] hash);
     Optional<Block> findTopByOrderByHeightAsc();
-    List<Block> findByHeightBetween(long start, long end);
+    Optional<Block> findByHeight(long height);
 }

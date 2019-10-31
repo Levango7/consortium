@@ -25,10 +25,13 @@ public class SimpleBean {
 
     @PostConstruct
     public void init(){
-//        for(int i = 0; i < 100; i++){
-//            blockDao.save(getBlock(i));
-//        }
-        blockStoreService.getBlocksBetween(1, 100);
+        for(int i = 0; i < 100; i++){
+            blockDao.save(getBlock(i));
+        }
+        blockDao.findById(BigEndian.encodeInt64(1)).ifPresent(x -> {
+            System.out.println(x.getBody() == null);
+            System.out.println(x.getBody().size());
+        });
     }
 
     private Block getBlock(long height){

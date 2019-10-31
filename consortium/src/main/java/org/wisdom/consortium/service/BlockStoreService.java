@@ -24,6 +24,8 @@ public class BlockStoreService implements BlockStore {
     @Autowired
     private TransactionDao transactionDao;
 
+    private Block genesis;
+
     private List<BlockStoreListener> listeners;
 
     private void emitNewBlockWritten(Block block){
@@ -34,7 +36,7 @@ public class BlockStoreService implements BlockStore {
         listeners.forEach(x -> x.onNewBestBlock(block));
     }
 
-    private void getBlocksFromHeaders(Collection<Block> headers){
+    private List<Block> getBlocksFromHeaders(Collection<Header> headers){
         List<org.wisdom.consortium.entity.Transaction> transactions = transactionDao.findTransactionsByBlockHashIn(
                 headers.stream().map(h -> h.getHash().getBytes()).collect(Collectors.toList())
         );
@@ -45,8 +47,9 @@ public class BlockStoreService implements BlockStore {
             transactionLists.putIfAbsent(HexBytes.encode(t.getBlockHash()), new ArrayList<>());
             transactionLists.get(key).add(t);
         });
+        List<Block> blocks = headers.stream().map(Block::new).collect(Collectors.toList());
 
-        for(Block b: headers){
+        for(Block b: blocks){
             List<org.wisdom.consortium.entity.Transaction> list = transactionLists.get(b.getHash().toString());
             if (list == null){
                 continue;
@@ -54,8 +57,10 @@ public class BlockStoreService implements BlockStore {
             list.sort((x, y) -> x.getPosition() - y.getPosition());
             b.setBody(list.stream().map(Mapping::getFromTransactionEntity).collect(Collectors.toList()));
         }
+        return blocks;
     }
 
+    // if genesis not exists, write genesis here
     @PostConstruct
     public void init(){
 
@@ -68,12 +73,12 @@ public class BlockStoreService implements BlockStore {
 
     @Override
     public Block getGenesis() {
-        return Mapping.getFromBlockEntity(blockDao.findTopByOrderByHeightAsc().get());
+        return genesis;
     }
 
     @Override
     public boolean hasBlock(byte[] hash) {
-        return headerDao.getByHash(hash).isPresent();
+        return headerDao.existsById(hash);
     }
 
     @Override
@@ -88,56 +93,72 @@ public class BlockStoreService implements BlockStore {
 
     @Override
     public Optional<Header> getHeader(byte[] hash) {
-        return headerDao.getByHash(hash).map(Mapping::getFromHeaderEntity);
+        return headerDao.findById(hash).map(Mapping::getFromHeaderEntity);
     }
 
     @Override
     public Optional<Block> getBlock(byte[] hash) {
-        return blockDao.getByHash(hash).map(Mapping::getFromBlockEntity);
+        return blockDao.findById(hash).map(Mapping::getFromBlockEntity);
     }
 
     @Override
     public List<Header> getHeaders(long startHeight, int limit) {
-        return null;
+        return Mapping.getFromHeadersEntity(headerDao
+                .findByHeightGreaterThanEqual(startHeight, PageRequest.of(0, limit)));
     }
 
     @Override
     public List<Block> getBlocks(long startHeight, int limit) {
-        return null;
+        return getBlocksFromHeaders(getHeaders(startHeight, limit));
     }
 
     @Override
     public List<Header> getHeadersBetween(long startHeight, long stopHeight) {
-        return headerDao.getHeadersByHeightBetween(startHeight, stopHeight).stream()
+        return headerDao.findByHeightBetweenOrderByHeight(startHeight, stopHeight).stream()
                 .map(Mapping::getFromHeaderEntity).collect(Collectors.toList());
     }
 
     @Override
     public List<Block> getBlocksBetween(long startHeight, long stopHeight) {
-        List<Block> blocks = getHeadersBetween(startHeight, stopHeight)
-                .stream().map(Block::new).collect(Collectors.toList());
-        getBlocksFromHeaders(blocks);
-        return blocks;
+        return getBlocksFromHeaders(getHeadersBetween(startHeight, stopHeight));
     }
 
     @Override
-    public List<Header> getHeadersBetween(long startHeight, long stopHeight, int limit, boolean descend) {
-        return null;
+    public List<Header> getHeadersBetween(long startHeight, long stopHeight, int limit) {
+        return Mapping.getFromHeadersEntity(
+                headerDao.findByHeightBetweenOrderByHeightAsc(
+                        startHeight, startHeight, PageRequest.of(0, limit)
+                )
+        );
     }
 
     @Override
-    public List<Block> getBlocksBetween(long startHeight, long stopHeight, int limit, boolean descend) {
-        return null;
+    public List<Header> getHeadersBetweenDescend(long startHeight, long stopHeight, int limit) {
+        return Mapping.getFromHeadersEntity(
+                headerDao.findByHeightBetweenOrderByHeightDesc(
+                        startHeight, startHeight, PageRequest.of(0, limit)
+                )
+        );
+    }
+
+    @Override
+    public List<Block> getBlocksBetween(long startHeight, long stopHeight, int limit) {
+        return getBlocksFromHeaders(getHeadersBetween(startHeight, stopHeight, limit));
+    }
+
+    @Override
+    public List<Block> getBlocksBetweenDescend(long startHeight, long stopHeight, int limit) {
+        return getBlocksFromHeaders(getHeadersBetweenDescend(startHeight, stopHeight, limit));
     }
 
     @Override
     public Optional<Header> getHeaderByHeight(long height) {
-        return Optional.empty();
+        return headerDao.findByHeight(height).map(Mapping::getFromHeaderEntity);
     }
 
     @Override
     public Optional<Block> getBlockByHeight(long height) {
-        return Optional.empty();
+        return blockDao.findByHeight(height).map(Mapping::getFromBlockEntity);
     }
 
     @Override

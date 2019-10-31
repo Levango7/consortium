@@ -3,9 +3,11 @@ package org.wisdom.common;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Delegate;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,7 +20,6 @@ public class Block implements Cloneable<Block>, Chained{
     // extend from header
     @JsonIgnore
     @Delegate(excludes = ExcludedMethods.class)
-    @Setter
     private Header header;
 
     @Getter
@@ -27,10 +28,12 @@ public class Block implements Cloneable<Block>, Chained{
 
     public Block(){
         header = new Header();
+        body = new ArrayList<>();
     }
 
-    public Block(Header header){
+    public Block(@NonNull Header header){
         this.header = header;
+        body = new ArrayList<>();
     }
 
     public Block clone() {
