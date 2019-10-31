@@ -14,7 +14,9 @@ import org.wisdom.util.BigEndian;
 import java.util.Arrays;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = Start.class) // use SPRING_CONFIG_LOCATION environment to set test.yml
+@SpringBootTest(classes = Start.class)
+// use SPRING_CONFIG_LOCATION environment to set test.yml
+// for example: SPRING_CONFIG_LOCATION=classpath:\application.yml,some-path\custom-config.yml
 public class BlockStoreTests {
     @Autowired
     private BlockStore blockStore;
