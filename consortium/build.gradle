@@ -24,12 +24,13 @@ dependencies {
     compile 'org.postgresql:postgresql'
     compile 'org.springframework.boot:spring-boot-starter-data-jpa'
 
-    testCompile 'org.springframework.boot:spring-boot-starter-test'
+//    testCompile 'org.springframework.boot:spring-boot-starter-test'
     testCompile "junit:junit"
 
     compile project(':common')
     compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
     annotationProcessor 'org.projectlombok:lombok:1.18.10'
+    compile group: 'com.google.guava', name: 'guava', version: '28.1-jre'
 }
 
 task copyDependencies(type: Copy) {
