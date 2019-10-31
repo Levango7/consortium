@@ -1,23 +1,20 @@
 package org.wisdom.consortium.entity;
 
 import lombok.*;
-import org.wisdom.common.HexBytes;
 
 import javax.persistence.*;
-import java.util.Comparator;
-import java.util.List;
 
 @Entity
 @Table(name = "transaction", indexes = {
-        @Index(name = "transaction_block_hash_index", columnList = "block_hash"),
-        @Index(name = "transaction_hash_index", columnList = "transaction_hash"),
-        @Index(name = "transaction_type_index", columnList = "transaction_type"),
-        @Index(name = "transaction_created_at_index", columnList = "transaction_created_at"),
-        @Index(name = "transaction_nonce_index", columnList = "transaction_nonce"),
-        @Index(name = "transaction_from_index", columnList = "transaction_from"),
-        @Index(name = "transaction_amount_index", columnList = "transaction_amount"),
-        @Index(name = "transaction_to_index", columnList = "transaction_to"),
-        @Index(name = "transaction_position_index", columnList = "transaction_position"),
+        @Index(name = "tx_block_hash_index", columnList = Transaction.COLUMN_BLOCK_HASH),
+        @Index(name = "tx_hash_index", columnList = Transaction.COLUMN_TX_HASH),
+        @Index(name = "tx_type_index", columnList = Transaction.COLUMN_TX_TYPE),
+        @Index(name = "tx_created_at_index", columnList = Transaction.COLUMN_TX_CREATED_AT),
+        @Index(name = "tx_nonce_index", columnList = Transaction.COLUMN_TX_NONCE),
+        @Index(name = "tx_from_index", columnList = Transaction.COLUMN_TX_FROM),
+        @Index(name = "tx_amount_index", columnList = Transaction.COLUMN_TX_AMOUNT),
+        @Index(name = "tx_to_index", columnList = Transaction.COLUMN_TX_TO),
+        @Index(name = "tx_position_index", columnList = Transaction.COLUMN_TX_POSITION),
 })
 @Getter
 @Setter
@@ -25,47 +22,57 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class Transaction {
-    public static void sortTransactions(List<Transaction> transactions) {
-        transactions.sort(Comparator.comparingInt(Transaction::getPosition));
-    }
+    static final String COLUMN_BLOCK_HASH = "tx_block_hash";
+    static final String COLUMN_TX_HASH = "tx_hash";
+    static final String COLUMN_TX_VERSION = "tx_version";
+    static final String COLUMN_TX_TYPE = "tx_type";
+    static final String COLUMN_TX_CREATED_AT = "tx_created_at";
+    static final String COLUMN_TX_NONCE = "tx_nonce";
+    static final String COLUMN_TX_FROM = "tx_from";
+    static final String COLUMN_TX_GAS_PRICE = "tx_gas_price";
+    static final String COLUMN_TX_AMOUNT = "tx_amount";
+    static final String COLUMN_TX_PAYLOAD = "tx_payload";
+    static final String COLUMN_TX_TO = "tx_to";
+    static final String COLUMN_TX_SIGNATURE = "tx_signature";
+    static final String COLUMN_TX_POSITION = "tx_position";
 
-    @Column(name = "block_hash", nullable = false)
+    @Column(name = COLUMN_BLOCK_HASH, nullable = false)
     private byte[] blockHash;
 
     @Id
-    @Column(name = "transaction_hash", nullable = false)
+    @Column(name = COLUMN_TX_HASH, nullable = false)
     private byte[] hash;
 
-    @Column(name = "transaction_version", nullable = false)
+    @Column(name = COLUMN_TX_VERSION, nullable = false)
     private int version;
 
-    @Column(name = "transaction_type", nullable = false)
+    @Column(name = COLUMN_TX_TYPE, nullable = false)
     private int type;
 
-    @Column(name = "transaction_created_at", nullable = false)
+    @Column(name = COLUMN_TX_CREATED_AT, nullable = false)
     private long createdAt;
 
-    @Column(name = "transaction_nonce", nullable = false)
+    @Column(name = COLUMN_TX_NONCE, nullable = false)
     private long nonce;
 
-    @Column(name = "transaction_from", nullable = false)
+    @Column(name = COLUMN_TX_FROM, nullable = false)
     private byte[] from;
 
-    @Column(name = "transaction_gas_price", nullable = false)
+    @Column(name = COLUMN_TX_GAS_PRICE, nullable = false)
     private long gasPrice;
 
-    @Column(name = "transaction_amount", nullable = false)
+    @Column(name = COLUMN_TX_AMOUNT, nullable = false)
     private long amount;
 
-    @Column(name = "transaction_payload", nullable = false)
+    @Column(name = COLUMN_TX_PAYLOAD, nullable = false)
     public byte[] payload;
 
-    @Column(name = "transaction_to", nullable = false)
+    @Column(name = COLUMN_TX_TO, nullable = false)
     private byte[] to;
 
-    @Column(name = "transaction_signature", nullable = false)
+    @Column(name = COLUMN_TX_SIGNATURE, nullable = false)
     private byte[] signature;
 
-    @Column(name = "transaction_position", nullable = false)
+    @Column(name = COLUMN_TX_POSITION, nullable = false)
     private int position;
 }

@@ -65,7 +65,7 @@ public class Mapping {
                 .payload(block.getPayload().getBytes()).build();
         Block b = new Block(adapter);
         b.setBody(new ArrayList<>(block.getBody().size()));
-        for(int i = 0; i < b.getBody().size(); i++){
+        for(int i = 0; i < block.getBody().size(); i++){
             org.wisdom.common.Transaction tx = block.getBody().get(i);
             Transaction mapped = Transaction.builder().blockHash(block.getHash().getBytes())
                     .hash(tx.getHash().getBytes())
@@ -80,7 +80,7 @@ public class Mapping {
                     .to(tx.getTo().getBytes())
                     .signature(tx.getSignature().getBytes())
                     .position(i).build();
-            b.getBody().set(i, mapped);
+            b.getBody().add(mapped);
         }
         return b;
     }

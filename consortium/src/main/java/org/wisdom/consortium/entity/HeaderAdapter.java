@@ -10,32 +10,35 @@ import javax.persistence.*;
 @AllArgsConstructor
 @Builder
 @MappedSuperclass
-@Table(name = "header", indexes = {
-        @Index(name = "block_hash_index", columnList = "block_hash"),
-        @Index(name = "hash_prev_index", columnList = "hash_prev"),
-        @Index(name = "block_height_index", columnList = "block_height"),
-        @Index(name = "block_created_at_index", columnList = "block_created_at")
-})
 public class HeaderAdapter{
+    static final String COLUMN_HASH = "block_hash";
+    static final String COLUMN_VERSION = "version";
+    static final String COLUMN_HASH_PREV = "hash_prev";
+    static final String COLUMN_MERKLE_ROOT = "merkle_root";
+    static final String COLUMN_HEIGHT = "block_height";
+    static final String COLUMN_CREATED_AT = "created_at";
+    static final String COLUMN_PAYLOAD = "payload";
+    static final String TABLE_HEADER = "header";
+
     @Id
-    @Column(name = "block_hash", nullable = false)
+    @Column(name = COLUMN_HASH, nullable = false)
     private byte[] hash;
 
-    @Column(name = "block_version", nullable = false)
+    @Column(name = COLUMN_VERSION, nullable = false)
     private int version;
 
-    @Column(name = "hash_prev", nullable = false)
+    @Column(name = COLUMN_HASH_PREV, nullable = false)
     private byte[] hashPrev;
 
-    @Column(name = "merkle_root", nullable = false)
+    @Column(name = COLUMN_MERKLE_ROOT, nullable = false)
     private byte[] merkleRoot;
 
-    @Column(name = "block_height", nullable = false)
+    @Column(name = COLUMN_HEIGHT, nullable = false)
     private long height;
 
-    @Column(name = "block_created_at", nullable = false)
+    @Column(name = COLUMN_CREATED_AT, nullable = false)
     private long createdAt;
 
-    @Column(name = "block_payload", nullable = false)
+    @Column(name = COLUMN_PAYLOAD, nullable = false)
     private byte[] payload;
 }

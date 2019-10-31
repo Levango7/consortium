@@ -1,25 +1,32 @@
 package org.wisdom.consortium.service;
 
+import lombok.NonNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.wisdom.common.Transaction;
 import org.wisdom.common.TransactionStore;
+import org.wisdom.consortium.dao.Mapping;
+import org.wisdom.consortium.dao.TransactionDao;
 
 import java.util.List;
 import java.util.Optional;
 
 public class TransactionStoreService implements TransactionStore {
+    @Autowired
+    private TransactionDao transactionDao;
+
     @Override
-    public boolean hasTransaction(byte[] hash) {
-        return false;
+    public boolean hasTransaction(@NonNull byte[] hash) {
+        return transactionDao.existsById(hash);
     }
 
     @Override
-    public boolean hasPayload(byte[] payload) {
-        return false;
+    public boolean hasPayload(@NonNull byte[] payload) {
+        return transactionDao.existsByPayload(payload);
     }
 
     @Override
     public Optional<Transaction> getTransactionByHash(byte[] hash) {
-        return Optional.empty();
+        return transactionDao.findById(hash).map(Mapping::getFromTransactionEntity);
     }
 
     @Override

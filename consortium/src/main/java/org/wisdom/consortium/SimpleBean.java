@@ -27,9 +27,12 @@ public class SimpleBean {
 
     @PostConstruct
     public void init(){
-        blockStoreService.writeBlock(
-                Mapping.getFromBlockEntity(getBlock(0))
-        );
+        for(int i = 0; i< 1; i++){
+            blockStoreService.writeBlock(
+                    Mapping.getFromBlockEntity(getBlock(i))
+            );
+        }
+        blockStoreService.getBlockByHeight(0);
     }
 
     private Block getBlock(long height){
