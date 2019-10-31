@@ -1,19 +1,11 @@
 package org.wisdom.consortium;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Range;
 import org.springframework.stereotype.Component;
 import org.wisdom.consortium.dao.BlockDao;
-import org.wisdom.consortium.dao.Mapping;
-import org.wisdom.consortium.entity.Block;
-import org.wisdom.consortium.entity.HeaderAdapter;
-import org.wisdom.consortium.entity.Transaction;
 import org.wisdom.consortium.service.BlockStoreService;
-import org.wisdom.util.BigEndian;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 @Component
 public class SimpleBean {
