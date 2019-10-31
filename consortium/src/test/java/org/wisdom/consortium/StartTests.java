@@ -7,9 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-
 @RunWith(SpringRunner.class)
-@SpringBootTest
+@SpringBootTest(classes = Start.class)
 public class StartTests {
 
     @Autowired
@@ -19,5 +18,10 @@ public class StartTests {
     public void test(){
         assert objectMapper != null;
         System.out.println("===========================================");
+    }
+
+    @Test
+    public void testSaveBlocks(){
+
     }
 }

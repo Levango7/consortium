@@ -4,12 +4,22 @@ spring:
     username: 'username'
     password: 'password'
 
-#  jpa:
-#    hibernate:
-#      ddl-auto: create-drop # create, update
+  jpa:
+    hibernate:
+      ddl-auto: update # create, update
 #    show-sql: true # enable jpa sql logs
+    properties:
+      hibernate:
+        format_sql: 'true'
 
 server:
   port: '8080'
 
-
+logging:
+  level:
+    org.hibernate:
+      SQL: 'DEBUG'
+      type.descriptor.sql.BasicBinder: 'TRACE'
+    org.springframework.jdbc.core:
+      JdbcTemplate: 'DEBUG'
+      StatementCreatorUtils: 'TRACE'
