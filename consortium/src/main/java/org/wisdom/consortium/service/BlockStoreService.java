@@ -93,12 +93,12 @@ public class BlockStoreService implements BlockStore {
 
     @Override
     public Header getBestHeader() {
-        return Mapping.getFromHeaderEntity(headerDao.findTopByOrderByHeightAsc().get());
+        return Mapping.getFromHeaderEntity(headerDao.findTopByOrderByHeightDesc().get());
     }
 
     @Override
     public Block getBestBlock() {
-        return Mapping.getFromBlockEntity(blockDao.findTopByOrderByHeightAsc().get());
+        return Mapping.getFromBlockEntity(blockDao.findTopByOrderByHeightDesc().get());
     }
 
     @Override

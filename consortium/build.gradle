@@ -45,6 +45,5 @@ bootRun {
 bootRun.dependsOn += copyDependencies
 
 test {
-    jvmArgs = ["-Dspring.config.location=classpath:/application.yml,F:\\consortium\\consortium\\local\\local.yml" ]
     useJUnitPlatform()
 }
