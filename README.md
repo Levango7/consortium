@@ -17,3 +17,7 @@ https://docs.spring.io/spring-data/jpa/docs/current/reference/html/
 
 https://jingyan.baidu.com/article/0a52e3f4e53ca1bf63ed725c.html
 
+4. configurations override
+
+-Dspring.config.location=classpath:\application.yml,some-path\custom-config.yml
+

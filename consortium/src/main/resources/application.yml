@@ -1,13 +1,15 @@
 spring:
   datasource:
-    url: ${DATA_SOURCE_URL:jdbc:postgresql://localhost:5432/your-data-base}
-    username: ${DB_USERNAME:username}
-    password: ${DB_PASSWORD:password}
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    show-sql: true
+    url: 'jdbc:postgresql://localhost:5432/your-data-base'
+    username: 'username'
+    password: 'password'
+
+#  jpa:
+#    hibernate:
+#      ddl-auto: create-drop # create, update
+#    show-sql: true # enable jpa sql logs
+
+server:
+  port: '8080'
 
 
-consortium:
-  config: ${CONFIG_FILE:}

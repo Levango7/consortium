@@ -29,4 +29,7 @@ public class Start {
         SimpleModule module = new SimpleModule();
         return mapper.registerModule(module);
     }
+
+    // load configuration dynamically
+
 }
