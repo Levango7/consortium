@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface TransactionDao extends JpaRepository<Transaction, String> {
     List<Transaction> findTransactionsByBlockHashIn(Collection<byte[]> blockHashes);
+    List<Transaction> findTransactionsByBlockHashOrderByPosition(byte[] blockHash);
 }

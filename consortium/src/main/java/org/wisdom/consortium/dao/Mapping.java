@@ -5,6 +5,7 @@ import org.wisdom.consortium.entity.Block;
 import org.wisdom.consortium.entity.HeaderAdapter;
 import org.wisdom.consortium.entity.Transaction;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -13,7 +14,7 @@ public class Mapping {
     public static org.wisdom.common.Block getFromBlockEntity(Block block){
         org.wisdom.common.Header header = getFromHeaderEntity(block);
         org.wisdom.common.Block res = new org.wisdom.common.Block(header);
-        res.setBody(getFromTransactionsEntity(block.getBody()));
+        res.setBody(getFromTransactionEntities(block.getBody()));
         return res;
     }
 
@@ -33,7 +34,7 @@ public class Mapping {
                 .build();
     }
 
-    public static List<org.wisdom.common.Header> getFromHeadersEntity(Collection<? extends HeaderAdapter> headers){
+    public static List<org.wisdom.common.Header> getFromHeaderEntities(Collection<? extends HeaderAdapter> headers){
         return headers.stream().map(Mapping::getFromHeaderEntity).collect(Collectors.toList());
     }
 
@@ -47,10 +48,40 @@ public class Mapping {
                 .build();
     }
 
-    public static List<org.wisdom.common.Transaction> getFromTransactionsEntity(Collection<Transaction> transactions){
+    public static List<org.wisdom.common.Transaction> getFromTransactionEntities(Collection<Transaction> transactions){
         return transactions.stream()
                 .sorted((x, y) -> x.getPosition() - y.getPosition())
                 .map(Mapping::getFromTransactionEntity)
                 .collect(Collectors.toList());
+    }
+
+    public static Block getEntityFromBlock(org.wisdom.common.Block block){
+        HeaderAdapter adapter = HeaderAdapter.builder().hash(block.getHash().getBytes())
+                .version(block.getVersion())
+                .hashPrev(block.getHashPrev().getBytes())
+                .merkleRoot(block.getMerkleRoot().getBytes())
+                .height(block.getHeight())
+                .createdAt(block.getCreatedAt())
+                .payload(block.getPayload().getBytes()).build();
+        Block b = new Block(adapter);
+        b.setBody(new ArrayList<>(block.getBody().size()));
+        for(int i = 0; i < b.getBody().size(); i++){
+            org.wisdom.common.Transaction tx = block.getBody().get(i);
+            Transaction mapped = Transaction.builder().blockHash(block.getHash().getBytes())
+                    .hash(tx.getHash().getBytes())
+                    .version(tx.getVersion())
+                    .type(tx.getType())
+                    .createdAt(tx.getCreatedAt())
+                    .nonce(tx.getNonce())
+                    .from(tx.getFrom().getBytes())
+                    .gasPrice(tx.getGasPrice())
+                    .amount(tx.getAmount())
+                    .payload(tx.getPayload().getBytes())
+                    .to(tx.getTo().getBytes())
+                    .signature(tx.getSignature().getBytes())
+                    .position(i).build();
+            b.getBody().set(i, mapped);
+        }
+        return b;
     }
 }

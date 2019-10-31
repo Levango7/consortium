@@ -29,43 +29,43 @@ public class Transaction {
         transactions.sort(Comparator.comparingInt(Transaction::getPosition));
     }
 
-    @Column(name = "block_hash")
+    @Column(name = "block_hash", nullable = false)
     private byte[] blockHash;
 
     @Id
-    @Column(name = "transaction_hash")
+    @Column(name = "transaction_hash", nullable = false)
     private byte[] hash;
 
-    @Column(name = "transaction_version")
+    @Column(name = "transaction_version", nullable = false)
     private int version;
 
-    @Column(name = "transaction_type")
+    @Column(name = "transaction_type", nullable = false)
     private int type;
 
-    @Column(name = "transaction_created_at")
+    @Column(name = "transaction_created_at", nullable = false)
     private long createdAt;
 
-    @Column(name = "transaction_nonce")
+    @Column(name = "transaction_nonce", nullable = false)
     private long nonce;
 
-    @Column(name = "transaction_from")
+    @Column(name = "transaction_from", nullable = false)
     private byte[] from;
 
-    @Column(name = "transaction_gas_price")
+    @Column(name = "transaction_gas_price", nullable = false)
     private long gasPrice;
 
-    @Column(name = "transaction_amount")
+    @Column(name = "transaction_amount", nullable = false)
     private long amount;
 
-    @Column(name = "transaction_payload")
+    @Column(name = "transaction_payload", nullable = false)
     public byte[] payload;
 
-    @Column(name = "transaction_to")
+    @Column(name = "transaction_to", nullable = false)
     private byte[] to;
 
-    @Column(name = "transaction_signature")
+    @Column(name = "transaction_signature", nullable = false)
     private byte[] signature;
 
-    @Column(name = "transaction_position")
+    @Column(name = "transaction_position", nullable = false)
     private int position;
 }

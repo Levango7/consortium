@@ -10,6 +10,7 @@ import org.wisdom.consortium.dao.Mapping;
 import org.wisdom.consortium.dao.TransactionDao;
 
 import javax.annotation.PostConstruct;
+import javax.transaction.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -28,15 +29,24 @@ public class BlockStoreService implements BlockStore {
 
     private List<BlockStoreListener> listeners;
 
-    private void emitNewBlockWritten(Block block){
+    private void emitNewBlockWritten(Block block) {
         listeners.forEach(x -> x.onBlockWritten(block));
     }
 
-    private void emitNewBestBlock(Block block){
+    private void emitNewBestBlock(Block block) {
         listeners.forEach(x -> x.onNewBestBlock(block));
     }
 
-    private List<Block> getBlocksFromHeaders(Collection<Header> headers){
+    private Block getBlockFromHeader(Header header) {
+        Block b = new Block(header);
+        b.setBody(
+                transactionDao.findTransactionsByBlockHashOrderByPosition(b.getHash().getBytes())
+                        .stream().map(Mapping::getFromTransactionEntity).collect(Collectors.toList())
+        );
+        return b;
+    }
+
+    private List<Block> getBlocksFromHeaders(Collection<Header> headers) {
         List<org.wisdom.consortium.entity.Transaction> transactions = transactionDao.findTransactionsByBlockHashIn(
                 headers.stream().map(h -> h.getHash().getBytes()).collect(Collectors.toList())
         );
@@ -49,9 +59,9 @@ public class BlockStoreService implements BlockStore {
         });
         List<Block> blocks = headers.stream().map(Block::new).collect(Collectors.toList());
 
-        for(Block b: blocks){
+        for (Block b : blocks) {
             List<org.wisdom.consortium.entity.Transaction> list = transactionLists.get(b.getHash().toString());
-            if (list == null){
+            if (list == null) {
                 continue;
             }
             list.sort((x, y) -> x.getPosition() - y.getPosition());
@@ -62,7 +72,7 @@ public class BlockStoreService implements BlockStore {
 
     // if genesis not exists, write genesis here
     @PostConstruct
-    public void init(){
+    public void init() {
 
     }
 
@@ -103,7 +113,7 @@ public class BlockStoreService implements BlockStore {
 
     @Override
     public List<Header> getHeaders(long startHeight, int limit) {
-        return Mapping.getFromHeadersEntity(headerDao
+        return Mapping.getFromHeaderEntities(headerDao
                 .findByHeightGreaterThanEqual(startHeight, PageRequest.of(0, limit)));
     }
 
@@ -125,7 +135,7 @@ public class BlockStoreService implements BlockStore {
 
     @Override
     public List<Header> getHeadersBetween(long startHeight, long stopHeight, int limit) {
-        return Mapping.getFromHeadersEntity(
+        return Mapping.getFromHeaderEntities(
                 headerDao.findByHeightBetweenOrderByHeightAsc(
                         startHeight, startHeight, PageRequest.of(0, limit)
                 )
@@ -134,7 +144,7 @@ public class BlockStoreService implements BlockStore {
 
     @Override
     public List<Header> getHeadersBetweenDescend(long startHeight, long stopHeight, int limit) {
-        return Mapping.getFromHeadersEntity(
+        return Mapping.getFromHeaderEntities(
                 headerDao.findByHeightBetweenOrderByHeightDesc(
                         startHeight, startHeight, PageRequest.of(0, limit)
                 )
@@ -163,26 +173,48 @@ public class BlockStoreService implements BlockStore {
 
     @Override
     public Optional<Header> getAncestorHeader(byte[] hash, long ancestorHeight) {
-        return Optional.empty();
+        Optional<org.wisdom.consortium.entity.Header> header = headerDao.findById(hash);
+        return header.map(h -> headerDao.findByHeightBetweenOrderByHeight(ancestorHeight, h.getHeight()))
+                .map(ChainCache::new)
+                .flatMap(c -> c.getAncestor(header.get(), ancestorHeight))
+                .map(Mapping::getFromHeaderEntity);
     }
 
     @Override
-    public Block getAncestorBlock(byte[] hash, long ancestorHeight) {
-        return null;
+    public Optional<Block> getAncestorBlock(byte[] hash, long ancestorHeight) {
+        Optional<Header> header = getAncestorHeader(hash, ancestorHeight);
+        return header.map(this::getBlockFromHeader);
     }
 
     @Override
     public List<Header> getAncestorHeaders(byte[] hash, int limit) {
-        return null;
+        Optional<org.wisdom.consortium.entity.Header> header = headerDao.findById(hash);
+        return header.map(h ->
+                    headerDao.findByHeightBetweenOrderByHeightDesc(
+                            header.get().getHeight() - limit + 1, h.getHeight(), PageRequest.of(0, limit)
+                    )
+        )
+                .map(ChainCache::new)
+                .map(c -> c.getAncestors(header.get()))
+                .map(Mapping::getFromHeaderEntities)
+                .orElse(new ArrayList<>());
     }
 
     @Override
     public List<Block> getAncestorBlocks(byte[] hash, int limit) {
-        return null;
+        Optional<Block> block = getBlock(hash);
+        return block.map(h ->
+                getBlocksBetweenDescend(
+                        block.get().getHeight() - limit + 1, h.getHeight(), limit)
+                )
+                .map(ChainCache::new)
+                .map(c -> c.getAncestors(block.get()))
+                .orElse(new ArrayList<>());
     }
 
     @Override
+    @Transactional
     public boolean writeBlock(Block block) {
-        return false;
+        return blockDao.save(Mapping.getEntityFromBlock(block)) != null;
     }
 }

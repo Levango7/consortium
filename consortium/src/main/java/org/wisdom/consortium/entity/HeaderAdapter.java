@@ -1,6 +1,8 @@
 package org.wisdom.consortium.entity;
 
 import lombok.*;
+import org.wisdom.common.Chained;
+
 import javax.persistence.*;
 
 @Getter
@@ -10,11 +12,12 @@ import javax.persistence.*;
 @Builder
 @MappedSuperclass
 @Table(name = "header", indexes = {
+        @Index(name = "block_hash_index", columnList = "block_hash"),
         @Index(name = "hash_prev_index", columnList = "hash_prev"),
         @Index(name = "block_height_index", columnList = "block_height"),
         @Index(name = "block_created_at_index", columnList = "block_created_at")
 })
-public class HeaderAdapter {
+public class HeaderAdapter implements Chained {
     @Id
     @Column(name = "block_hash", nullable = false)
     private byte[] hash;

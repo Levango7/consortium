@@ -9,3 +9,11 @@ git subtree push --prefix=foldername someorigin master # push subtree local chan
 git subtree pull --prefix=foldername someorigin master # pull from remote 
 ```
 
+2. spring data jpa usage
+
+https://docs.spring.io/spring-data/jpa/docs/current/reference/html/
+
+3. lombok usage
+
+https://jingyan.baidu.com/article/0a52e3f4e53ca1bf63ed725c.html
+

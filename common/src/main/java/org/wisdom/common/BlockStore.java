@@ -40,7 +40,7 @@ public interface BlockStore {
 
     Optional<Header> getAncestorHeader(byte[] hash, long ancestorHeight);
 
-    Block getAncestorBlock(byte[] hash, long ancestorHeight);
+    Optional<Block> getAncestorBlock(byte[] hash, long ancestorHeight);
 
     List<Header> getAncestorHeaders(byte[] hash, int limit);
 
