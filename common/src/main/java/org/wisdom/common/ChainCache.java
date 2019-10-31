@@ -209,9 +209,8 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>> {
     }
 
     public Optional<T> getAncestor(T node, long height) {
-        String parentKey = node.getHashPrev().toString();
         while (node != null && node.getHeight() > height) {
-            node = nodes.get(parentKey);
+            node = nodes.get(node.getHashPrev().toString());
         }
         if (node != null && node.getHeight() == height) {
             return Optional.of(node);
