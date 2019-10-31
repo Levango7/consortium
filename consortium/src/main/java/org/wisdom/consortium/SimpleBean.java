@@ -4,8 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Range;
 import org.springframework.stereotype.Component;
 import org.wisdom.consortium.dao.BlockDao;
+import org.wisdom.consortium.dao.Mapping;
 import org.wisdom.consortium.entity.Block;
 import org.wisdom.consortium.entity.HeaderAdapter;
+import org.wisdom.consortium.entity.Transaction;
 import org.wisdom.consortium.service.BlockStoreService;
 import org.wisdom.util.BigEndian;
 
@@ -25,15 +27,24 @@ public class SimpleBean {
 
     @PostConstruct
     public void init(){
-//        for(int i = 0; i < 100; i++){
-//            blockDao.save(getBlock(i));
+//        for(int i = 0; i< 100; i++){
+//            blockStoreService.writeBlock(
+//                    Mapping.getFromBlockEntity(getBlock(i))
+//            );
 //        }
-        blockStoreService.getBlocksBetween(1, 100);
+//        blockStoreService.getBlockByHeight(0);
     }
 
     private Block getBlock(long height){
         Block b = new Block(BigEndian.encodeInt64(height), 1, BYTES, BYTES, height, System.currentTimeMillis() / 1000, BYTES);
-        b.setBody(new ArrayList<>());
+        Transaction.TransactionBuilder builder = Transaction.builder().blockHash(BigEndian.encodeInt64(height))
+                .from(BYTES).payload(BYTES).to(BYTES)
+                .signature(BYTES);
+        b.setBody(Arrays.asList(
+                builder.position(0).hash((height + "" + 0).getBytes()).build(),
+                builder.position(1).hash((height + "" + 1).getBytes()).build(),
+                builder.position(2).hash((height + "" + 2).getBytes()).build()
+        ));
         return b;
     }
 }

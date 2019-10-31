@@ -26,9 +26,13 @@ public interface BlockStore {
 
     List<Block> getBlocksBetween(long startHeight, long stopHeight);
 
-    List<Header> getHeadersBetween(long startHeight, long stopHeight, int limit, boolean descend);
+    List<Header> getHeadersBetween(long startHeight, long stopHeight, int limit);
 
-    List<Block> getBlocksBetween(long startHeight, long stopHeight, int limit, boolean descend);
+    List<Header> getHeadersBetweenDescend(long startHeight, long stopHeight, int limit);
+
+    List<Block> getBlocksBetween(long startHeight, long stopHeight, int limit);
+
+    List<Block> getBlocksBetweenDescend(long startHeight, long stopHeight, int limit);
 
     Optional<Header> getHeaderByHeight(long height);
 
@@ -36,7 +40,7 @@ public interface BlockStore {
 
     Optional<Header> getAncestorHeader(byte[] hash, long ancestorHeight);
 
-    Block getAncestorBlock(byte[] hash, long ancestorHeight);
+    Optional<Block> getAncestorBlock(byte[] hash, long ancestorHeight);
 
     List<Header> getAncestorHeaders(byte[] hash, int limit);
 

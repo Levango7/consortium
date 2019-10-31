@@ -6,14 +6,14 @@ import lombok.*;
 import javax.persistence.*;
 import java.util.List;
 
-@Table(name = "header")
 @Entity
+@Table(name = HeaderAdapter.TABLE_HEADER)
 public class Block extends HeaderAdapter {
     @OneToMany(cascade = CascadeType.ALL,
             fetch = FetchType.EAGER)
     @JoinColumn(
-            name = "block_hash",
-            referencedColumnName = "block_hash",
+            name = Transaction.COLUMN_BLOCK_HASH,
+            referencedColumnName = HeaderAdapter.COLUMN_HASH,
             foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT)
     )
     @Getter

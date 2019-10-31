@@ -14,6 +14,10 @@ import java.util.stream.Stream;
 @AllArgsConstructor
 @Builder
 public class Transaction implements Cloneable<Transaction> {
+    private HexBytes blockHash;
+
+    private long height;
+
     private int version;
 
     private int type;
@@ -38,7 +42,9 @@ public class Transaction implements Cloneable<Transaction> {
 
     @Override
     public Transaction clone() {
-        return builder().version(version)
+        return builder()
+                .blockHash(blockHash).height(height)
+                .version(version)
                 .type(type).nonce(nonce)
                 .createdAt(createdAt).from(from)
                 .gasPrice(gasPrice).amount(amount)
