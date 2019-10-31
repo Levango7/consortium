@@ -39,7 +39,7 @@ task copyDependencies(type: Copy) {
 
 bootRun {
 //    jvmArgs = ["-javaagent:build/libs/lib/quasar-core-0.7.10.jar"]
-    main = "com.salpadding.demo.DemoApplication"
+    main = "org.wisdom.consortium.Start"
 }
 
 bootRun.dependsOn += copyDependencies
