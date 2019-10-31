@@ -113,6 +113,8 @@ public class BlockStoreService implements BlockStore {
 
     @Override
     public List<Header> getHeaders(long startHeight, int limit) {
+        if (limit == 0) return new ArrayList<>();
+        if (limit < 0) limit = Integer.MAX_VALUE;
         return Mapping.getFromHeaderEntities(headerDao
                 .findByHeightGreaterThanEqual(startHeight, PageRequest.of(0, limit)));
     }
@@ -135,9 +137,11 @@ public class BlockStoreService implements BlockStore {
 
     @Override
     public List<Header> getHeadersBetween(long startHeight, long stopHeight, int limit) {
+        if (limit == 0) return new ArrayList<>();
+        if (limit < 0) limit = Integer.MAX_VALUE;
         return Mapping.getFromHeaderEntities(
                 headerDao.findByHeightBetweenOrderByHeightAsc(
-                        startHeight, startHeight, PageRequest.of(0, limit)
+                        startHeight, stopHeight, PageRequest.of(0, limit)
                 )
         );
     }
@@ -146,7 +150,7 @@ public class BlockStoreService implements BlockStore {
     public List<Header> getHeadersBetweenDescend(long startHeight, long stopHeight, int limit) {
         return Mapping.getFromHeaderEntities(
                 headerDao.findByHeightBetweenOrderByHeightDesc(
-                        startHeight, startHeight, PageRequest.of(0, limit)
+                        startHeight, stopHeight, PageRequest.of(0, limit)
                 )
         );
     }

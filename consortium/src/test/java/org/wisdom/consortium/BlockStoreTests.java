@@ -13,6 +13,7 @@ import org.wisdom.consortium.dao.Mapping;
 import org.wisdom.util.BigEndian;
 
 import java.util.Arrays;
+import java.util.List;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Start.class)
@@ -37,6 +38,25 @@ public class BlockStoreTests {
         return Mapping.getFromBlockEntity(b);
     }
 
+    private void assertHeader(Header header){
+        assert header.getVersion() == 1;
+        assert Arrays.equals(header.getHash().getBytes(), BigEndian.encodeInt64(header.getHeight()));
+        assert Arrays.equals(header.getHashPrev().getBytes(), BYTES);
+        assert Arrays.equals(header.getMerkleRoot().getBytes(), BYTES);
+        assert Arrays.equals(header.getPayload().getBytes(), BYTES);
+    }
+
+    private void assertBody(Block block){
+        for(int i = 0; i < block.getBody().size(); i++){
+            assert new String(block.getBody().get(i).getHash().getBytes()).equals(block.getHeight() + "" + i);
+        }
+    }
+
+    private void assertBlock(Block block){
+        assertHeader(block.getHeader());
+        assertBody(block);
+    }
+
     @Before
     public void saveBlocks(){
         for(int i = 0; i < 10; i++){
@@ -44,25 +64,20 @@ public class BlockStoreTests {
         }
     }
 
+
     @Test
     public void testGetBestBlock(){
         Block best = blockStore.getBestBlock();
         assert best.getHeight() == 9;
         assert best.getBody().size() == 3;
-        assert new String(best.getBody().get(0).getHash().getBytes()).equals("90");
-        assert new String(best.getBody().get(1).getHash().getBytes()).equals("91");
-        assert new String(best.getBody().get(2).getHash().getBytes()).equals("92");
+        assertBlock(best);
     }
 
     @Test
     public void testGetBestHeader(){
         Header best = blockStore.getBestHeader();
         assert best.getHeight() == 9L;
-        assert best.getVersion() == 1;
-        assert Arrays.equals(best.getHash().getBytes(), BigEndian.encodeInt64(9L));
-        assert Arrays.equals(best.getHashPrev().getBytes(), BYTES);
-        assert Arrays.equals(best.getMerkleRoot().getBytes(), BYTES);
-        assert Arrays.equals(best.getPayload().getBytes(), BYTES);
+        assertHeader(best);
     }
 
     @Test
@@ -76,4 +91,45 @@ public class BlockStoreTests {
         assert blockStore.getBlock(BigEndian.encodeInt64(5)).isPresent();
         assert !blockStore.getBlock(BigEndian.encodeInt64(-1)).isPresent();
     }
+
+    @Test
+    public void testGetHeaders(){
+        assert blockStore.getHeaders(0, 10).size() == 10;
+        assert blockStore.getHeaders(0, 0).size() == 0;
+        assert blockStore.getHeaders(0, -1).size() == 10;
+    }
+
+    @Test
+    public void testGetBlocks(){
+        List<Block> blocks = blockStore.getBlocks(0, 10);
+        assert blocks.size() == 10;
+        assert blockStore.getBlocks(0, 0).size() == 0;
+        assert blockStore.getBlocks(0, -1).size() == 10;
+        blocks.forEach(this::assertBlock);
+    }
+
+    @Test
+    public void testGetHeadersBetween(){
+        List<Header> headers = blockStore.getHeadersBetween(0, 9);
+        assert headers.size() == 10;
+        headers.forEach(this::assertHeader);
+        assert blockStore.getHeadersBetween(0, 0).size() == 1;
+        assert blockStore.getHeadersBetween(0, -1).size() == 0;
+        assert blockStore.getHeadersBetween(0, 9, 0).size() == 0;
+        assert blockStore.getHeadersBetween(0, 9, -1).size() == 10;
+        assert blockStore.getHeadersBetween(0, 9, 10).size() == 10;
+    }
+
+    @Test
+    public void testGetBlocksBetween(){
+        List<Block> blocks = blockStore.getBlocksBetween(0, 9);
+        assert blocks.size() == 10;
+        blocks.forEach(this::assertBlock);
+        assert blockStore.getBlocksBetween(0, 0).size() == 1;
+        assert blockStore.getBlocksBetween(0, -1).size() == 0;
+        assert blockStore.getBlocksBetween(0, 9, 0).size() == 0;
+        assert blockStore.getBlocksBetween(0, 9, -1).size() == 10;
+        assert blockStore.getBlocksBetween(0, 9, 10).size() == 10;
+    }
+
 }
