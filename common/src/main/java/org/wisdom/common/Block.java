@@ -37,8 +37,7 @@ public class Block implements Cloneable<Block>, Chained{
     }
 
     public Block clone() {
-        Block b = new Block();
-        b.header = header.clone();
+        Block b = new Block(header.clone());
         b.setBody(body.stream().map(Transaction::clone).collect(Collectors.toList()));
         return b;
     }

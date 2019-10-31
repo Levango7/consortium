@@ -40,14 +40,14 @@ public class BlockStoreService implements BlockStore {
     private Block getBlockFromHeader(Header header) {
         Block b = new Block(header);
         b.setBody(
-                transactionDao.findTransactionsByBlockHashOrderByPosition(b.getHash().getBytes())
+                transactionDao.findByBlockHashOrderByPosition(b.getHash().getBytes())
                         .stream().map(Mapping::getFromTransactionEntity).collect(Collectors.toList())
         );
         return b;
     }
 
     private List<Block> getBlocksFromHeaders(Collection<Header> headers) {
-        List<org.wisdom.consortium.entity.Transaction> transactions = transactionDao.findTransactionsByBlockHashIn(
+        List<org.wisdom.consortium.entity.Transaction> transactions = transactionDao.findByBlockHashIn(
                 headers.stream().map(h -> h.getHash().getBytes()).collect(Collectors.toList())
         );
 

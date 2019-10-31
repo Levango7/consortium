@@ -7,6 +7,7 @@ import javax.persistence.*;
 @Entity
 @Table(name = "transaction", indexes = {
         @Index(name = "tx_block_hash_index", columnList = Transaction.COLUMN_BLOCK_HASH),
+        @Index(name = "tx_block_height_index", columnList = Transaction.COLUMN_BLOCK_HEIGHT),
         @Index(name = "tx_hash_index", columnList = Transaction.COLUMN_TX_HASH),
         @Index(name = "tx_type_index", columnList = Transaction.COLUMN_TX_TYPE),
         @Index(name = "tx_created_at_index", columnList = Transaction.COLUMN_TX_CREATED_AT),
@@ -23,6 +24,7 @@ import javax.persistence.*;
 @Builder
 public class Transaction {
     static final String COLUMN_BLOCK_HASH = "tx_block_hash";
+    static final String COLUMN_BLOCK_HEIGHT = "tx_block_height";
     static final String COLUMN_TX_HASH = "tx_hash";
     static final String COLUMN_TX_VERSION = "tx_version";
     static final String COLUMN_TX_TYPE = "tx_type";
@@ -38,6 +40,9 @@ public class Transaction {
 
     @Column(name = COLUMN_BLOCK_HASH, nullable = false)
     private byte[] blockHash;
+
+    @Column(name = COLUMN_BLOCK_HEIGHT, nullable = false)
+    private long height;
 
     @Id
     @Column(name = COLUMN_TX_HASH, nullable = false)

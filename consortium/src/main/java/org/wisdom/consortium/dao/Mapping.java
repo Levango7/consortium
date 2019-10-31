@@ -39,7 +39,10 @@ public class Mapping {
     }
 
     public static org.wisdom.common.Transaction getFromTransactionEntity(Transaction transaction){
-        return org.wisdom.common.Transaction.builder().version(transaction.getVersion())
+        return org.wisdom.common.Transaction.builder()
+                .blockHash(new HexBytes(transaction.getBlockHash()))
+                .height(transaction.getHeight())
+                .version(transaction.getVersion())
                 .type(transaction.getType()).createdAt(transaction.getCreatedAt())
                 .nonce(transaction.getNonce()).from(new HexBytes(transaction.getFrom()))
                 .gasPrice(transaction.getGasPrice()).amount(transaction.getAmount())
@@ -67,7 +70,9 @@ public class Mapping {
         b.setBody(new ArrayList<>(block.getBody().size()));
         for(int i = 0; i < block.getBody().size(); i++){
             org.wisdom.common.Transaction tx = block.getBody().get(i);
-            Transaction mapped = Transaction.builder().blockHash(block.getHash().getBytes())
+            Transaction mapped = Transaction.builder()
+                    .blockHash(block.getHash().getBytes())
+                    .height(tx.getHeight())
                     .hash(tx.getHash().getBytes())
                     .version(tx.getVersion())
                     .type(tx.getType())

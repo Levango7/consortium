@@ -10,17 +10,17 @@ public interface TransactionStore {
 
     Optional<Transaction> getTransactionByHash(byte[] hash);
 
-    List<Transaction> getTransactionsByFrom(byte[] from, int offset, int limit);
+    List<Transaction> getTransactionsByFrom(byte[] from, int page, int size);
 
-    List<Transaction> getTransactionsByFromAndType(int type, byte[] from, int offset, int limit);
+    List<Transaction> getTransactionsByFromAndType(byte[] from, int type, int page, int size);
 
-    List<Transaction> getTransactionsByTo(byte[] to, int offset, int limit);
+    List<Transaction> getTransactionsByTo(byte[] to, int page, int size);
 
-    List<Transaction> getTransactionsByToAndType(int type, byte[] from, int offset, int limit);
+    List<Transaction> getTransactionsByToAndType(byte[] to, int type, int page, int size);
 
-    List<Transaction> getTransactionsByFromAndTo(byte[] from, byte[] to, int offset, int limit);
+    List<Transaction> getTransactionsByFromAndTo(byte[] from, byte[] to, int page, int size);
 
-    List<Transaction> getTransactionsByFromAndToAndType(int type, byte[] from, byte[] to, int offset, int limit);
+    List<Transaction> getTransactionsByFromAndToAndType(byte[] from, byte[] to, int type, int page, int size);
 
     List<Transaction> getTransactionsByPayload(byte[] payload);
 

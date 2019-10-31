@@ -2,6 +2,7 @@ package org.wisdom.consortium.service;
 
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.wisdom.common.Transaction;
 import org.wisdom.common.TransactionStore;
 import org.wisdom.consortium.dao.Mapping;
@@ -30,47 +31,51 @@ public class TransactionStoreService implements TransactionStore {
     }
 
     @Override
-    public List<Transaction> getTransactionsByFrom(byte[] from, int offset, int limit) {
-        return null;
+    public List<Transaction> getTransactionsByFrom(byte[] from, int page, int size) {
+        return Mapping.getFromTransactionEntities(transactionDao.findByFrom(from, PageRequest.of(page, size)));
     }
 
     @Override
-    public List<Transaction> getTransactionsByFromAndType(int type, byte[] from, int offset, int limit) {
-        return null;
+    public List<Transaction> getTransactionsByFromAndType(byte[] from, int type, int page, int size) {
+        return Mapping.getFromTransactionEntities(
+                transactionDao.findByFromAndType(from, type, PageRequest.of(page, size))
+        );
     }
 
     @Override
-    public List<Transaction> getTransactionsByTo(byte[] to, int offset, int limit) {
-        return null;
+    public List<Transaction> getTransactionsByTo(byte[] to, int page, int size) {
+        return Mapping.getFromTransactionEntities(transactionDao.findByTo(to, PageRequest.of(page, size)));
     }
 
     @Override
-    public List<Transaction> getTransactionsByToAndType(int type, byte[] from, int offset, int limit) {
-        return null;
+    public List<Transaction> getTransactionsByToAndType(byte[] to, int type , int page, int size) {
+        return Mapping.getFromTransactionEntities(transactionDao.findByToAndType(to, type, PageRequest.of(page, size)));
     }
 
     @Override
-    public List<Transaction> getTransactionsByFromAndTo(byte[] from, byte[] to, int offset, int limit) {
-        return null;
+    public List<Transaction> getTransactionsByFromAndTo(byte[] from, byte[] to, int page, int size) {
+        return Mapping.getFromTransactionEntities(transactionDao.findByFromAndTo(from, to, PageRequest.of(page, size)));
     }
 
     @Override
-    public List<Transaction> getTransactionsByFromAndToAndType(int type, byte[] from, byte[] to, int offset, int limit) {
-        return null;
+    public List<Transaction> getTransactionsByFromAndToAndType(byte[] from, byte[] to, int type, int page, int size) {
+        return Mapping.getFromTransactionEntities(
+                transactionDao.findByFromAndToAndType(from, to, type, PageRequest.of(page, size))
+        );
     }
 
     @Override
     public List<Transaction> getTransactionsByPayload(byte[] payload) {
-        return null;
+        return Mapping.getFromTransactionEntities(transactionDao.findByPayload(payload));
     }
 
     @Override
     public List<Transaction> getTransactionsByBlockHash(byte[] blockHash) {
-        return null;
+        return Mapping.getFromTransactionEntities(transactionDao.findByBlockHashOrderByPosition(blockHash));
     }
 
     @Override
     public List<Transaction> getTransactionsByBlockHeight(long height) {
-        return null;
+        return Mapping.getFromTransactionEntities(transactionDao.findByHeightOrderByPosition(height));
     }
 }
