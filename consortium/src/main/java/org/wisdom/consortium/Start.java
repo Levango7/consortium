@@ -51,11 +51,6 @@ public class Start {
         return resource;
     }
 
-    @Bean
-    @ConditionalOnProperty(
-            name = ApplicationConstants.CONSENSUS_NAME_PROPERTY,
-            havingValue = ApplicationConstants.CONSENSUS_POA
-    )
     public Genesis genesis(ConsortiumConfig config, ObjectMapper objectMapper)
             throws Exception {
         return objectMapper.readValue(
