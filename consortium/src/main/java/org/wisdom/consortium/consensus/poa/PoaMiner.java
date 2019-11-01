@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.wisdom.common.*;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -67,7 +68,7 @@ public class PoaMiner implements Miner {
                 parent.getBody().size() == 0 ||
                 parent.getBody().get(0).getTo() == null
         ) return Optional.empty();
-        String prev = new String(parent.getBody().get(0).getTo().getBytes());
+        String prev = new String(parent.getBody().get(0).getTo().getBytes(), StandardCharsets.UTF_8);
         int prevIndex = genesis.miners.stream().map(x -> x.address).collect(Collectors.toList()).indexOf(prev);
         if (prevIndex < 0) {
             return Optional.empty();
@@ -144,7 +145,7 @@ public class PoaMiner implements Miner {
                 .from(PoAConstants.ZERO_BYTES)
                 .amount(EconomicModelImpl.getConsensusRewardAtHeight(height))
                 .payload(PoAConstants.ZERO_BYTES)
-                .to(new HexBytes(consensusConfig.getMinerCoinBase().getBytes()))
+                .to(new HexBytes(consensusConfig.getMinerCoinBase().getBytes(StandardCharsets.UTF_8)))
                 .signature(PoAConstants.ZERO_BYTES).build();
         tx.setHash(new HexBytes(PoAUtils.getHash(tx)));
         return tx;
