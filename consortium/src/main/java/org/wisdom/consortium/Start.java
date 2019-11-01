@@ -4,12 +4,9 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.google.gson.Gson;
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ApplicationContextException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
@@ -17,10 +14,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.util.StreamUtils;
 import org.wisdom.consortium.consensus.config.Genesis;
 
-import java.nio.charset.Charset;
 
 @EnableAsync
 @EnableScheduling
