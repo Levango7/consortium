@@ -27,8 +27,12 @@ public class SimpleBean {
     @Autowired
     private ObjectMapper objectMapper;
 
+    private ConsortiumConfig.ConsensusConfig consensusConfig;
+
     @Autowired
-    private ConsortiumConfig consortiumConfig;
+    public void setConsensusConfig(ConsortiumConfig consortiumConfig){
+        consensusConfig = consortiumConfig.getConsensus();
+    }
 
     @PostConstruct
     public void init() throws JsonProcessingException {
@@ -39,7 +43,7 @@ public class SimpleBean {
 //        }
 //        blockStoreService.getHeadersBetween(1, 100);
         System.out.println(objectMapper.writeValueAsString(genesis));
-        System.out.println(consortiumConfig.getConsensus().getGenesis());
+        System.out.println(consensusConfig.getGenesis());
     }
 
 
