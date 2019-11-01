@@ -9,6 +9,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.wisdom.common.Block;
 import org.wisdom.common.BlockStore;
 import org.wisdom.common.Header;
+import org.wisdom.consortium.service.BlockStoreService;
 import org.wisdom.util.BigEndian;
 
 import java.util.Arrays;
@@ -24,7 +25,7 @@ import static org.wisdom.consortium.TestUtils.getBlock;
 // for example: SPRING_CONFIG_LOCATION=classpath:\application.yml,some-path\custom-config.yml
 public class BlockStoreTests {
     @Autowired
-    private BlockStore blockStore;
+    private BlockStoreService blockStore;
 
     private void assertHeader(Header header) {
         assert header.getVersion() == 1;

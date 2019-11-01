@@ -8,6 +8,8 @@ import org.wisdom.consortium.dao.BlockDao;
 import org.wisdom.consortium.dao.HeaderDao;
 import org.wisdom.consortium.dao.Mapping;
 import org.wisdom.consortium.dao.TransactionDao;
+import org.wisdom.exception.GenesisConflictsException;
+import org.wisdom.exception.WriteGenesisFailedException;
 
 import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
@@ -70,15 +72,22 @@ public class BlockStoreService implements BlockStore {
         return blocks;
     }
 
-    // if genesis not exists, write genesis here
-    @PostConstruct
-    public void init() {
-
-    }
-
     @Override
     public void subscribe(BlockStoreListener... listeners) {
         this.listeners.addAll(Arrays.asList(listeners));
+    }
+
+    @Override
+    public void saveGenesis(Block block) throws GenesisConflictsException, WriteGenesisFailedException {
+        this.genesis = block;
+        Optional<Block> o = getBlockByHeight(0);
+        if (!o.isPresent()){
+            writeBlock(genesis);
+            return;
+        }
+        if (!o.get().getHash().equals(block.getHash())){
+            throw new GenesisConflictsException("genesis in db not equals to genesis in configuration");
+        }
     }
 
     @Override

@@ -9,8 +9,8 @@ import org.wisdom.consortium.consensus.poa.config.Genesis;
 import org.wisdom.consortium.util.FileUtils;
 import org.wisdom.exception.ConsensusEngineLoadException;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Properties;
 
 public class PoA implements ConsensusEngine {
@@ -28,15 +28,14 @@ public class PoA implements ConsensusEngine {
     }
 
     @Override
-    public Optional<Block> getConfirmed(List<Block> unconfirmed) {
-        return Optional.empty();
+    public List<Block> getConfirmed(List<Block> unconfirmed) {
+        return new ArrayList<>();
     }
 
     @Override
     public void load(Properties properties) throws ConsensusEngineLoadException {
         JavaPropsMapper mapper = new JavaPropsMapper();
         ObjectMapper objectMapper = new ObjectMapper().enable(JsonParser.Feature.ALLOW_COMMENTS);
-        PoAConfig poAConfig;
         try{
             poAConfig = mapper.readPropertiesAs(properties, PoAConfig.class);
         }catch (Exception e){
@@ -64,14 +63,10 @@ public class PoA implements ConsensusEngine {
     }
 
     @Override
-    public void use(BlockStore blockStore) {
+    public void use(ForkAbleDataStore blockStore) {
         poaMiner.setBlockStore(blockStore);
     }
 
-    @Override
-    public void use(TransactionStore transactionStore) {
-
-    }
 
     @Override
     public ValidateResult validateBlock(Block block, Block dependency) {

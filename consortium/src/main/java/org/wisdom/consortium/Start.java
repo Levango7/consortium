@@ -10,12 +10,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.wisdom.common.Block;
-import org.wisdom.common.BlockStore;
-import org.wisdom.common.ConsensusEngine;
-import org.wisdom.common.MinerListener;
+import org.wisdom.common.*;
 import org.wisdom.consortium.consensus.poa.PoA;
 import org.wisdom.consortium.consensus.poa.PoAConfig;
+import org.wisdom.consortium.service.BlockStoreService;
 
 
 @EnableAsync
@@ -39,7 +37,7 @@ public class Start {
     }
 
     @Bean
-    public ConsensusEngine consensusEngine(ConsensusProperties consensusProperties, BlockStore blockStore) throws Exception{
+    public ConsensusEngine consensusEngine(ConsensusProperties consensusProperties, ForkAbleDataStore forkAbleDataStore) throws Exception{
         String name = consensusProperties.getConsensus().getProperty(ConsensusProperties.CONSENSUS_NAME);
         ConsensusEngine engine;
         switch (name.toLowerCase()){
@@ -49,14 +47,14 @@ public class Start {
                 engine = new PoA();
         }
         engine.load(consensusProperties.getConsensus());
-        blockStore.writeBlock(engine.getGenesis());
-        engine.use(blockStore);
+        forkAbleDataStore.saveGenesis(engine.getGenesis());
+        engine.use(forkAbleDataStore);
+        forkAbleDataStore.use(engine);
         engine.subscribe(new MinerListener() {
             @Override
             public void onBlockMined(Block block) {
-                blockStore.writeBlock(block);
+                forkAbleDataStore.writeBlock(block);
             }
-
             @Override
             public void onMiningFailed(Block block) {
 
