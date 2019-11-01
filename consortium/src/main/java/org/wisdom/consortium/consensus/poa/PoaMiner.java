@@ -18,7 +18,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 import org.wisdom.util.BigEndian;
-import org.springframework.stereotype.Component;
 
 @Slf4j
 public class PoaMiner implements Miner {

@@ -1,14 +1,16 @@
-package org.wisdom.consortium.consensus.config;
+package org.wisdom.consortium.consensus.poa.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.wisdom.common.Block;
+import org.wisdom.consortium.consensus.config.ConsensusConfig;
+import org.wisdom.consortium.consensus.config.Genesis;
 import org.wisdom.consortium.consensus.poa.Proposer;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-public class ConsensusConfigImpl implements ConsensusConfig{
+public class ConsensusConfigImpl implements ConsensusConfig {
 
     @Autowired
     private Genesis genesis;

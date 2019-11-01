@@ -15,10 +15,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.util.StreamUtils;
 import org.wisdom.consortium.consensus.config.Genesis;
-
-import java.nio.charset.Charset;
 
 @EnableAsync
 @EnableScheduling

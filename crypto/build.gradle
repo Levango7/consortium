@@ -19,4 +19,11 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.61'
+    compile "commons-codec:commons-codec:1.10"
+    // https://mvnrepository.com/artifact/com.kosprov.jargon2/jargon2-api
+    compile group: 'com.kosprov.jargon2', name: 'jargon2-api', version: '1.1.1'
+    compile group: 'com.google.protobuf', name: 'protobuf-java', version: '3.6.1'
+    // https://mvnrepository.com/artifact/com.alibaba/fastjson
+    compile group: 'com.alibaba', name: 'fastjson', version: '1.2.47'
 }
