@@ -90,7 +90,7 @@ public class TransactionStoreTests {
         assert transactions.size() == 3;
         transactions.forEach(t -> {
             assert t.getHeight() == 0;
-//            assertTransaction(t);
+            assertTransaction(t);
         });
     }
 }
