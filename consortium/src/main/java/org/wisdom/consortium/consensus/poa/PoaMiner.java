@@ -1,33 +1,28 @@
 package org.wisdom.consortium.consensus.poa;
 
 
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
+
 import com.google.common.primitives.Bytes;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.wisdom.common.*;
 import org.wisdom.consortium.consensus.config.ConsensusConfig;
 import org.wisdom.consortium.consensus.economic.EconomicModel;
 
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
-import org.wisdom.consortium.consensus.event.NewBlockMinedEvent;
 import org.wisdom.util.BigEndian;
 import org.springframework.stereotype.Component;
 
-@Component
+@Slf4j
 public class PoaMiner implements Miner {
 
-    @Autowired
     private TransactionPool pool;
 
     @Autowired
@@ -36,20 +31,17 @@ public class PoaMiner implements Miner {
     @Autowired
     private EconomicModel economicModel;
 
-    private EventBus eventBus;
+    private List<MinerListener> listeners;
 
     public PoaMiner() {
-        this.eventBus = new EventBus("miner");
-        eventBus.register(this);
+        listeners = new ArrayList<>();
     }
 
     @Autowired
     private ConsensusConfig consensusConfig;
 
-    private volatile MineThread thread;
+    private volatile CompletableFuture<Void> task;
 
-    @Autowired
-    private ApplicationContext ctx;
 
     @Override
     public void start() {
@@ -63,9 +55,10 @@ public class PoaMiner implements Miner {
 
     @Scheduled(fixedRate = 1000)
     public void tryMine() {
-        if (thread != null && !thread.isTerminated()) {
+        if (task != null && !task.isDone()) {
             return;
         }
+
         if (!consensusConfig.isEnableMining()) {
             return;
         }
@@ -77,8 +70,16 @@ public class PoaMiner implements Miner {
             }
             try {
                 Block b = createBlock();
-                thread = ctx.getBean(MineThread.class);
-                thread.mine(this.eventBus, b, proposer.getStartTimeStamp(), proposer.getEndTimeStamp());
+                task = CompletableFuture
+                        .supplyAsync(() -> MineThread.pow(b, proposer.getStartTimeStamp(), proposer.getEndTimeStamp()))
+                        .thenAcceptAsync(r -> {
+                            if (r.isSuccess()) {
+                                listeners.forEach(l -> l.onBlockMined(r.getBlock()));
+                                return;
+                            }
+                            listeners.forEach(l -> l.onMiningFailed(r.getBlock()));
+                        })
+                ;
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -87,6 +88,10 @@ public class PoaMiner implements Miner {
 
     private Transaction createCoinBase(long height) throws DecoderException {
         Transaction tx = new Transaction();
+        tx.setVersion(consensusConfig.DEFAULT_TRANSACTION_VERSION);
+        tx.setFrom(new HexBytes(new byte[consensusConfig.PUBLIC_KEY_SIZE]));
+        tx.setTo(new HexBytes(new byte[consensusConfig.PUBLIC_KEY_HASH_SIZE]));
+        tx.setSignature(new HexBytes(new byte[consensusConfig.SIGNATURE_SIZE]));
         tx.setAmount(economicModel.getConsensusRewardAtHeight(height));
         tx.setTo(new HexBytes(Hex.decodeHex(consensusConfig.getMinerPubKeyHash().toCharArray())));
         return tx;
@@ -123,27 +128,17 @@ public class PoaMiner implements Miner {
         return block;
     }
 
-    private List<Block> blocks = new ArrayList<>();
-
-    @Subscribe
-    public void listen(NewBlockMinedEvent event) {
-        Block o = event.getBlock();
-        blocks.add(o);
-    }
-
 
     @Override
     public void subscribe(MinerListener... listeners) {
-//        listeners[0].onBlockMined();
+        this.listeners.addAll(Arrays.asList(listeners));
     }
 
     @Override
     public void onBlockWritten(Block block) {
-        blocks.remove(block);
     }
 
     @Override
     public void onNewBestBlock(Block block) {
-        blocks.add(block);
     }
 }

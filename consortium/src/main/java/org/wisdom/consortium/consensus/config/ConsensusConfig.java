@@ -11,6 +11,14 @@ public interface ConsensusConfig {
 
     int mineBlockMaxSize = 5000;
 
+    int DEFAULT_TRANSACTION_VERSION = 1;
+
+    int PUBLIC_KEY_SIZE = 32;
+
+    int SIGNATURE_SIZE = 64;
+
+    int PUBLIC_KEY_HASH_SIZE = 20;
+
     boolean isEnableMining();
 
     String getMinerPubKeyHash();

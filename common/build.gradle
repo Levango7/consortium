@@ -27,4 +27,5 @@ dependencies {
 
     compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
     annotationProcessor 'org.projectlombok:lombok:1.18.10'
+    compile 'com.google.code.gson:gson:2.8.6'
 }
