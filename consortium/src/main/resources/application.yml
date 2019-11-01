@@ -1,16 +1,20 @@
 spring:
   datasource:
-    url: 'jdbc:postgresql://localhost:5432/your-data-base'
+    url: 'jdbc:postgresql://localhost:5432/your-data-base' # SPRING_DATASOURCE_URL
     username: 'username'
     password: 'password'
 
-  jpa:
-    hibernate:
-      ddl-auto: update # create, update
+#  jpa:
+#    database-platform: org.hibernate.dialect.MySQL5Dialect
+#    hibernate:
+#      ddl-auto: create-drop # create, update
 #    show-sql: true # enable jpa sql logs
-    properties:
-      hibernate:
-        format_sql: 'true'
+
+
+
+# 创世区块文件
+consortium.consensus.genesis: 'genesis/wisdom-genesis-generator.json'
+
 
 server:
   port: '8080'
