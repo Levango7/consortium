@@ -19,7 +19,7 @@ public class ConsensusEngineAdapter implements ConsensusEngine {
     }
 
     @Override
-    public void use(ForkAbleDataStore dataStore) {
+    public void setDataStore(ForkAbleDataStore dataStore) {
 
     }
 

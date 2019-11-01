@@ -5,5 +5,5 @@ import java.util.List;
 public interface ForkAbleDataStore extends BlockStore, TransactionStore{
     Block getLastConfirmed();
     List<Block> getUnconfirmed();
-    void use(ConfirmedBlocksProvider provider);
+    void setProvider(ConfirmedBlocksProvider provider);
 }

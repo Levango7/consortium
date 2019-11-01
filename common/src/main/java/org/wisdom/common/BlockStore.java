@@ -6,7 +6,6 @@ import org.wisdom.exception.WriteGenesisFailedException;
 import java.util.List;
 import java.util.Optional;
 
-// TODO: add save genesis method
 public interface BlockStore {
     void subscribe(BlockStoreListener... listeners);
 

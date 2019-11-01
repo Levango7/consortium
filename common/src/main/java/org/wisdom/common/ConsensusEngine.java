@@ -14,5 +14,5 @@ public interface ConsensusEngine extends Miner,
 
     void load(Properties properties) throws ConsensusEngineLoadException;
 
-    void use(ForkAbleDataStore dataStore);
+    void setDataStore(ForkAbleDataStore dataStore);
 }

@@ -18,5 +18,5 @@ public interface TransactionPool extends MinerListener, BlockStoreListener{
     // get size of current transaction pool
     int size();
 
-    void use(PendingTransactionValidator validator);
+    void setValidator(PendingTransactionValidator validator);
 }

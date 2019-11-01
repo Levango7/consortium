@@ -54,8 +54,8 @@ public class Start {
         }
         engine.load(consensusProperties.getConsensus());
         forkAbleDataStore.saveGenesis(engine.getGenesis());
-        engine.use(forkAbleDataStore);
-        forkAbleDataStore.use(engine);
+        engine.setDataStore(forkAbleDataStore);
+        forkAbleDataStore.setProvider(engine);
         engine.subscribe(new MinerListener() {
             @Override
             public void onBlockMined(Block block) {

@@ -64,7 +64,7 @@ public class PoA implements ConsensusEngine {
     }
 
     @Override
-    public void use(ForkAbleDataStore blockStore) {
+    public void setDataStore(ForkAbleDataStore blockStore) {
         poaMiner.setBlockStore(blockStore);
     }
 

@@ -30,7 +30,7 @@ public class ForkAbleDataStoreService implements ForkAbleDataStore {
     }
 
     @Override
-    public void use(ConfirmedBlocksProvider provider) {
+    public void setProvider(ConfirmedBlocksProvider provider) {
 
     }
 
