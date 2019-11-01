@@ -37,17 +37,19 @@ public class Start {
     }
 
     @Bean
-    public ConsensusEngine consensusEngine(ConsensusProperties consensusProperties, ForkAbleDataStore forkAbleDataStore) throws Exception{
+    public ConsensusEngine consensusEngine(ConsensusProperties consensusProperties, ForkAbleDataStore forkAbleDataStore) throws Exception {
         String name = consensusProperties.getConsensus().getProperty(ConsensusProperties.CONSENSUS_NAME);
         ConsensusEngine engine = null;
-        switch (name.toLowerCase()){
+        switch (name.toLowerCase()) {
             // use poa as default consensus
             // another engine: pow, pos, pow+pos, vrf
             case ApplicationConstants.CONSENSUS_POA:
                 engine = new PoA();
         }
-        if (engine == null){
-            log.info("none available consensus configured by consortium.consensus.name= " + name, " please provide available consensus engine");
+        if (engine == null) {
+            log.warn(
+                    "none available consensus configured by consortium.consensus.name=" + name +
+                    " please provide available consensus engine");
             return new ConsensusEngineAdapter();
         }
         engine.load(consensusProperties.getConsensus());
@@ -59,6 +61,7 @@ public class Start {
             public void onBlockMined(Block block) {
                 forkAbleDataStore.writeBlock(block);
             }
+
             @Override
             public void onMiningFailed(Block block) {
 
