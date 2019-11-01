@@ -1,4 +1,4 @@
-package org.wisdom.consortium.consensus.config;
+package org.wisdom.consortium.consensus.poa.config;
 
 import org.wisdom.common.Block;
 import org.wisdom.consortium.consensus.poa.Proposer;

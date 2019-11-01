@@ -11,7 +11,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class Proposer {
 
-    private String pubkeyHash;
+    private String address;
 
     private long startTimeStamp;
 

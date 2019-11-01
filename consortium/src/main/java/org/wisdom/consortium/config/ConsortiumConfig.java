@@ -16,7 +16,11 @@ public class ConsortiumConfig {
 
     @Getter@Setter@NoArgsConstructor
     public static class ConsensusConfig{
+        private String name;
         private String genesis;
+        private int blockInterval;
+        private boolean enableMining;
+        private String minerCoinBase;
     }
 
     @NestedConfigurationProperty

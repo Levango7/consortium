@@ -12,8 +12,14 @@ spring:
 
 
 
-# 创世区块文件
-consortium.consensus.genesis: 'genesis/wisdom-genesis-generator.json'
+# consortium configurations
+consortium:
+  consensus:
+    name: 'poa'
+    genesis: 'genesis/wisdom-genesis-generator.json'
+    block-interval: '30'
+    enable-mining: 'true'
+    miner-coin-base: '1JWhUiZCWps56uZckAvzxy2ex6VGhrMXdD'
 
 
 server:
