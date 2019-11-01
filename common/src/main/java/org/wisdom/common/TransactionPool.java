@@ -3,7 +3,7 @@ package org.wisdom.common;
 import java.util.List;
 import java.util.Optional;
 
-public interface TransactionPool {
+public interface TransactionPool extends MinerListener{
 
     // collect transactions into transaction pool
     void collect(Transaction... transactions);
