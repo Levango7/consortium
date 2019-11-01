@@ -42,7 +42,9 @@ public class Start {
     public ConsensusEngine consensusEngine(ConsensusProperties consensusProperties, BlockStore blockStore) throws Exception{
         String name = consensusProperties.getConsensus().getProperty(ConsensusProperties.CONSENSUS_NAME);
         ConsensusEngine engine;
-        switch (name){
+        switch (name.toLowerCase()){
+            // use poa as default consensus
+            // another engine: pow, pos, pow+pos, vrf
             default:
                 engine = new PoA();
         }
