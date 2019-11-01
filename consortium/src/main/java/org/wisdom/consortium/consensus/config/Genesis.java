@@ -1,17 +1,18 @@
 package org.wisdom.consortium.consensus.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.wisdom.common.HexBytes;
 
 import java.util.List;
 
 public class Genesis {
-    public String coinbase;
+    public HexBytes coinbase;
 
-    public String nonce;
+    public HexBytes nonce;
 
-    public String hashBlock;
+    public HexBytes hashBlock;
 
-    public String parentHash;
+    public HexBytes parentHash;
 
     public long timestamp;
 

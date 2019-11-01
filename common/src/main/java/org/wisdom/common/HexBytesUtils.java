@@ -43,6 +43,9 @@ class HexBytesUtils {
             if (encoded == null || encoded.equals("")) {
                 return new HexBytes(new byte[]{});
             }
+            if (encoded.startsWith("0x")){
+                encoded = encoded.substring(2);
+            }
             try {
                 return new HexBytes(encoded);
             } catch (Exception e) {

@@ -44,15 +44,13 @@ public class Start {
     // load configuration dynamically
 
     @Bean
-    public Genesis genesis(@Value("${consortium.consensus.genesis}") String genesis)
+    public Genesis genesis(@Value("${consortium.consensus.genesis}") String genesis, ObjectMapper objectMapper)
             throws Exception {
         Resource resource = new FileSystemResource(genesis);
         if (!resource.exists()) {
             resource = new ClassPathResource(genesis);
         }
-        Gson gson = new Gson();
-        String jsonData = StreamUtils.copyToString(resource.getInputStream(), Charset.defaultCharset());
-        return gson.fromJson(jsonData, Genesis.class);
+        return objectMapper.readValue(resource.getInputStream(), Genesis.class);
     }
 
 }
