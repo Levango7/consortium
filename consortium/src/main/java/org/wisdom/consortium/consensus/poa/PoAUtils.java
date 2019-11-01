@@ -5,27 +5,13 @@ import com.google.common.primitives.Bytes;
 import org.wisdom.common.Block;
 import org.wisdom.common.HexBytes;
 import org.wisdom.common.Transaction;
-import org.wisdom.util.BigEndian;
+import org.wisdom.util.CommonUtil;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Stream;
 
 public class PoAUtils {
     public static byte[] getHash(Transaction transaction) {
-        byte[] all = Stream.of(
-                BigEndian.encodeInt32(transaction.getVersion()),
-                BigEndian.encodeInt32(transaction.getType()),
-                BigEndian.encodeInt64(transaction.getCreatedAt()),
-                BigEndian.encodeInt64(transaction.getNonce()),
-                transaction.getFrom() == null ? null : transaction.getFrom().getBytes(),
-                BigEndian.encodeInt64(transaction.getGasPrice()),
-                BigEndian.encodeInt64(transaction.getAmount()),
-                transaction.getPayload() == null ? null : transaction.getPayload().getBytes(),
-                transaction.getTo() == null ? null : transaction.getTo().getBytes(),
-                transaction.getSignature() == null ? null : transaction.getSignature().getBytes()
-        ).filter(Objects::nonNull).reduce(new byte[0], Bytes::concat);
-        return Hashing.sha256().hashBytes(all).asBytes();
+        return Hashing.sha256().hashBytes(CommonUtil.getRaw(transaction)).asBytes();
     }
 
     public static byte[] merkleHash(List<Transaction> transactions) {
@@ -36,13 +22,6 @@ public class PoAUtils {
 
     public static byte[] getHash(Block block) {
         block.setMerkleRoot(new HexBytes(merkleHash(block.getBody())));
-        byte[] all = Stream.of(
-                BigEndian.encodeInt32(block.getVersion()),
-                block.getHashPrev() == null ? null : block.getHashPrev().getBytes(),
-                BigEndian.encodeInt64(block.getHeight()),
-                BigEndian.encodeInt64(block.getCreatedAt()),
-                block.getPayload() == null ? null : block.getPayload().getBytes()
-        ).filter(Objects::nonNull).reduce(new byte[0], Bytes::concat);
-        return Hashing.sha256().hashBytes(all).asBytes();
+        return Hashing.sha256().hashBytes(CommonUtil.getRaw(block.getHeader())).asBytes();
     }
 }

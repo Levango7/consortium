@@ -24,7 +24,6 @@ dependencies {
     compileOnly group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.10.0'
 
     compile group: 'commons-codec', name: 'commons-codec', version: '1.10'
-
     compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
     annotationProcessor 'org.projectlombok:lombok:1.18.10'
     compile 'com.google.code.gson:gson:2.8.6'
