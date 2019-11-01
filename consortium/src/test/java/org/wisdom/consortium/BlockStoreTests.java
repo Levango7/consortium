@@ -47,6 +47,9 @@ public class BlockStoreTests {
 
     @Before
     public void saveBlocks() {
+        if (blockStore.getBlockByHeight(0).isPresent()){
+            return;
+        }
         for (int i = 0; i < 10; i++) {
             blockStore.writeBlock(getBlock(i));
         }
