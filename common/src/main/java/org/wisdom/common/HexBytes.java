@@ -2,6 +2,7 @@ package org.wisdom.common;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import lombok.NonNull;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 
@@ -46,7 +47,7 @@ public class HexBytes {
         return hexCache;
     }
 
-    public HexBytes(byte[] bytes) {
+    public HexBytes(@NonNull byte[] bytes) {
         this.bytes = bytes;
     }
 

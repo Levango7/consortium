@@ -14,8 +14,10 @@ import org.springframework.stereotype.Component;
 @NoArgsConstructor
 public class ConsortiumConfig {
 
-    @Getter@Setter@NoArgsConstructor
-    public static class ConsensusConfig{
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public static class ConsensusConfig {
         private String name;
         private String genesis;
         private int blockInterval;
