@@ -15,6 +15,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.wisdom.consortium.consensus.config.Genesis;
+import org.wisdom.consortium.exception.ApplicationException;
 
 
 @EnableAsync

@@ -1,4 +1,4 @@
-package org.wisdom.consortium;
+package org.wisdom.consortium.exception;
 
 public class ApplicationException extends Exception{
     public ApplicationException() {
