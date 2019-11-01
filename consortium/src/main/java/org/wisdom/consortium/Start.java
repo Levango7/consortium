@@ -5,9 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.gson.Gson;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContextException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
@@ -50,7 +52,9 @@ public class Start {
         if (!resource.exists()) {
             resource = new ClassPathResource(genesis);
         }
+        if (!resource.exists()){
+            throw new ApplicationException("load genesis failed: unable to open genesis file " + genesis);
+        }
         return objectMapper.readValue(resource.getInputStream(), Genesis.class);
     }
-
 }
