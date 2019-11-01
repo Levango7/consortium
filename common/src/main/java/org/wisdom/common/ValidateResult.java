@@ -10,11 +10,11 @@ import lombok.NonNull;
 public class ValidateResult {
     private static final ValidateResult SUCCESS = new ValidateResult(true, "");
 
-    protected static ValidateResult success() {
+    public static ValidateResult success() {
         return SUCCESS;
     }
 
-    protected static ValidateResult fault(String reason) {
+    public static ValidateResult fault(String reason) {
         return new ValidateResult(false, reason);
     }
 
