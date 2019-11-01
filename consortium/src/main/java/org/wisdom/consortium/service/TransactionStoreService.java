@@ -3,6 +3,8 @@ package org.wisdom.consortium.service;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 import org.wisdom.common.Transaction;
 import org.wisdom.common.TransactionStore;
 import org.wisdom.consortium.dao.Mapping;
@@ -11,6 +13,7 @@ import org.wisdom.consortium.dao.TransactionDao;
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class TransactionStoreService implements TransactionStore {
     @Autowired
     private TransactionDao transactionDao;
@@ -32,7 +35,9 @@ public class TransactionStoreService implements TransactionStore {
 
     @Override
     public List<Transaction> getTransactionsByFrom(byte[] from, int page, int size) {
-        return Mapping.getFromTransactionEntities(transactionDao.findByFrom(from, PageRequest.of(page, size)));
+        return Mapping.getFromTransactionEntities(
+                transactionDao.findByFromOrderByHeightAscPositionAsc(from, PageRequest.of(page, size))
+        );
     }
 
     @Override

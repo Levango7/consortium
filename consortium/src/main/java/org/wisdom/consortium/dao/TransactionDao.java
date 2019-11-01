@@ -12,7 +12,7 @@ public interface TransactionDao extends JpaRepository<Transaction, byte[]> {
 
     List<Transaction> findByBlockHashOrderByPosition(byte[] blockHash);
 
-    List<Transaction> findByFrom(byte[] from, Pageable pageable);
+    List<Transaction> findByFromOrderByHeightAscPositionAsc(byte[] from, Pageable pageable);
 
     List<Transaction> findByFromAndType(byte[] from, int type, Pageable pageable);
 
