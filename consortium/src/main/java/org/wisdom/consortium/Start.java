@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableScheduling
 @SpringBootApplication
 @EnableTransactionManagement
-// use SPRING_CONFIG_LOCATION environment to set test.yml
+// use SPRING_CONFIG_LOCATION environment to locate spring config
 // for example: SPRING_CONFIG_LOCATION=classpath:\application.yml,some-path\custom-config.yml
 public class Start {
 

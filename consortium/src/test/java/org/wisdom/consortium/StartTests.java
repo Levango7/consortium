@@ -9,7 +9,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Start.class)
-// use SPRING_CONFIG_LOCATION environment to set test.yml
+// use SPRING_CONFIG_LOCATION environment to locate spring config
 // for example: SPRING_CONFIG_LOCATION=classpath:\application.yml,some-path\custom-config.yml
 public class StartTests {
 
