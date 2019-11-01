@@ -10,23 +10,25 @@ import java.util.List;
 public interface TransactionDao extends JpaRepository<Transaction, byte[]> {
     List<Transaction> findByBlockHashIn(Collection<byte[]> blockHashes);
 
-    List<Transaction> findByBlockHashOrderByPosition(byte[] blockHash);
+    List<Transaction> findByBlockHashOrderByPosition(byte[] blockHash, Pageable pageable);
 
     List<Transaction> findByFromOrderByHeightAscPositionAsc(byte[] from, Pageable pageable);
 
-    List<Transaction> findByFromAndType(byte[] from, int type, Pageable pageable);
+    List<Transaction> findByFromAndTypeOrderByHeightAscPositionAsc(byte[] from, int type, Pageable pageable);
 
-    List<Transaction> findByTo(byte[] to, Pageable pageable);
+    List<Transaction> findByToOrderByHeightAscPositionAsc(byte[] to, Pageable pageable);
 
-    List<Transaction> findByToAndType(byte[] to, int type, Pageable pageable);
+    List<Transaction> findByToAndTypeOrderByHeightAscPositionAsc(byte[] to, int type, Pageable pageable);
 
-    List<Transaction> findByFromAndTo(byte[] from, byte[] to, Pageable pageable);
+    List<Transaction> findByFromAndToOrderByHeightAscPositionAsc(byte[] from, byte[] to, Pageable pageable);
 
-    List<Transaction> findByFromAndToAndType(byte[] from, byte[] to, int type, Pageable pageable);
+    List<Transaction> findByFromAndToAndTypeOrderByHeightAscPositionAsc(byte[] from, byte[] to, int type, Pageable pageable);
 
-    List<Transaction> findByPayload(byte[] payload);
+    List<Transaction> findByPayloadOrderByHeightAscPositionAsc(byte[] payload, Pageable pageable);
 
-    List<Transaction> findByHeightOrderByPosition(long height);
+    List<Transaction> findByPayloadAndTypeOrderByHeightAscPositionAsc(byte[] payload, int type, Pageable pageable);
+
+    List<Transaction> findByHeightOrderByPosition(long height, Pageable pageable);
 
     boolean existsByPayload(byte[] payload);
 }

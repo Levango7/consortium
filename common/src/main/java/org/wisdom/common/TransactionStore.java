@@ -22,9 +22,11 @@ public interface TransactionStore {
 
     List<Transaction> getTransactionsByFromAndToAndType(byte[] from, byte[] to, int type, int page, int size);
 
-    List<Transaction> getTransactionsByPayload(byte[] payload);
+    List<Transaction> getTransactionsByPayload(byte[] payload, int page, int size);
 
-    List<Transaction> getTransactionsByBlockHash(byte[] blockHash);
+    List<Transaction> getTransactionsByPayloadAndType(byte[] payload, int type, int page, int size);
 
-    List<Transaction> getTransactionsByBlockHeight(long height);
+    List<Transaction> getTransactionsByBlockHash(byte[] blockHash, int page, int size);
+
+    List<Transaction> getTransactionsByBlockHeight(long height, int page, int size);
 }
