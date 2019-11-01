@@ -14,6 +14,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.wisdom.consortium.config.ConsortiumConfig;
 import org.wisdom.consortium.consensus.config.Genesis;
 import org.wisdom.consortium.exception.ApplicationException;
 
@@ -42,14 +43,16 @@ public class Start {
     // load configuration dynamically
 
     @Bean
-    public Genesis genesis(@Value("${consortium.consensus.genesis}") String genesis, ObjectMapper objectMapper)
+    public Genesis genesis(ConsortiumConfig config, ObjectMapper objectMapper)
             throws Exception {
-        Resource resource = new FileSystemResource(genesis);
+        String genesisPath = config.getConsensus().getGenesis();
+
+        Resource resource = new FileSystemResource(genesisPath);
         if (!resource.exists()) {
-            resource = new ClassPathResource(genesis);
+            resource = new ClassPathResource(genesisPath);
         }
         if (!resource.exists()){
-            throw new ApplicationException("load genesis failed: unable to open genesis file " + genesis);
+            throw new ApplicationException("load genesis failed: unable to open genesis file " + genesisPath);
         }
         return objectMapper.readValue(resource.getInputStream(), Genesis.class);
     }
