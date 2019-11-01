@@ -3,7 +3,7 @@ package org.wisdom.common;
 import java.util.List;
 import java.util.Optional;
 
-public interface TransactionPool extends MinerListener{
+public interface TransactionPool extends MinerListener, BlockStoreListener{
 
     // collect transactions into transaction pool
     void collect(Transaction... transactions);
@@ -17,4 +17,6 @@ public interface TransactionPool extends MinerListener{
 
     // get size of current transaction pool
     int size();
+
+    void use(PendingTransactionValidator validator);
 }
