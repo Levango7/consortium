@@ -11,6 +11,7 @@ import org.wisdom.exception.ConsensusEngineLoadException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 
 public class PoA implements ConsensusEngine {
@@ -101,5 +102,15 @@ public class PoA implements ConsensusEngine {
     @Override
     public ValidateResult validateTransaction(Transaction transaction) {
         return ValidateResult.success();
+    }
+
+    @Override
+    public <T extends State<T>> Optional<T> getState(Block block, Class<T> clazz) {
+        return Optional.empty();
+    }
+
+    @Override
+    public <T extends State<T>> void registerGenesisState(T genesisState) {
+
     }
 }
