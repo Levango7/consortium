@@ -93,12 +93,12 @@ public class BlockStoreService implements BlockStore {
 
     @Override
     public Header getBestHeader() {
-        return Mapping.getFromHeaderEntity(headerDao.findTopByOrderByHeightAsc().get());
+        return Mapping.getFromHeaderEntity(headerDao.findTopByOrderByHeightDesc().get());
     }
 
     @Override
     public Block getBestBlock() {
-        return Mapping.getFromBlockEntity(blockDao.findTopByOrderByHeightAsc().get());
+        return Mapping.getFromBlockEntity(blockDao.findTopByOrderByHeightDesc().get());
     }
 
     @Override
@@ -113,6 +113,8 @@ public class BlockStoreService implements BlockStore {
 
     @Override
     public List<Header> getHeaders(long startHeight, int limit) {
+        if (limit == 0) return new ArrayList<>();
+        if (limit < 0) limit = Integer.MAX_VALUE;
         return Mapping.getFromHeaderEntities(headerDao
                 .findByHeightGreaterThanEqual(startHeight, PageRequest.of(0, limit)));
     }
@@ -135,9 +137,11 @@ public class BlockStoreService implements BlockStore {
 
     @Override
     public List<Header> getHeadersBetween(long startHeight, long stopHeight, int limit) {
+        if (limit == 0) return new ArrayList<>();
+        if (limit < 0) limit = Integer.MAX_VALUE;
         return Mapping.getFromHeaderEntities(
                 headerDao.findByHeightBetweenOrderByHeightAsc(
-                        startHeight, startHeight, PageRequest.of(0, limit)
+                        startHeight, stopHeight, PageRequest.of(0, limit)
                 )
         );
     }
@@ -146,7 +150,7 @@ public class BlockStoreService implements BlockStore {
     public List<Header> getHeadersBetweenDescend(long startHeight, long stopHeight, int limit) {
         return Mapping.getFromHeaderEntities(
                 headerDao.findByHeightBetweenOrderByHeightDesc(
-                        startHeight, startHeight, PageRequest.of(0, limit)
+                        startHeight, stopHeight, PageRequest.of(0, limit)
                 )
         );
     }
@@ -187,10 +191,13 @@ public class BlockStoreService implements BlockStore {
 
     @Override
     public List<Header> getAncestorHeaders(byte[] hash, int limit) {
+        if (limit == 0) return new ArrayList<>();
+        if (limit < 0) limit = Integer.MAX_VALUE;
         Optional<Header> header = getHeader(hash);
+        int finalLimit = limit;
         return header.map(h ->
                     getHeadersBetween(
-                            header.get().getHeight() - limit + 1, h.getHeight(), limit)
+                            header.get().getHeight() - finalLimit + 1, h.getHeight(), finalLimit)
                     )
                 .map(ChainCache::new)
                 .map(c -> c.getAncestors(header.get()))
@@ -199,10 +206,13 @@ public class BlockStoreService implements BlockStore {
 
     @Override
     public List<Block> getAncestorBlocks(byte[] hash, int limit) {
+        if (limit == 0) return new ArrayList<>();
+        if (limit < 0) limit = Integer.MAX_VALUE;
         Optional<Block> block = getBlock(hash);
+        int finalLimit = limit;
         return block.map(h ->
                 getBlocksBetweenDescend(
-                        block.get().getHeight() - limit + 1, h.getHeight(), limit)
+                        block.get().getHeight() - finalLimit + 1, h.getHeight(), finalLimit)
                 )
                 .map(ChainCache::new)
                 .map(c -> c.getAncestors(block.get()))

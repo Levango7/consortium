@@ -24,6 +24,8 @@ import java.nio.charset.Charset;
 @EnableScheduling
 @SpringBootApplication
 @EnableTransactionManagement
+// use SPRING_CONFIG_LOCATION environment to locate spring config
+// for example: SPRING_CONFIG_LOCATION=classpath:\application.yml,some-path\custom-config.yml
 public class Start {
 
     public static void main(String[] args) {
