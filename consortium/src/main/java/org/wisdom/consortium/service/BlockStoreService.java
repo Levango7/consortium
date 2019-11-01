@@ -27,7 +27,7 @@ public class BlockStoreService implements BlockStore {
 
     private Block genesis;
 
-    private List<BlockStoreListener> listeners;
+    private List<BlockStoreListener> listeners = new ArrayList<>();
 
     private void emitNewBlockWritten(Block block) {
         listeners.forEach(x -> x.onBlockWritten(block));
