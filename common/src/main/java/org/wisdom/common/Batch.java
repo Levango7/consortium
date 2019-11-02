@@ -1,7 +1,9 @@
 package org.wisdom.common;
 
+import java.util.Optional;
+
 public interface Batch<K, V>{
-    V get(K k);
+    Optional<V> get(K k);
 
     void put(K k, V v);
 
