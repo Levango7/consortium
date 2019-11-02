@@ -55,9 +55,11 @@ public class Transaction implements Cloneable<Transaction> {
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public int size() {
-        return Constants.INTEGER_SIZE * 2 + Constants.LONG_SIZE * 3 +
+        return Constants.sizeOf(version) + Constants.sizeOf(type)
+                + Constants.sizeOf(createdAt) + Constants.sizeOf(nonce)
+                + Constants.sizeOf(gasPrice) + Constants.sizeOf(amount) +
                 Stream.of(from, payload, to, signature)
-                        .map(bytes -> bytes == null ? 0 : bytes.size())
+                        .map(Constants::sizeOf)
                         .reduce(0, Integer::sum);
     }
 

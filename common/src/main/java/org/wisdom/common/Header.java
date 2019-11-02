@@ -35,9 +35,10 @@ public class Header implements Cloneable<Header>, Chained {
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public int size() {
-        return Constants.INTEGER_SIZE + Constants.LONG_SIZE * 2 +
+        return Constants.sizeOf(version) + Constants.sizeOf(height) +
+                Constants.sizeOf(createdAt) +
                 Stream.of(hashPrev, merkleRoot, payload, hash)
-                .map(bytes -> bytes == null ? 0 : bytes.size())
-                .reduce(0, Integer::sum);
+                        .map(Constants::sizeOf)
+                        .reduce(0, Integer::sum);
     }
 }
