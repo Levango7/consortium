@@ -35,8 +35,8 @@ public class ForkAbleDataStoreService implements ForkAbleDataStore {
     }
 
     @Override
-    public void subscribe(BlockStoreListener... listeners) {
-        blockStoreService.subscribe(listeners);
+    public void addListeners(BlockStoreListener... listeners) {
+        blockStoreService.addListeners(listeners);
     }
 
     @Override

@@ -165,7 +165,7 @@ public class PoaMiner implements Miner {
 
 
     @Override
-    public void subscribe(MinerListener... listeners) {
+    public void addListeners(MinerListener... listeners) {
         this.listeners.addAll(Arrays.asList(listeners));
     }
 

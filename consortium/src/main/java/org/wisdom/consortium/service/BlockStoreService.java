@@ -73,7 +73,7 @@ public class BlockStoreService implements BlockStore {
     }
 
     @Override
-    public void subscribe(BlockStoreListener... listeners) {
+    public void addListeners(BlockStoreListener... listeners) {
         this.listeners.addAll(Arrays.asList(listeners));
     }
 

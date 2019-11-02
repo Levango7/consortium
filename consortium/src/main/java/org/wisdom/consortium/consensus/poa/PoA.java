@@ -85,8 +85,8 @@ public class PoA implements ConsensusEngine {
     }
 
     @Override
-    public void subscribe(MinerListener... listeners) {
-        poaMiner.subscribe(listeners);
+    public void addListeners(MinerListener... listeners) {
+        poaMiner.addListeners(listeners);
     }
 
     @Override
@@ -105,12 +105,12 @@ public class PoA implements ConsensusEngine {
     }
 
     @Override
-    public <T extends State<T>> Optional<T> getState(Block block, Class<T> clazz) {
+    public <T extends State<T>> Optional<T> getState(Chained node, Class<T> clazz) {
         return Optional.empty();
     }
 
     @Override
-    public <T extends State<T>> void registerGenesisState(T genesisState) {
+    public <T extends State<T>> void registerGenesis(T genesisState) {
 
     }
 }

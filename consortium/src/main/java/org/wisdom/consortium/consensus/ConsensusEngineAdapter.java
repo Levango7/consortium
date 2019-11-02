@@ -44,7 +44,7 @@ public class ConsensusEngineAdapter implements ConsensusEngine {
     }
 
     @Override
-    public void subscribe(MinerListener... listeners) {
+    public void addListeners(MinerListener... listeners) {
 
     }
 
@@ -64,7 +64,7 @@ public class ConsensusEngineAdapter implements ConsensusEngine {
     }
 
     @Override
-    public <T extends State<T>> void registerGenesisState(T genesisState) {
+    public <T extends State<T>> void registerGenesis(T genesisState) {
 
     }
 

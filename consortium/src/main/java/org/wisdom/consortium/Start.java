@@ -56,7 +56,7 @@ public class Start {
         forkAbleDataStore.saveGenesis(engine.getGenesis());
         engine.setDataStore(forkAbleDataStore);
         forkAbleDataStore.setProvider(engine);
-        engine.subscribe(new MinerListener() {
+        engine.addListeners(new MinerListener() {
             @Override
             public void onBlockMined(Block block) {
                 forkAbleDataStore.writeBlock(block);

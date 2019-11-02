@@ -19,4 +19,6 @@ public interface TransactionPool extends MinerListener, BlockStoreListener{
     int size();
 
     void setValidator(PendingTransactionValidator validator);
+
+    void addListeners(TransactionPoolListener... listeners);
 }
