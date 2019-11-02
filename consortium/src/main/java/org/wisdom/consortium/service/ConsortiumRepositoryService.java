@@ -12,12 +12,12 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class ForkAbleDataStoreService implements ForkAbleDataStore {
+public class ConsortiumRepositoryService implements ConsortiumRepository {
     @Autowired
-    private BlockStoreService blockStoreService;
+    private BlockRepositoryService blockStoreService;
 
     @Autowired
-    private TransactionStoreService transactionStoreService;
+    private TransactionRepositoryService transactionStoreService;
 
     @Override
     public Block getLastConfirmed() {
@@ -35,7 +35,7 @@ public class ForkAbleDataStoreService implements ForkAbleDataStore {
     }
 
     @Override
-    public void addListeners(BlockStoreListener... listeners) {
+    public void addListeners(BlockRepositoryListener... listeners) {
         blockStoreService.addListeners(listeners);
     }
 

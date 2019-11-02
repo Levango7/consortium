@@ -19,7 +19,7 @@ public class ConsensusEngineAdapter implements ConsensusEngine {
     }
 
     @Override
-    public void setDataStore(ForkAbleDataStore dataStore) {
+    public void setRepository(ConsortiumRepository dataStore) {
 
     }
 
@@ -69,7 +69,7 @@ public class ConsensusEngineAdapter implements ConsensusEngine {
     }
 
     @Override
-    public <T extends State<T>> Optional<T> getState(Block block, Class<T> clazz) {
+    public <T extends State<T>> Optional<T> getState(Chained node, Class<T> clazz) {
         return Optional.empty();
     }
 }

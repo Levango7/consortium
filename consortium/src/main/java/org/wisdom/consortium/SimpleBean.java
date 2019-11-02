@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.wisdom.consortium.dao.BlockDao;
-import org.wisdom.consortium.service.BlockStoreService;
+import org.wisdom.consortium.service.BlockRepositoryService;
 
 import javax.annotation.PostConstruct;
 
@@ -18,7 +18,7 @@ public class SimpleBean {
     private BlockDao blockDao;
 
     @Autowired
-    private BlockStoreService blockStoreService;
+    private BlockRepositoryService blockStoreService;
 
     @Autowired
     private ObjectMapper objectMapper;

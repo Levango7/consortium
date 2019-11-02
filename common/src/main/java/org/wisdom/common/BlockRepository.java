@@ -6,8 +6,8 @@ import org.wisdom.exception.WriteGenesisFailedException;
 import java.util.List;
 import java.util.Optional;
 
-public interface BlockStore {
-    void addListeners(BlockStoreListener... listeners);
+public interface BlockRepository {
+    void addListeners(BlockRepositoryListener... listeners);
 
     Block getGenesis();
 

@@ -31,7 +31,7 @@ public class PoaMiner implements Miner {
 
     private List<MinerListener> listeners;
 
-    private BlockStore blockStore;
+    private BlockRepository blockRepository;
 
     private boolean stopped;
 
@@ -45,8 +45,8 @@ public class PoaMiner implements Miner {
         this.poAConfig = poAConfig;
     }
 
-    public void setBlockStore(BlockStore blockStore) {
-        this.blockStore = blockStore;
+    public void setBlockRepository(BlockRepository blockRepository) {
+        this.blockRepository = blockRepository;
     }
 
     public PoaMiner() {
@@ -115,7 +115,7 @@ public class PoaMiner implements Miner {
             return;
         }
         String coinBase = poAConfig.getMinerCoinBase();
-        Block best = blockStore.getBestBlock();
+        Block best = blockRepository.getBestBlock();
         // 判断是否轮到自己出块
         Optional<Proposer> o = getProposer(
                 best,
@@ -124,7 +124,7 @@ public class PoaMiner implements Miner {
         if (!o.isPresent()) return;
         log.info("try to mining at height " + (best.getHeight() + 1));
         try {
-            Block b = createBlock(blockStore.getBestBlock());
+            Block b = createBlock(blockRepository.getBestBlock());
             log.info("mining success");
             listeners.forEach(l -> l.onBlockMined(b));
             Assert.isTrue(b.getHash().equals(new HexBytes(PoAUtils.getHash(b))), "block hash is equal");

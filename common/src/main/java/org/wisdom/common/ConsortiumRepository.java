@@ -2,8 +2,10 @@ package org.wisdom.common;
 
 import java.util.List;
 
-public interface ForkAbleDataStore extends BlockStore, TransactionStore{
+public interface ConsortiumRepository extends BlockRepository, TransactionRepository {
     Block getLastConfirmed();
+
     List<Block> getUnconfirmed();
+
     void setProvider(ConfirmedBlocksProvider provider);
 }

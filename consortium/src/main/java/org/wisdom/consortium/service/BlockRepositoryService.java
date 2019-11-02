@@ -11,13 +11,12 @@ import org.wisdom.consortium.dao.TransactionDao;
 import org.wisdom.exception.GenesisConflictsException;
 import org.wisdom.exception.WriteGenesisFailedException;
 
-import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-public class BlockStoreService implements BlockStore {
+public class BlockRepositoryService implements BlockRepository {
     @Autowired
     private BlockDao blockDao;
 
@@ -29,7 +28,7 @@ public class BlockStoreService implements BlockStore {
 
     private Block genesis;
 
-    private List<BlockStoreListener> listeners = new ArrayList<>();
+    private List<BlockRepositoryListener> listeners = new ArrayList<>();
 
     private void emitNewBlockWritten(Block block) {
         listeners.forEach(x -> x.onBlockWritten(block));
@@ -73,7 +72,7 @@ public class BlockStoreService implements BlockStore {
     }
 
     @Override
-    public void addListeners(BlockStoreListener... listeners) {
+    public void addListeners(BlockRepositoryListener... listeners) {
         this.listeners.addAll(Arrays.asList(listeners));
     }
 

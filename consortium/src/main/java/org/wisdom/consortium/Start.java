@@ -37,7 +37,7 @@ public class Start {
     }
 
     @Bean
-    public ConsensusEngine consensusEngine(ConsensusProperties consensusProperties, ForkAbleDataStore forkAbleDataStore) throws Exception {
+    public ConsensusEngine consensusEngine(ConsensusProperties consensusProperties, ConsortiumRepository forkAbleDataStore) throws Exception {
         String name = consensusProperties.getConsensus().getProperty(ConsensusProperties.CONSENSUS_NAME);
         ConsensusEngine engine = null;
         switch (name.toLowerCase()) {
@@ -54,7 +54,7 @@ public class Start {
         }
         engine.load(consensusProperties.getConsensus());
         forkAbleDataStore.saveGenesis(engine.getGenesis());
-        engine.setDataStore(forkAbleDataStore);
+        engine.setRepository(forkAbleDataStore);
         forkAbleDataStore.setProvider(engine);
         engine.addListeners(new MinerListener() {
             @Override

@@ -7,11 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.wisdom.common.Block;
-import org.wisdom.common.BlockStore;
 import org.wisdom.common.Transaction;
-import org.wisdom.common.TransactionStore;
-import org.wisdom.consortium.service.BlockStoreService;
-import org.wisdom.consortium.service.TransactionStoreService;
+import org.wisdom.consortium.service.BlockRepositoryService;
+import org.wisdom.consortium.service.TransactionRepositoryService;
 import org.wisdom.util.BigEndian;
 
 import java.util.Arrays;
@@ -25,12 +23,12 @@ import static org.wisdom.consortium.TestUtils.getBlock;
 @SpringBootTest(classes = Start.class)
 // use SPRING_CONFIG_LOCATION environment to locate spring config
 // for example: SPRING_CONFIG_LOCATION=classpath:\application.yml,some-path\custom-config.yml
-public class TransactionStoreTests {
+public class TransactionRepositoryTests {
     @Autowired
-    private TransactionStoreService transactionStore;
+    private TransactionRepositoryService transactionStore;
 
     @Autowired
-    private BlockStoreService blockStore;
+    private BlockRepositoryService blockStore;
 
     private void assertTransaction(Transaction transaction) {
         String h = Long.toString(BigEndian.decodeInt64(transaction.getBlockHash().getBytes()));

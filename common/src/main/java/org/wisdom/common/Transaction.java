@@ -1,11 +1,8 @@
 package org.wisdom.common;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
-import org.wisdom.util.BigEndian;
 
-import java.util.Arrays;
 import java.util.stream.Stream;
 
 @Getter

@@ -1,6 +1,6 @@
 package org.wisdom.common;
 
-public interface BlockStoreListener {
+public interface BlockRepositoryListener {
     void onBlockWritten(Block block);
     void onNewBestBlock(Block block);
 }

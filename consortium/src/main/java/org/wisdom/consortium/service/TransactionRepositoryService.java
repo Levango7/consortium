@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.wisdom.common.Transaction;
-import org.wisdom.common.TransactionStore;
+import org.wisdom.common.TransactionRepository;
 import org.wisdom.consortium.dao.Mapping;
 import org.wisdom.consortium.dao.TransactionDao;
 
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class TransactionStoreService implements TransactionStore {
+public class TransactionRepositoryService implements TransactionRepository {
     @Autowired
     private TransactionDao transactionDao;
 
