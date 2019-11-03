@@ -62,6 +62,7 @@ public class Start {
                         "none available consensus configured by consortium.consensus.name=" + name +
                                 " please provide available consensus engine");
                 engine = new ConsensusEngineAdapter();
+                return engine;
         }
 
         engine.load(consensusProperties.getConsensus(), consortiumRepository);
