@@ -1,7 +1,9 @@
 package org.wisdom.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.*;
+import org.wisdom.util.EpochSecondsSerializer;
 
 import java.util.stream.Stream;
 
@@ -19,6 +21,7 @@ public class Transaction implements Cloneable<Transaction> {
 
     private int type;
 
+    @JsonSerialize(using = EpochSecondsSerializer.class)
     private long createdAt;
 
     private long nonce;

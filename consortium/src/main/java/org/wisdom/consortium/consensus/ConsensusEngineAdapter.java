@@ -79,7 +79,7 @@ public class ConsensusEngineAdapter implements ConsensusEngine {
     }
 
     @Override
-    public <T extends State<T>> Optional<T> getState(Chained node, Class<T> clazz) {
+    public <T extends State<T>> Optional<T> getState(Block last, Class<T> clazz) {
         return Optional.empty();
     }
 }
