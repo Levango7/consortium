@@ -50,6 +50,7 @@ public class Start {
     @Bean
     public ConsensusEngine consensusEngine(ConsensusProperties consensusProperties, ConsortiumRepository consortiumRepository) throws Exception {
         String name = consensusProperties.getConsensus().getProperty(ConsensusProperties.CONSENSUS_NAME);
+        name = name == null ? "" : name;
         final ConsensusEngine engine;
         switch (name.toLowerCase()) {
             // use poa as default consensus
