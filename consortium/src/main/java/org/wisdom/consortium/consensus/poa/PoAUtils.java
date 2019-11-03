@@ -3,6 +3,7 @@ package org.wisdom.consortium.consensus.poa;
 import com.google.common.hash.Hashing;
 import com.google.common.primitives.Bytes;
 import org.wisdom.common.Block;
+import org.wisdom.common.Header;
 import org.wisdom.common.HexBytes;
 import org.wisdom.common.Transaction;
 import org.wisdom.util.CommonUtil;
@@ -23,5 +24,9 @@ public class PoAUtils {
     public static byte[] getHash(Block block) {
         block.setMerkleRoot(new HexBytes(merkleHash(block.getBody())));
         return Hashing.sha256().hashBytes(CommonUtil.getRaw(block.getHeader())).asBytes();
+    }
+
+    public static byte[] getHash(Header header){
+        return Hashing.sha256().hashBytes(CommonUtil.getRaw(header)).asBytes();
     }
 }

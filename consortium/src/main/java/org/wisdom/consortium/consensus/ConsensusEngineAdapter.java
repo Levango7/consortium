@@ -14,12 +14,7 @@ public class ConsensusEngineAdapter implements ConsensusEngine {
     }
 
     @Override
-    public void load(Properties properties) throws ConsensusEngineLoadException {
-
-    }
-
-    @Override
-    public void setRepository(ConsortiumRepository dataStore) {
+    public void load(Properties properties, ConsortiumRepository repository) throws ConsensusEngineLoadException {
 
     }
 
@@ -30,6 +25,21 @@ public class ConsensusEngineAdapter implements ConsensusEngine {
 
     @Override
     public List<Block> getConfirmed(List<Block> unconfirmed) {
+        return null;
+    }
+
+    @Override
+    public HexBytes getHash(Block block) {
+        return null;
+    }
+
+    @Override
+    public HexBytes getHash(Transaction transaction) {
+        return null;
+    }
+
+    @Override
+    public HexBytes getHash(Header header) {
         return null;
     }
 

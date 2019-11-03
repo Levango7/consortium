@@ -24,13 +24,13 @@ import org.wisdom.consortium.consensus.poa.PoA;
 // use SPRING_CONFIG_LOCATION environment to locate spring config
 // for example: SPRING_CONFIG_LOCATION=classpath:\application.yml,some-path\custom-config.yml
 public class Start {
-    private static final boolean ENABLE_ASSERTION = System.getenv("ENABLE_ASSERTION").equals("true");
+    private static final boolean ENABLE_ASSERTION = "true".equals(System.getenv("ENABLE_ASSERTION"));
 
     public static void devAssert(boolean truth, String error){
         if (!ENABLE_ASSERTION) return;
         Assert.isTrue(truth, error);
     }
-    
+
     public static final ObjectMapper MAPPER = new ObjectMapper()
             .enable(SerializationFeature.INDENT_OUTPUT)
             .enable(JsonParser.Feature.ALLOW_COMMENTS);
@@ -60,9 +60,8 @@ public class Start {
                     " please provide available consensus engine");
             return new ConsensusEngineAdapter();
         }
-        engine.load(consensusProperties.getConsensus());
+        engine.load(consensusProperties.getConsensus(), consortiumRepository);
         consortiumRepository.saveGenesis(engine.getGenesis());
-        engine.setRepository(consortiumRepository);
         consortiumRepository.setProvider(engine);
         engine.addListeners(new MinerListener() {
             @Override

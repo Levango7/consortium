@@ -8,11 +8,10 @@ public interface ConsensusEngine extends Miner,
         BlockValidator,
         PendingTransactionValidator,
         ConfirmedBlocksProvider,
-        StateFactory
+        StateFactory,
+        HashPolicy
 {
     Block getGenesis();
 
-    void load(Properties properties) throws ConsensusEngineLoadException;
-
-    void setRepository(ConsortiumRepository dataStore);
+    void load(Properties properties, ConsortiumRepository repository) throws ConsensusEngineLoadException;
 }

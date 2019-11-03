@@ -3,6 +3,7 @@ package org.wisdom.consortium.consensus.poa;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
+import lombok.experimental.Delegate;
 import org.springframework.core.io.Resource;
 import org.wisdom.common.*;
 import org.wisdom.consortium.consensus.poa.config.Genesis;
@@ -16,11 +17,17 @@ import java.util.Properties;
 
 public class PoA implements ConsensusEngine {
     private PoAConfig poAConfig;
-    private PoaMiner poaMiner;
+
+    @Delegate
+    private Miner miner;
+
+    @Delegate
+    private HashPolicy hashPolicy;
+
     private Genesis genesis;
 
     public PoA() {
-        this.poaMiner = new PoaMiner();
+        this.hashPolicy = PoAHashPolicy.HASH_POLICY;
     }
 
     @Override
@@ -34,7 +41,7 @@ public class PoA implements ConsensusEngine {
     }
 
     @Override
-    public void load(Properties properties) throws ConsensusEngineLoadException {
+    public void load(Properties properties, ConsortiumRepository repository) throws ConsensusEngineLoadException {
         JavaPropsMapper mapper = new JavaPropsMapper();
         ObjectMapper objectMapper = new ObjectMapper().enable(JsonParser.Feature.ALLOW_COMMENTS);
         try{
@@ -48,6 +55,7 @@ public class PoA implements ConsensusEngine {
                     "load properties failed :" + properties.toString() + " expecting " + schema
             );
         }
+        PoaMiner poaMiner = new PoaMiner();
         Resource resource;
         try{
             resource = FileUtils.getResource(poAConfig.getGenesis());
@@ -61,43 +69,15 @@ public class PoA implements ConsensusEngine {
         }
         poaMiner.setPoAConfig(poAConfig);
         poaMiner.setGenesis(genesis);
+        poaMiner.setRepository(repository);
+        this.miner = poaMiner;
     }
-
-    @Override
-    public void setRepository(ConsortiumRepository blockStore) {
-        poaMiner.setBlockRepository(blockStore);
-    }
-
 
     @Override
     public ValidateResult validateBlock(Block block, Block dependency) {
         return ValidateResult.success();
     }
 
-    @Override
-    public void start() {
-        poaMiner.start();
-    }
-
-    @Override
-    public void stop() {
-        poaMiner.stop();
-    }
-
-    @Override
-    public void addListeners(MinerListener... listeners) {
-        poaMiner.addListeners(listeners);
-    }
-
-    @Override
-    public void onBlockWritten(Block block) {
-
-    }
-
-    @Override
-    public void onNewBestBlock(Block block) {
-
-    }
 
     @Override
     public ValidateResult validateTransaction(Transaction transaction) {
@@ -113,4 +93,6 @@ public class PoA implements ConsensusEngine {
     public <T extends State<T>> void registerGenesis(T genesisState) {
 
     }
+
+
 }

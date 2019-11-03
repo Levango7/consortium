@@ -14,6 +14,8 @@ import java.util.stream.Collectors;
 import org.wisdom.consortium.consensus.poa.config.Genesis;
 import org.wisdom.util.BigEndian;
 
+import static org.wisdom.consortium.consensus.poa.PoAHashPolicy.HASH_POLICY;
+
 
 @Slf4j
 public class PoaMiner implements Miner {
@@ -45,7 +47,7 @@ public class PoaMiner implements Miner {
         this.poAConfig = poAConfig;
     }
 
-    public void setBlockRepository(BlockRepository blockRepository) {
+    public void setRepository(BlockRepository blockRepository) {
         this.blockRepository = blockRepository;
     }
 
@@ -144,7 +146,7 @@ public class PoaMiner implements Miner {
                 .payload(PoAConstants.ZERO_BYTES)
                 .to(new HexBytes(poAConfig.getMinerCoinBase().getBytes(StandardCharsets.UTF_8)))
                 .signature(PoAConstants.ZERO_BYTES).build();
-        tx.setHash(new HexBytes(PoAUtils.getHash(tx)));
+        tx.setHash(HASH_POLICY.getHash(tx));
         return tx;
     }
 
@@ -159,7 +161,7 @@ public class PoaMiner implements Miner {
                 .hash(new HexBytes(BigEndian.encodeInt64(parent.getHeight() + 1))).build();
         Block b = new Block(header);
         b.getBody().add(createCoinBase(parent.getHeight() + 1));
-        b.setHash(new HexBytes(PoAUtils.getHash(b)));
+        b.setHash(HASH_POLICY.getHash(b));
         return b;
     }
 
