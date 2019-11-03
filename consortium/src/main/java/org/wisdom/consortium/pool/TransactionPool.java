@@ -33,7 +33,7 @@ public class TransactionPool implements org.wisdom.common.TransactionPool {
         cache = CacheBuilder.newBuilder()
                 .expireAfterWrite(Duration.ofHours(1))
                 .weigher(new TransactionWeigher())
-                .maximumSize(256 * Constants.MEGA_BYTES).build();
+                .maximumWeight(256 * Constants.MEGA_BYTES).build();
     }
 
     @Override
