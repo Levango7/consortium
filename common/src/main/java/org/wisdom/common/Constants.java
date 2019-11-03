@@ -4,6 +4,8 @@ public class Constants {
     public static final int INTEGER_SIZE = 4;
     public static final int LONG_SIZE = 8;
 
+    public static final int MEGA_BYTES = 1 << 20;
+
     public static int sizeOf(int any){
         return INTEGER_SIZE;
     }
