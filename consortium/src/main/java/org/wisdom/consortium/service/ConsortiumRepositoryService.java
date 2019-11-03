@@ -13,12 +13,12 @@ public class ConsortiumRepositoryService implements ConsortiumRepository {
     @Qualifier("blockRepositoryService")
     @Autowired
     @Delegate
-    private BlockRepository blockStoreService;
+    private BlockRepository blockRepository;
 
     @Qualifier("transactionRepositoryService")
     @Autowired
     @Delegate
-    private TransactionRepository transactionStoreService;
+    private TransactionRepository transactionRepository;
 
     @Override
     public Block getLastConfirmed() {
