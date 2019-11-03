@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.*;
+import org.wisdom.util.EpochSecondDeserializer;
 import org.wisdom.util.EpochSecondsSerializer;
 
 import java.util.stream.Stream;
@@ -23,6 +24,7 @@ public class Header implements Cloneable<Header>, Chained {
     private long height;
 
     @JsonSerialize(using = EpochSecondsSerializer.class)
+    @JsonDeserialize(using = EpochSecondDeserializer.class)
     private long createdAt;
 
     private HexBytes payload;

@@ -26,7 +26,7 @@ public class CommonTest {
         System.out.println(mapper.writeValueAsString(new Block()));
 
         Header header = mapper.readValue("{\"createdAt\":\"1572766736\"}", Header.class);
-        Block block = mapper.readValue("{\"createdAt\":\"1572766736\", \"body\" : [{\"type\": 100}] }", Block.class);
+        Block block = mapper.readValue("{\"createdAt\":\"2019-11-03T15:38:56+08:00\", \"body\" : [{\"type\": 100}] }", Block.class);
         System.out.println(header.getCreatedAt());
         System.out.println(block.getCreatedAt());
         System.out.println(block.getBody().get(0).getType());
