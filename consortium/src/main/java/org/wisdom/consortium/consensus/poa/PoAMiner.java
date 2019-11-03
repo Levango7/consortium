@@ -18,7 +18,7 @@ import static org.wisdom.consortium.consensus.poa.PoAHashPolicy.HASH_POLICY;
 
 
 @Slf4j
-public class PoaMiner implements Miner {
+public class PoAMiner implements Miner {
     @Getter
     @AllArgsConstructor
     public static class MinedResult {
@@ -51,11 +51,11 @@ public class PoaMiner implements Miner {
         this.blockRepository = blockRepository;
     }
 
-    public PoaMiner() {
+    public PoAMiner() {
         listeners = new ArrayList<>();
     }
 
-    public PoaMiner(PoAConfig poAConfig, Genesis genesis) {
+    public PoAMiner(PoAConfig poAConfig, Genesis genesis) {
         this.poAConfig = poAConfig;
         this.genesis = genesis;
     }

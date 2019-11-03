@@ -24,10 +24,19 @@ public class PoA implements ConsensusEngine {
     @Delegate
     private HashPolicy hashPolicy;
 
+    @Delegate
+    private BlockValidator blockValidator;
+
+    @Delegate
+    private PendingTransactionValidator transactionValidator;
+
     private Genesis genesis;
 
     public PoA() {
         this.hashPolicy = PoAHashPolicy.HASH_POLICY;
+        PoaValidator validator = new PoaValidator();
+        this.blockValidator = validator;
+        this.transactionValidator = validator;
     }
 
     @Override
@@ -55,7 +64,7 @@ public class PoA implements ConsensusEngine {
                     "load properties failed :" + properties.toString() + " expecting " + schema
             );
         }
-        PoaMiner poaMiner = new PoaMiner();
+        PoAMiner poaMiner = new PoAMiner();
         Resource resource;
         try{
             resource = FileUtils.getResource(poAConfig.getGenesis());
@@ -71,17 +80,6 @@ public class PoA implements ConsensusEngine {
         poaMiner.setGenesis(genesis);
         poaMiner.setRepository(repository);
         this.miner = poaMiner;
-    }
-
-    @Override
-    public ValidateResult validateBlock(Block block, Block dependency) {
-        return ValidateResult.success();
-    }
-
-
-    @Override
-    public ValidateResult validateTransaction(Transaction transaction) {
-        return ValidateResult.success();
     }
 
     @Override

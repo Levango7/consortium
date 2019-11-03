@@ -14,6 +14,9 @@ import org.springframework.util.Assert;
 import org.wisdom.common.*;
 import org.wisdom.consortium.consensus.ConsensusEngineAdapter;
 import org.wisdom.consortium.consensus.poa.PoA;
+import org.wisdom.consortium.exception.ApplicationException;
+
+import java.util.Optional;
 
 
 @EnableAsync
@@ -47,25 +50,36 @@ public class Start {
     @Bean
     public ConsensusEngine consensusEngine(ConsensusProperties consensusProperties, ConsortiumRepository consortiumRepository) throws Exception {
         String name = consensusProperties.getConsensus().getProperty(ConsensusProperties.CONSENSUS_NAME);
-        ConsensusEngine engine = null;
+        final ConsensusEngine engine;
         switch (name.toLowerCase()) {
             // use poa as default consensus
             // another engine: pow, pos, pow+pos, vrf
             case ApplicationConstants.CONSENSUS_POA:
                 engine = new PoA();
+                break;
+            default:
+                log.error(
+                        "none available consensus configured by consortium.consensus.name=" + name +
+                                " please provide available consensus engine");
+                engine = new ConsensusEngineAdapter();
         }
-        if (engine == null) {
-            log.warn(
-                    "none available consensus configured by consortium.consensus.name=" + name +
-                    " please provide available consensus engine");
-            return new ConsensusEngineAdapter();
-        }
+
         engine.load(consensusProperties.getConsensus(), consortiumRepository);
         consortiumRepository.saveGenesis(engine.getGenesis());
         consortiumRepository.setProvider(engine);
         engine.addListeners(new MinerListener() {
             @Override
             public void onBlockMined(Block block) {
+                Optional<Block> o = consortiumRepository.getBlock(block.getHashPrev().getBytes());
+                if (!o.isPresent()){
+                    throw new RuntimeException("successfully mined on an unknown block");
+                }
+                ValidateResult result = engine.validateBlock(block, o.get());
+                if (!result.isSuccess()){
+                    log.error("validate block failed");
+                    log.error(result.getReason());
+                    return;
+                }
                 consortiumRepository.writeBlock(block);
             }
 
