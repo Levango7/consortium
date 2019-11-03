@@ -53,8 +53,12 @@ public class Start {
         name = name == null ? "" : name;
         final ConsensusEngine engine;
         switch (name.toLowerCase()) {
-            // use poa as default consensus
-            // another engine: pow, pos, pow+pos, vrf
+            // none consensus selected, used for unit test
+            case ApplicationConstants.CONSENSUS_NONE:
+                log.warn("none consensus engine selected, please ensure you are in test mode");
+                return new ConsensusEngineAdapter();
+                // use poa as default consensus
+                // another engine: pow, pos, pow+pos, vrf
             case ApplicationConstants.CONSENSUS_POA:
                 engine = new PoA();
                 break;
@@ -62,8 +66,8 @@ public class Start {
                 log.error(
                         "none available consensus configured by consortium.consensus.name=" + name +
                                 " please provide available consensus engine");
-                engine = new ConsensusEngineAdapter();
-                return engine;
+                log.error("roll back to poa consensus");
+                engine = new PoA();
         }
 
         engine.load(consensusProperties.getConsensus(), consortiumRepository);
