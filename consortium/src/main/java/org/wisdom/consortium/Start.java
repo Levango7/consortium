@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.util.Assert;
 import org.wisdom.common.*;
 import org.wisdom.consortium.consensus.ConsensusEngineAdapter;
 import org.wisdom.consortium.consensus.poa.PoA;
@@ -23,6 +24,13 @@ import org.wisdom.consortium.consensus.poa.PoA;
 // use SPRING_CONFIG_LOCATION environment to locate spring config
 // for example: SPRING_CONFIG_LOCATION=classpath:\application.yml,some-path\custom-config.yml
 public class Start {
+    private static final boolean ENABLE_ASSERTION = System.getenv("ENABLE_ASSERTION").equals("true");
+
+    public static void devAssert(boolean truth, String error){
+        if (!ENABLE_ASSERTION) return;
+        Assert.isTrue(truth, error);
+    }
+    
     public static final ObjectMapper MAPPER = new ObjectMapper()
             .enable(SerializationFeature.INDENT_OUTPUT)
             .enable(JsonParser.Feature.ALLOW_COMMENTS);
