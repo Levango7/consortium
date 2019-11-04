@@ -82,6 +82,7 @@ public class PoA implements ConsensusEngine {
         poaMiner.setGenesis(genesis);
         poaMiner.setRepository(repository);
         this.miner = poaMiner;
+
     }
 
     @Override

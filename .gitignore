@@ -21,4 +21,4 @@ gradle-app.setting
 # eclipse settings
 .classpath
 .project
-*-test.json
+
