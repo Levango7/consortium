@@ -31,12 +31,12 @@ public class AccountUtilTests {
         assert Utils.publicKeyToAddress(PUBLIC_KEY.getBytes())
                 .equals("1L3zkde4kSpfd1L7NYmNYSBf1Bvh6fZLk");
 
-        assert Utils.publicKeyHashToAddress(Utils.addressToPublicKeyHash("1L3zkde4kSpfd1L7NYmNYSBf1Bvh6fZLk")).equals(
+        assert Utils.publicKeyHashToAddress(Utils.addressToPublicKeyHash("1L3zkde4kSpfd1L7NYmNYSBf1Bvh6fZLk").get()).equals(
                 "1L3zkde4kSpfd1L7NYmNYSBf1Bvh6fZLk"
         );
 
         assert Arrays.equals(
-                Utils.addressToPublicKeyHash("1L3zkde4kSpfd1L7NYmNYSBf1Bvh6fZLk"),
+                Utils.addressToPublicKeyHash("1L3zkde4kSpfd1L7NYmNYSBf1Bvh6fZLk").get(),
                 Hex.decode("039a676b65273eeca96af35e35c05e482650c979")
         );
     }
