@@ -24,7 +24,7 @@ public class ConsortiumStateRepository implements StateRepository {
 
     @Override
     public <T extends State<T>> void registerGenesis(T genesisState) throws StateUpdateException {
-        factories.put(genesisState.getClass().toString(), new LRUStateFactory(CACHE_SIZE, genesisState, repository));
+        factories.put(genesisState.getClass().toString(), new InMemoryStateFactory(genesisState));
     }
 
     @Override
