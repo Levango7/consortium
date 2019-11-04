@@ -4,6 +4,9 @@ import org.wisdom.exception.StateUpdateException;
 
 import java.util.*;
 
+/**
+ * State tree for account related object storage
+ */
 public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
     private ForkAbleStateSets<T> root;
     private ChainCache<ForkAbleStateSets<T>> cache;

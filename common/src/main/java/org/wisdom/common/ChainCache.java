@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 
 /**
+ * Tree-like object storage
  * @author sal 1564319846@qq.com
  */
 public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
@@ -111,7 +112,7 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
         }
     }
 
-    public final void remove(Collection<? extends T> nodes) {
+    public void remove(Collection<? extends T> nodes) {
         for (T node : nodes) {
             remove(node);
         }

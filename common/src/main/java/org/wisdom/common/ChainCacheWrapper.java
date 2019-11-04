@@ -72,6 +72,27 @@ public class ChainCacheWrapper<T extends Chained> extends ChainCache<T> {
     }
 
     @Override
+    public void remove(T node) {
+        lock.writeLock().lock();
+        try{
+            super.remove(node);
+        }finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public final void remove(Collection<? extends T> nodes) {
+        lock.writeLock().lock();
+        try{
+            super.remove(nodes);
+        }finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+
+    @Override
     public List<T> getLeaves() {
         lock.readLock().lock();
         try {
