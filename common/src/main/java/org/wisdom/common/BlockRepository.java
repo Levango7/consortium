@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BlockRepository{
-    void addListeners(BlockRepositoryListener... listeners);
-
     Block getGenesis();
 
     void saveGenesis(Block block) throws GenesisConflictsException, WriteGenesisFailedException;

@@ -8,4 +8,6 @@ public interface ConsortiumRepository extends BlockRepository, TransactionReposi
     List<Block> getUnconfirmed();
 
     void setProvider(ConfirmedBlocksProvider provider);
+
+    void addListeners(ConsortiumRepositoryListener... listeners);
 }

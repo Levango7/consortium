@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.wisdom.common.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -20,6 +21,8 @@ public class ConsortiumRepositoryService implements ConsortiumRepository {
     @Delegate
     private TransactionRepository transactionRepository;
 
+    private List<ConsortiumRepositoryListener> listeners = new ArrayList<>();
+
     @Override
     public Block getLastConfirmed() {
         return null;
@@ -32,6 +35,11 @@ public class ConsortiumRepositoryService implements ConsortiumRepository {
 
     @Override
     public void setProvider(ConfirmedBlocksProvider provider) {
+
+    }
+
+    @Override
+    public void addListeners(ConsortiumRepositoryListener... listeners) {
 
     }
 }

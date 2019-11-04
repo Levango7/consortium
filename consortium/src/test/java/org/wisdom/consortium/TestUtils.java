@@ -26,4 +26,24 @@ public class TestUtils {
         ));
         return Mapping.getFromBlockEntity(b);
     }
+
+    public static void main(String[] args){
+        print(new ISUB());
+    }
+
+    public static interface IN{}
+
+    public static interface INIM extends IN{}
+
+    public static class I implements IN{}
+
+    public static class ISUB implements INIM{}
+
+    static void print(IN in){
+        System.out.println("in");
+    }
+
+    static void print(INIM in){
+        System.out.println("inim");
+    }
 }

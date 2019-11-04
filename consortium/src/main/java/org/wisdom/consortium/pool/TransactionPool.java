@@ -106,6 +106,16 @@ public class TransactionPool implements org.wisdom.common.TransactionPool {
     }
 
     @Override
+    public void onBlockConfirmed(Block block) {
+
+    }
+
+    @Override
+    public void onTransactionsConfirmed(Transaction... transactions) {
+
+    }
+
+    @Override
     public void onBlockMined(Block block) {
 
     }

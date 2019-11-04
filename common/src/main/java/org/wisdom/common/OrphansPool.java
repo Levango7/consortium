@@ -3,7 +3,7 @@ package org.wisdom.common;
 import java.util.Collection;
 import java.util.List;
 
-public interface OrphansPool<T extends Chained> extends BlockRepositoryListener{
+public interface OrphansPool<T extends Chained> extends ConsortiumRepositoryListener{
     List<T> filterAndCacheOrphans(Collection<? extends T> nodes);
 
     List<T> get(int page, int size);

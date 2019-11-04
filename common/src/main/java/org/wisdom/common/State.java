@@ -10,4 +10,6 @@ public interface State<T> extends Cloneable<T>, Serializable {
     void updateBlock(Block b) throws StateUpdateException;
 
     void updateBlocks(Collection<? super Block> blocks) throws StateUpdateException;
+
+    HexBytes getWhere();
 }

@@ -65,6 +65,15 @@ public class ConsensusEngineAdapter implements ConsensusEngine {
 
     @Override
     public void onNewBestBlock(Block block) {
+    }
+
+    @Override
+    public void onBlockConfirmed(Block block) {
+
+    }
+
+    @Override
+    public void onTransactionsConfirmed(Transaction... transactions) {
 
     }
 

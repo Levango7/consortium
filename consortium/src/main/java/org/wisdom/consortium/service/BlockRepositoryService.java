@@ -28,16 +28,6 @@ public class BlockRepositoryService implements BlockRepository {
 
     private Block genesis;
 
-    private List<BlockRepositoryListener> listeners = new ArrayList<>();
-
-    private void emitNewBlockWritten(Block block) {
-        listeners.forEach(x -> x.onBlockWritten(block));
-    }
-
-    private void emitNewBestBlock(Block block) {
-        listeners.forEach(x -> x.onNewBestBlock(block));
-    }
-
     private Block getBlockFromHeader(Header header) {
         Block b = new Block(header);
         b.setBody(
@@ -69,11 +59,6 @@ public class BlockRepositoryService implements BlockRepository {
             b.setBody(list.stream().map(Mapping::getFromTransactionEntity).collect(Collectors.toList()));
         }
         return blocks;
-    }
-
-    @Override
-    public void addListeners(BlockRepositoryListener... listeners) {
-        this.listeners.addAll(Arrays.asList(listeners));
     }
 
     @Override

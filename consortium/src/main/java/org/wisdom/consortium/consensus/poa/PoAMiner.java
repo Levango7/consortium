@@ -8,6 +8,9 @@ import org.springframework.util.Assert;
 import org.wisdom.common.*;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -121,7 +124,7 @@ public class PoAMiner implements Miner {
         // 判断是否轮到自己出块
         Optional<Proposer> o = getProposer(
                 best,
-                System.currentTimeMillis() / 1000
+                OffsetDateTime.now().toEpochSecond()
         ).filter(p -> p.getAddress().equals(coinBase));
         if (!o.isPresent()) return;
         log.info("try to mining at height " + (best.getHeight() + 1));
@@ -177,6 +180,16 @@ public class PoAMiner implements Miner {
 
     @Override
     public void onNewBestBlock(Block block) {
+    }
+
+    @Override
+    public void onBlockConfirmed(Block block) {
+
+    }
+
+    @Override
+    public void onTransactionsConfirmed(Transaction... transactions) {
+
     }
 
     public static class EconomicModelImpl {
