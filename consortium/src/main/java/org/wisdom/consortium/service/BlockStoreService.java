@@ -27,7 +27,7 @@ public class BlockStoreService implements BlockStore {
 
     private Block genesis;
 
-    private List<BlockStoreListener> listeners;
+    private List<BlockStoreListener> listeners = new ArrayList<>();
 
     private void emitNewBlockWritten(Block block) {
         listeners.forEach(x -> x.onBlockWritten(block));
@@ -40,7 +40,7 @@ public class BlockStoreService implements BlockStore {
     private Block getBlockFromHeader(Header header) {
         Block b = new Block(header);
         b.setBody(
-                transactionDao.findByBlockHashOrderByPosition(b.getHash().getBytes())
+                transactionDao.findByBlockHashOrderByPosition(b.getHash().getBytes(), PageRequest.of(0, Integer.MAX_VALUE))
                         .stream().map(Mapping::getFromTransactionEntity).collect(Collectors.toList())
         );
         return b;

@@ -3,7 +3,7 @@ package org.wisdom.consortium.consensus.economic;
 import org.springframework.stereotype.Component;
 
 @Component
-public class EconomicModelImpl implements org.wisdom.consortium.consensus.economic.EconomicModel {
+public class EconomicModelImpl implements EconomicModel {
 
     private static final long INITIAL_SUPPLY = 20;
 

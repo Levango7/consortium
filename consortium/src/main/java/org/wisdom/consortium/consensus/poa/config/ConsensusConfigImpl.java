@@ -2,8 +2,6 @@ package org.wisdom.consortium.consensus.poa.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.wisdom.common.Block;
-import org.wisdom.consortium.consensus.config.ConsensusConfig;
-import org.wisdom.consortium.consensus.config.Genesis;
 import org.wisdom.consortium.consensus.poa.Proposer;
 
 import java.util.List;

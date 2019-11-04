@@ -2,8 +2,12 @@ package org.wisdom.common;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import lombok.NonNull;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
+
+import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * hex bytes helper for json marshal/unmarshal
@@ -25,6 +29,10 @@ public class HexBytes {
         return new HexBytes(hex);
     }
 
+    public static HexBytes empty(){
+        return new HexBytes(new byte[0]);
+    }
+
     public byte[] getBytes() {
         return bytes;
     }
@@ -39,12 +47,20 @@ public class HexBytes {
         return hexCache;
     }
 
-    public HexBytes(byte[] bytes) {
+    public HexBytes(@NonNull byte[] bytes) {
         this.bytes = bytes;
     }
 
     public HexBytes(String hex) throws DecoderException {
         bytes = Hex.decodeHex(hex.toCharArray());
         hexCache = hex;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        HexBytes hexBytes = (HexBytes) o;
+        return Arrays.equals(bytes, hexBytes.bytes);
     }
 }

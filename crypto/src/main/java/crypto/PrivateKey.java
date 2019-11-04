@@ -1,7 +1,8 @@
 package crypto;
 
 
-import util.ByteUtils;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -53,8 +54,8 @@ public class PrivateKey implements java.security.PrivateKey {
      * check the validity of the private key
      * @return validity
      */
-    public boolean isValid(){
-        return new BigInteger(this.k).compareTo(new BigInteger(ByteUtils.hexStringToBytes(t))) <= 0;
+    public boolean isValid() throws DecoderException {
+        return new BigInteger(this.k).compareTo(new BigInteger(Hex.decodeHex(t.toCharArray()))) <= 0;
     }
 
     public byte[] getBytes(){

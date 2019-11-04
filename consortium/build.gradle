@@ -29,7 +29,10 @@ dependencies {
 
     compile project(':common')
     compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
+    compileOnly 'org.springframework.boot:spring-boot-configuration-processor'
+
     annotationProcessor 'org.projectlombok:lombok:1.18.10'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     compile group: 'com.google.guava', name: 'guava', version: '28.1-jre'
 }
 

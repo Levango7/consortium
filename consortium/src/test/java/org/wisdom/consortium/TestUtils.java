@@ -16,6 +16,7 @@ public class TestUtils {
         );
         org.wisdom.consortium.entity.Transaction.TransactionBuilder builder = org.wisdom.consortium.entity
                 .Transaction.builder().blockHash(BigEndian.encodeInt64(height))
+                .height(height)
                 .from(BYTES).payload(BYTES).to(BYTES)
                 .signature(BYTES);
         b.setBody(Arrays.asList(
