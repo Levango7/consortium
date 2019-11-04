@@ -25,12 +25,18 @@ https://jingyan.baidu.com/article/0a52e3f4e53ca1bf63ed725c.html
 
 ## Commands
 
-1. start application: ```.\gradlew consortium:bootRun```
+1. start application: 
 
-2. clear builds ```.\gradlew consortium:clean```
+```.\gradlew consortium:bootRun```
+
+2. clear builds 
+
+```.\gradlew consortium:clean```
 
 3. build and run fat jar 
 ```shell script
-.\gradlew consortium:bootJar                            
+.\gradlew consortium:bootJar       
+
+# override default spring config with your custom config                     
 java -jar consortium\build\libs\consortium-0.0.1-SNAPSHOT.jar -Dspring.config.location=classpath:\application.yml,some-path\custom-config.yml
 ```  
