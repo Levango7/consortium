@@ -72,10 +72,6 @@ public class ConsensusEngineAdapter implements ConsensusEngine {
 
     }
 
-    @Override
-    public void onTransactionsConfirmed(Transaction... transactions) {
-
-    }
 
     @Override
     public ValidateResult validateTransaction(Transaction transaction) {

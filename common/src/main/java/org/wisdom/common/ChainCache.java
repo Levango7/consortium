@@ -57,7 +57,7 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
         return copied;
     }
 
-    public List<T> getDescendantBlocks(T node) {
+    public List<T> getDescendants(T node) {
         LinkedList<Set<String>> descendantBlocksHash = new LinkedList<>();
         String key = node.getHash().toString();
         descendantBlocksHash.add(Collections.singleton(key));
@@ -204,7 +204,7 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
         return nodes.isEmpty();
     }
 
-    public boolean hasBlock(byte[] hash) {
+    public boolean contains(byte[] hash) {
         return nodes.containsKey(HexBytes.encode(hash));
     }
 
@@ -226,5 +226,9 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
         }
         Collections.reverse(res);
         return res;
+    }
+
+    public List<T> getChildren(byte[] hash){
+        return getNodes(childrenHashes.get(HexBytes.encode(hash)));
     }
 }

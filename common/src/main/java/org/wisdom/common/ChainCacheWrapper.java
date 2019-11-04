@@ -52,10 +52,10 @@ public class ChainCacheWrapper<T extends Chained> extends ChainCache<T> {
     }
 
     @Override
-    public List<T> getDescendantBlocks(T node) {
+    public List<T> getDescendants(T node) {
         lock.readLock().lock();
         try {
-            return super.getDescendantBlocks(node);
+            return super.getDescendants(node);
         } finally {
             lock.readLock().unlock();
         }
@@ -152,10 +152,10 @@ public class ChainCacheWrapper<T extends Chained> extends ChainCache<T> {
     }
 
     @Override
-    public boolean hasBlock(byte[] hash) {
+    public boolean contains(byte[] hash) {
         lock.readLock().lock();
         try{
-            return super.hasBlock(hash);
+            return super.contains(hash);
         }finally {
             lock.readLock().unlock();
         }
@@ -176,6 +176,16 @@ public class ChainCacheWrapper<T extends Chained> extends ChainCache<T> {
         lock.readLock().lock();
         try{
             return super.getAncestors(node);
+        }finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public List<T> getChildren(byte[] hash) {
+        lock.readLock().lock();
+        try{
+            return super.getChildren(hash);
         }finally {
             lock.readLock().unlock();
         }
