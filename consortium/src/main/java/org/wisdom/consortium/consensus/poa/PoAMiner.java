@@ -4,30 +4,25 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.DecoderException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.wisdom.common.*;
+import org.wisdom.consortium.consensus.poa.config.Genesis;
+import org.wisdom.util.BigEndian;
 
-import java.util.*;
+import java.nio.charset.StandardCharsets;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import org.wisdom.consortium.ApplicationConstants;
-import org.wisdom.consortium.config.ConsortiumConfig;
-import org.wisdom.consortium.consensus.poa.config.Genesis;
-import org.wisdom.consortium.exception.ApplicationException;
-import org.wisdom.util.BigEndian;
-import javax.annotation.PostConstruct;
+import static org.wisdom.consortium.consensus.poa.PoAHashPolicy.HASH_POLICY;
+
 
 @Slf4j
-@ConditionalOnProperty(
-        name = ApplicationConstants.CONSENSUS_NAME_PROPERTY,
-        havingValue = ApplicationConstants.CONSENSUS_POA
-)
-@Component
-public class PoaMiner implements Miner {
+public class PoAMiner implements Miner {
     @Getter
     @AllArgsConstructor
     public static class MinedResult {
@@ -36,23 +31,37 @@ public class PoaMiner implements Miner {
         private String reason;
     }
 
-    private ConsortiumConfig.ConsensusConfig consensusConfig;
+    private PoAConfig poAConfig;
 
-    @Autowired
-    public void setConsensusConfig(ConsortiumConfig consortiumConfig) {
-        consensusConfig = consortiumConfig.getConsensus();
-    }
-
-    @Autowired
-    private BlockStore blockStore;
-
-    @Autowired
     private Genesis genesis;
 
     private List<MinerListener> listeners;
 
-    public PoaMiner() {
+    private BlockRepository blockRepository;
+
+    private boolean stopped;
+
+    private Thread thread;
+
+    public void setGenesis(Genesis genesis) {
+        this.genesis = genesis;
+    }
+
+    public void setPoAConfig(PoAConfig poAConfig) {
+        this.poAConfig = poAConfig;
+    }
+
+    public void setRepository(BlockRepository blockRepository) {
+        this.blockRepository = blockRepository;
+    }
+
+    public PoAMiner() {
         listeners = new ArrayList<>();
+    }
+
+    public PoAMiner(PoAConfig poAConfig, Genesis genesis) {
+        this.poAConfig = poAConfig;
+        this.genesis = genesis;
     }
 
     public Optional<Proposer> getProposer(Block parent, long currentTimeSeconds) {
@@ -66,18 +75,18 @@ public class PoaMiner implements Miner {
                 parent.getBody().size() == 0 ||
                 parent.getBody().get(0).getTo() == null
         ) return Optional.empty();
-        String prev = new String(parent.getBody().get(0).getTo().getBytes());
+        String prev = new String(parent.getBody().get(0).getTo().getBytes(), StandardCharsets.UTF_8);
         int prevIndex = genesis.miners.stream().map(x -> x.address).collect(Collectors.toList()).indexOf(prev);
         if (prevIndex < 0) {
             return Optional.empty();
         }
 
         long step = (currentTimeSeconds - parent.getCreatedAt())
-                / consensusConfig.getBlockInterval() + 1;
+                / poAConfig.getBlockInterval() + 1;
 
         int currentIndex = (int) (prevIndex + step) % genesis.miners.size();
-        long endTime = parent.getCreatedAt() + step * consensusConfig.getBlockInterval();
-        long startTime = endTime - consensusConfig.getBlockInterval();
+        long endTime = parent.getCreatedAt() + step * poAConfig.getBlockInterval();
+        long startTime = endTime - poAConfig.getBlockInterval();
         return Optional.of(new Proposer(
                 genesis.miners.get(currentIndex).address,
                 startTime,
@@ -85,47 +94,43 @@ public class PoaMiner implements Miner {
         ));
     }
 
-    @PostConstruct
-    public void init() throws Exception{
-        log.info("PoA miner loaded");
-        Block b = genesis.getBlock();
-        Optional<Block> o = blockStore.getBlockByHeight(0);
-        if (!o.isPresent()){
-            blockStore.writeBlock(b);
-            return;
-        }
-        Block another = o.get();
-        if (!b.getHash().equals(another.getHash())){
-            throw new ApplicationException("the genesis in database not equals " + consensusConfig.getGenesis());
-        }
-    }
 
     @Override
     public void start() {
-
+        thread = new Thread(() -> {
+            while (true){
+                tryMine();
+                try {
+                    TimeUnit.SECONDS.sleep(1);
+                }catch (Exception ignored){}
+            }
+        });
+        thread.start();
     }
 
     @Override
     public void stop() {
-
+        if (thread != null){
+            thread.interrupt();
+        }
+        stopped = true;
     }
 
-    @Scheduled(fixedRate = 1000)
     public void tryMine() {
-        if (!consensusConfig.isEnableMining()) {
+        if (!poAConfig.isEnableMining() || stopped) {
             return;
         }
-        String coinBase = consensusConfig.getMinerCoinBase();
-        Block best = blockStore.getBestBlock();
+        String coinBase = poAConfig.getMinerCoinBase();
+        Block best = blockRepository.getBestBlock();
         // 判断是否轮到自己出块
         Optional<Proposer> o = getProposer(
                 best,
-                System.currentTimeMillis() / 1000
+                OffsetDateTime.now().toEpochSecond()
         ).filter(p -> p.getAddress().equals(coinBase));
         if (!o.isPresent()) return;
-        log.info("try to mining at height " + best.getHeight() + 1);
+        log.info("try to mining at height " + (best.getHeight() + 1));
         try {
-            Block b = createBlock(blockStore.getBestBlock());
+            Block b = createBlock(blockRepository.getBestBlock());
             log.info("mining success");
             listeners.forEach(l -> l.onBlockMined(b));
             Assert.isTrue(b.getHash().equals(new HexBytes(PoAUtils.getHash(b))), "block hash is equal");
@@ -143,9 +148,9 @@ public class PoaMiner implements Miner {
                 .from(PoAConstants.ZERO_BYTES)
                 .amount(EconomicModelImpl.getConsensusRewardAtHeight(height))
                 .payload(PoAConstants.ZERO_BYTES)
-                .to(new HexBytes(consensusConfig.getMinerCoinBase().getBytes()))
+                .to(new HexBytes(poAConfig.getMinerCoinBase().getBytes(StandardCharsets.UTF_8)))
                 .signature(PoAConstants.ZERO_BYTES).build();
-        tx.setHash(new HexBytes(PoAUtils.getHash(tx)));
+        tx.setHash(HASH_POLICY.getHash(tx));
         return tx;
     }
 
@@ -160,13 +165,13 @@ public class PoaMiner implements Miner {
                 .hash(new HexBytes(BigEndian.encodeInt64(parent.getHeight() + 1))).build();
         Block b = new Block(header);
         b.getBody().add(createCoinBase(parent.getHeight() + 1));
-        b.setHash(new HexBytes(PoAUtils.getHash(b)));
+        b.setHash(HASH_POLICY.getHash(b));
         return b;
     }
 
 
     @Override
-    public void subscribe(MinerListener... listeners) {
+    public void addListeners(MinerListener... listeners) {
         this.listeners.addAll(Arrays.asList(listeners));
     }
 
@@ -176,6 +181,16 @@ public class PoaMiner implements Miner {
 
     @Override
     public void onNewBestBlock(Block block) {
+    }
+
+    @Override
+    public void onBlockConfirmed(Block block) {
+
+    }
+
+    @Override
+    public void onTransactionsConfirmed(Transaction... transactions) {
+
     }
 
     public static class EconomicModelImpl {

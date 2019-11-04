@@ -7,7 +7,6 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 
 import java.util.Arrays;
-import java.util.Objects;
 
 /**
  * hex bytes helper for json marshal/unmarshal

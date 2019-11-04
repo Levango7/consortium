@@ -8,14 +8,15 @@ import org.wisdom.consortium.dao.BlockDao;
 import org.wisdom.consortium.dao.HeaderDao;
 import org.wisdom.consortium.dao.Mapping;
 import org.wisdom.consortium.dao.TransactionDao;
+import org.wisdom.exception.GenesisConflictsException;
+import org.wisdom.exception.WriteGenesisFailedException;
 
-import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-public class BlockStoreService implements BlockStore {
+public class BlockRepositoryService implements BlockRepository {
     @Autowired
     private BlockDao blockDao;
 
@@ -26,16 +27,6 @@ public class BlockStoreService implements BlockStore {
     private TransactionDao transactionDao;
 
     private Block genesis;
-
-    private List<BlockStoreListener> listeners = new ArrayList<>();
-
-    private void emitNewBlockWritten(Block block) {
-        listeners.forEach(x -> x.onBlockWritten(block));
-    }
-
-    private void emitNewBestBlock(Block block) {
-        listeners.forEach(x -> x.onNewBestBlock(block));
-    }
 
     private Block getBlockFromHeader(Header header) {
         Block b = new Block(header);
@@ -70,15 +61,17 @@ public class BlockStoreService implements BlockStore {
         return blocks;
     }
 
-    // if genesis not exists, write genesis here
-    @PostConstruct
-    public void init() {
-
-    }
-
     @Override
-    public void subscribe(BlockStoreListener... listeners) {
-        this.listeners.addAll(Arrays.asList(listeners));
+    public void saveGenesis(Block block) throws GenesisConflictsException, WriteGenesisFailedException {
+        this.genesis = block;
+        Optional<Block> o = getBlockByHeight(0);
+        if (!o.isPresent()){
+            writeBlock(genesis);
+            return;
+        }
+        if (!o.get().getHash().equals(block.getHash())){
+            throw new GenesisConflictsException("genesis in db not equals to genesis in configuration");
+        }
     }
 
     @Override

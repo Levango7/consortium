@@ -7,8 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.wisdom.common.Block;
-import org.wisdom.common.BlockStore;
 import org.wisdom.common.Header;
+import org.wisdom.consortium.service.BlockRepositoryService;
 import org.wisdom.util.BigEndian;
 
 import java.util.Arrays;
@@ -22,9 +22,10 @@ import static org.wisdom.consortium.TestUtils.getBlock;
 @SpringBootTest(classes = Start.class)
 // use SPRING_CONFIG_LOCATION environment to locate spring config
 // for example: SPRING_CONFIG_LOCATION=classpath:\application.yml,some-path\custom-config.yml
-public class BlockStoreTests {
+// set consensus.name = 'none' to run this test class
+public class BlockRepositoryTests {
     @Autowired
-    private BlockStore blockStore;
+    private BlockRepositoryService blockStore;
 
     private void assertHeader(Header header) {
         assert header.getVersion() == 1;

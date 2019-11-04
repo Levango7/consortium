@@ -2,10 +2,14 @@ package org.wisdom.common;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Delegate;
+import org.wisdom.util.EpochSecondDeserializer;
+import org.wisdom.util.EpochSecondsSerializer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +19,7 @@ public class Block implements Cloneable<Block>, Chained{
     private static abstract class ExcludedMethods{
         public abstract Block clone();
         public abstract int size();
+        public abstract long getCreatedAt();
     }
 
     // extend from header
@@ -26,6 +31,12 @@ public class Block implements Cloneable<Block>, Chained{
     @Getter
     @Setter
     private List<Transaction> body;
+
+    @JsonSerialize(using = EpochSecondsSerializer.class)
+    @JsonDeserialize(using = EpochSecondDeserializer.class)
+    public long getCreatedAt(){
+        return header.getCreatedAt();
+    }
 
     public Block(){
         header = new Header();

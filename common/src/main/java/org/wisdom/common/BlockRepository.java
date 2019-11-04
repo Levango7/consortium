@@ -1,12 +1,15 @@
 package org.wisdom.common;
 
+import org.wisdom.exception.GenesisConflictsException;
+import org.wisdom.exception.WriteGenesisFailedException;
+
 import java.util.List;
 import java.util.Optional;
 
-public interface BlockStore {
-    void subscribe(BlockStoreListener... listeners);
-
+public interface BlockRepository{
     Block getGenesis();
+
+    void saveGenesis(Block block) throws GenesisConflictsException, WriteGenesisFailedException;
 
     boolean hasBlock(byte[] hash);
 

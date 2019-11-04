@@ -1,11 +1,12 @@
 package org.wisdom.common;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.*;
-import org.wisdom.util.BigEndian;
+import org.wisdom.util.EpochSecondDeserializer;
+import org.wisdom.util.EpochSecondsSerializer;
 
-import java.util.Arrays;
 import java.util.stream.Stream;
 
 @Getter
@@ -22,6 +23,8 @@ public class Transaction implements Cloneable<Transaction> {
 
     private int type;
 
+    @JsonSerialize(using = EpochSecondsSerializer.class)
+    @JsonDeserialize(using = EpochSecondDeserializer.class)
     private long createdAt;
 
     private long nonce;
@@ -55,9 +58,11 @@ public class Transaction implements Cloneable<Transaction> {
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public int size() {
-        return Constants.INTEGER_SIZE * 2 + Constants.LONG_SIZE * 3 +
+        return Constants.sizeOf(version) + Constants.sizeOf(type)
+                + Constants.sizeOf(createdAt) + Constants.sizeOf(nonce)
+                + Constants.sizeOf(gasPrice) + Constants.sizeOf(amount) +
                 Stream.of(from, payload, to, signature)
-                        .map(bytes -> bytes == null ? 0 : bytes.size())
+                        .map(Constants::sizeOf)
                         .reduce(0, Integer::sum);
     }
 

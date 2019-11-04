@@ -3,7 +3,7 @@ package org.wisdom.common;
 import java.util.List;
 import java.util.Optional;
 
-public interface TransactionPool {
+public interface TransactionPool extends MinerListener, ConsortiumRepositoryListener{
 
     // collect transactions into transaction pool
     void collect(Transaction... transactions);
@@ -17,4 +17,11 @@ public interface TransactionPool {
 
     // get size of current transaction pool
     int size();
+
+    // get transactions paged
+    List<Transaction> get(int page, int size);
+
+    void setValidator(PendingTransactionValidator validator);
+
+    void addListeners(TransactionPoolListener... listeners);
 }

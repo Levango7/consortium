@@ -1,11 +1,15 @@
 package org.wisdom.common;
 
+import org.wisdom.exception.StateUpdateException;
+
 import java.util.Collection;
 
-public interface State<T> extends Cloneable<T> {
-    T updateTransaction(Block b, Transaction t);
+public interface State<T> extends Cloneable<T>, Serializable {
+    void updateTransaction(Block b, Transaction t) throws StateUpdateException;
 
-    T updateBlock(Block b);
+    void updateBlock(Block b) throws StateUpdateException;
 
-    T updateBlocks(Collection<? super Block> blocks);
+    void updateBlocks(Collection<? super Block> blocks) throws StateUpdateException;
+
+    HexBytes getWhere();
 }

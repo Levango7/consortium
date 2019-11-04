@@ -3,28 +3,38 @@ package org.wisdom.consortium;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.wisdom.consortium.config.ConsortiumConfig;
-import org.wisdom.consortium.consensus.poa.config.Genesis;
-import org.wisdom.consortium.exception.ApplicationException;
+import org.springframework.util.Assert;
+import org.wisdom.common.*;
+import org.wisdom.consortium.consensus.ConsensusEngineAdapter;
+import org.wisdom.consortium.consensus.poa.PoA;
+
+import java.util.Optional;
 
 @EnableAsync
 @EnableScheduling
 @SpringBootApplication
 @EnableTransactionManagement
+@Slf4j
 // use SPRING_CONFIG_LOCATION environment to locate spring config
 // for example: SPRING_CONFIG_LOCATION=classpath:\application.yml,some-path\custom-config.yml
 public class Start {
+    private static final boolean ENABLE_ASSERTION = "true".equals(System.getenv("ENABLE_ASSERTION"));
+
+    public static void devAssert(boolean truth, String error){
+        if (!ENABLE_ASSERTION) return;
+        Assert.isTrue(truth, error);
+    }
+
+    public static final ObjectMapper MAPPER = new ObjectMapper()
+            .enable(SerializationFeature.INDENT_OUTPUT)
+            .enable(JsonParser.Feature.ALLOW_COMMENTS);
 
     public static void main(String[] args) {
         SpringApplication.run(Start.class, args);
@@ -32,34 +42,57 @@ public class Start {
 
     @Bean
     public ObjectMapper getObjectMapper() {
-        ObjectMapper mapper = new ObjectMapper()
-                .enable(SerializationFeature.INDENT_OUTPUT)
-                .enable(JsonParser.Feature.ALLOW_COMMENTS);
-        SimpleModule module = new SimpleModule();
-        return mapper.registerModule(module);
-    }
-
-    private Resource getResource(String path) throws ApplicationException {
-        Resource resource = new FileSystemResource(path);
-        if (!resource.exists()) {
-            resource = new ClassPathResource(path);
-        }
-        if (!resource.exists()) {
-            throw new ApplicationException("resource " + path + " not found");
-        }
-        return resource;
+        return MAPPER;
     }
 
     @Bean
-    @ConditionalOnProperty(
-            name = ApplicationConstants.CONSENSUS_NAME_PROPERTY,
-            havingValue = ApplicationConstants.CONSENSUS_POA
-    )
-    public Genesis genesis(ConsortiumConfig config, ObjectMapper objectMapper)
-            throws Exception {
-        return objectMapper.readValue(
-                getResource(
-                        config.getConsensus().getGenesis()).getInputStream(),
-                Genesis.class);
+    public ConsensusEngine consensusEngine(ConsensusProperties consensusProperties, ConsortiumRepository consortiumRepository) throws Exception {
+        String name = consensusProperties.getConsensus().getProperty(ConsensusProperties.CONSENSUS_NAME);
+        name = name == null ? "" : name;
+        final ConsensusEngine engine;
+        switch (name.toLowerCase()) {
+            // none consensus selected, used for unit test
+            case ApplicationConstants.CONSENSUS_NONE:
+                log.warn("none consensus engine selected, please ensure you are in test mode");
+                return new ConsensusEngineAdapter();
+            case ApplicationConstants.CONSENSUS_POA:
+                // use poa as default consensus
+                // another engine: pow, pos, pow+pos, vrf
+                engine = new PoA();
+                break;
+            default:
+                log.error(
+                        "none available consensus configured by consortium.consensus.name=" + name +
+                                " please provide available consensus engine");
+                log.error("roll back to poa consensus");
+                engine = new PoA();
+        }
+
+        engine.load(consensusProperties.getConsensus(), consortiumRepository);
+        consortiumRepository.saveGenesis(engine.getGenesis());
+        consortiumRepository.setProvider(engine);
+        engine.addListeners(new MinerListener() {
+            @Override
+            public void onBlockMined(Block block) {
+                Optional<Block> o = consortiumRepository.getBlock(block.getHashPrev().getBytes());
+                if (!o.isPresent()){
+                    throw new RuntimeException("successfully mined on an unknown block");
+                }
+                ValidateResult result = engine.validateBlock(block, o.get());
+                if (!result.isSuccess()){
+                    log.error("validate block failed");
+                    log.error(result.getReason());
+                    return;
+                }
+                consortiumRepository.writeBlock(block);
+            }
+
+            @Override
+            public void onMiningFailed(Block block) {
+
+            }
+        });
+        engine.start();
+        return engine;
     }
 }

@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 /**
  * @author sal 1564319846@qq.com
  */
-public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>> {
+public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
     private Map<String, T> nodes;
     private Map<String, Set<String>> childrenHashes;
     private Map<Long, Set<String>> heightIndex;
