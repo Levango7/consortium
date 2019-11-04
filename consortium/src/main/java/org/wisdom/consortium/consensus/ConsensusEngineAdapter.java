@@ -106,6 +106,6 @@ public class ConsensusEngineAdapter implements ConsensusEngine {
 
     @Override
     public void confirm(Block b) {
-        
+
     }
 }

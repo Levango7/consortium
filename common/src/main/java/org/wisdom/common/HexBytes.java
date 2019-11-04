@@ -46,6 +46,10 @@ public class HexBytes {
         return hexCache;
     }
 
+    public HexBytes(){
+        this.bytes = new byte[0];
+    }
+
     public HexBytes(@NonNull byte[] bytes) {
         this.bytes = bytes;
     }

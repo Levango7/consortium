@@ -57,7 +57,8 @@ public class ForkAbleStateSets<T extends ForkAbleState<T>> implements Cloneable<
     }
 
     void updateBlock(Block b) throws StateUpdateException {
-        Set<String> all = b.getBody().stream().map(empty::getIdentifierOf).collect(Collectors.toSet());
+        Set<String> all = new HashSet<>();
+        b.getBody().stream().map(empty::getIdentifiersOf).forEach(all::addAll);
         Map<String, T> states = all.stream()
                 .map(id -> findRecursively(id).orElse(empty.createEmpty(id)))
                 .collect(Collectors.toMap(ForkAbleState::getIdentifier, (s) -> s));
