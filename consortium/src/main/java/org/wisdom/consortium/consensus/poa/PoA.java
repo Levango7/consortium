@@ -83,14 +83,12 @@ public class PoA implements ConsensusEngine {
     }
 
     @Override
-    public <T extends State<T>> Optional<T> getState(Block last, Class<T> clazz) {
-        return Optional.empty();
+    public <T extends State<T>> void registerGenesis(T genesisState) {
+        
     }
 
     @Override
-    public <T extends State<T>> void registerGenesis(T genesisState) {
-
+    public <T extends State<T>> Optional<T> getState(Block last, Class<T> clazz) {
+        return Optional.empty();
     }
-
-
 }

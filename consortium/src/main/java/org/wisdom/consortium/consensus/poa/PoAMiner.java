@@ -188,10 +188,6 @@ public class PoAMiner implements Miner {
 
     }
 
-    @Override
-    public void onTransactionsConfirmed(Transaction... transactions) {
-
-    }
 
     public static class EconomicModelImpl {
 
