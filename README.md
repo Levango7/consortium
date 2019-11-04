@@ -21,3 +21,16 @@ https://jingyan.baidu.com/article/0a52e3f4e53ca1bf63ed725c.html
 
 -Dspring.config.location=classpath:\application.yml,some-path\custom-config.yml
 
+
+
+## Commands
+
+1. start application: ```.\gradlew consortium:bootRun```
+
+2. clear builds ```.\gradlew consortium:clean```
+
+3. build and run fat jar 
+```shell script
+.\gradlew consortium:bootJar                            
+java -jar consortium\build\libs\consortium-0.0.1-SNAPSHOT.jar -Dspring.config.location=classpath:\application.yml,some-path\custom-config.yml
+```  
