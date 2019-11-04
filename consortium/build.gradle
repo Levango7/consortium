@@ -48,6 +48,12 @@ bootRun {
     main = "org.wisdom.consortium.Start"
 }
 
+jar{
+    manifest {
+        attributes 'Main-Class': 'org.wisdom.consortium.Start'
+    }
+}
+
 bootRun.dependsOn += copyDependencies
 
 test {
