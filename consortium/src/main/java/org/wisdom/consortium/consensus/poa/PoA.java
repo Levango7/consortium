@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 
+// poa is a minimal non-trivial consensus engine
 public class PoA implements ConsensusEngine {
     private PoAConfig poAConfig;
 
