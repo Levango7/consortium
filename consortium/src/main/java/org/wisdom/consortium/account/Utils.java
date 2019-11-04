@@ -27,19 +27,20 @@ public class Utils {
     public static byte[] addressToPublicKeyHash(String address) {
         if (!verifyAddress(address)){
             return null;
-        };
-        byte[] r5 = Base58Utility.decode(address);
-        byte[] r2 = Arrays.copyOfRange(r5, 0, 21);
-        return Arrays.copyOfRange(r2, 1, 21);
+        }
+        return Arrays.copyOfRange(Base58Utility.decode(address), 1, 21);
     }
 
     private static boolean verifyAddress(String address) {
-        byte[] r5 = Base58Utility.decode(address);
-//        ResultSupport ar = new ResultSupport();
         if (!address.startsWith("1")) {//地址不是以"1"开头
             return false;
         }
-        byte[] r3 = HashFunctions.keccak256(HashFunctions.keccak256(addressToPublicKeyHash(address)));
+        byte[] r5 = Base58Utility.decode(address);
+        byte[] r3 = HashFunctions.keccak256(
+                HashFunctions.keccak256(
+                        Arrays.copyOfRange(Base58Utility.decode(address), 1, 21)
+                )
+        );
         byte[] b4 = Arrays.copyOfRange(r3, 0, 4);
         byte[] _b4 = Arrays.copyOfRange(r5, r5.length - 4, r5.length);
         //正确
