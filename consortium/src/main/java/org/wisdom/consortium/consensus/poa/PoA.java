@@ -117,7 +117,7 @@ public class PoA implements ConsensusEngine {
 
     @Override
     public void onMessage(Context context, PeerServer server) {
-        
+
     }
 
     @Override
