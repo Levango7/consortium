@@ -11,14 +11,14 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
     // where of the root
     private HexBytes where;
 
-    public ForkAbleStatesTree(Block genesis, T... states) throws StateUpdateException {
+    public ForkAbleStatesTree(Block genesis, T... states) {
         root = new ForkAbleStateSets<>(genesis, states);
         cache = new ChainCache<>();
         cache.add(root);
         where = genesis.getHash();
     }
 
-    public void update(Block b)  {
+    public void update(Block b) {
         if (cache.contains(b.getHash().getBytes())) return;
         Optional<ForkAbleStateSets<T>> o = cache.get(b.getHashPrev().getBytes());
         if (!o.isPresent()) throw new RuntimeException(
@@ -27,11 +27,24 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
         ForkAbleStateSets<T> parent = o.get();
         ForkAbleStateSets<T> copied = parent.clone();
         try {
-            copied.updateBlock(b);
+            copied.update(b);
         } catch (StateUpdateException e) {
             // this should never happen, for the block b had been validated
             throw new RuntimeException(e.getMessage());
         }
+        copied.parent = parent;
+        cache.add(copied);
+    }
+
+    public void update(Block b, T... allStates){
+        if (cache.contains(b.getHash().getBytes())) return;
+        Optional<ForkAbleStateSets<T>> o = cache.get(b.getHashPrev().getBytes());
+        if (!o.isPresent()) throw new RuntimeException(
+                "state sets not found at " + b.getHashPrev()
+        );
+        ForkAbleStateSets<T> parent = o.get();
+        ForkAbleStateSets<T> copied = parent.clone();
+        copied.update(b, allStates);
         copied.parent = parent;
         cache.add(copied);
     }

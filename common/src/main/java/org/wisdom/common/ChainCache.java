@@ -93,8 +93,8 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
     }
 
 
-    private void remove(T node) {
-        String hash = node.getHashPrev().toString();
+    public void remove(T node) {
+        String hash = node.getHash().toString();
         String prevHash = node.getHashPrev().toString();
         nodes.remove(hash);
         if (childrenHashes.containsKey(prevHash)) {

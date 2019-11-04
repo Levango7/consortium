@@ -21,18 +21,14 @@ public class ConsortiumStateRepository implements StateRepository {
     }
 
     @Override
-    public <T extends State<T>> void registerGenesis(T genesisState) throws StateUpdateException {
-        factories.put(genesisState.getClass().toString(), new InMemoryStateFactory(genesisState));
+    public <T extends State<T>> void register(Block genesis, T genesisState) throws StateUpdateException {
+        factories.put(genesisState.getClass().toString(), new InMemoryStateFactory(genesis, genesisState));
     }
 
     @Override
-    public <T extends ForkAbleState<T>> void registerForkAbles(Block genesis, T... forkAbleStates) {
+    public <T extends ForkAbleState<T>> void register(Block genesis, T... forkAbleStates) {
         if (forkAbleStates.length == 0) throw new RuntimeException("requires at least one state");
-        try {
-            trees.put(forkAbleStates[0].getClass().toString(), new ForkAbleStatesTree<>(genesis, forkAbleStates));
-        } catch (StateUpdateException e) {
-            log.error(e.getMessage());
-        }
+        trees.put(forkAbleStates[0].getClass().toString(), new ForkAbleStatesTree<>(genesis, forkAbleStates));
     }
 
     @Override

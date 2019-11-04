@@ -56,7 +56,7 @@ public class ForkAbleStateSets<T extends ForkAbleState<T>> implements Cloneable<
         return parent.findRecursively(id);
     }
 
-    void updateBlock(Block b) throws StateUpdateException {
+    void update(Block b) throws StateUpdateException {
         Set<String> all = new HashSet<>();
         b.getBody().stream().map(empty::getIdentifiersOf).forEach(all::addAll);
         Map<String, T> states = all.stream()
@@ -69,6 +69,19 @@ public class ForkAbleStateSets<T extends ForkAbleState<T>> implements Cloneable<
             }
         }
         states.forEach((k, v) -> cache.put(k, v));
+        hash = b.getHash();
+        hashPrev = b.getHashPrev();
+        height = b.getHeight();
+    }
+
+    void update(Block b, T... allStates){
+        Set<String> all = new HashSet<>();
+        b.getBody().stream().map(empty::getIdentifiersOf).forEach(all::addAll);
+        for(T s: allStates){
+            if (!all.contains(s.getIdentifier())) throw new RuntimeException(
+                    "not enough related state provided, missing " + s.getIdentifier());
+            cache.put(s.getIdentifier(), s);
+        }
         hash = b.getHash();
         hashPrev = b.getHashPrev();
         height = b.getHeight();
