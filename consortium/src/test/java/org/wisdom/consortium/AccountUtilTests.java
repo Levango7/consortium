@@ -34,5 +34,10 @@ public class AccountUtilTests {
         assert Utils.publicKeyHashToAddress(Utils.addressToPublicKeyHash("1L3zkde4kSpfd1L7NYmNYSBf1Bvh6fZLk")).equals(
                 "1L3zkde4kSpfd1L7NYmNYSBf1Bvh6fZLk"
         );
+
+        assert Arrays.equals(
+                Utils.addressToPublicKeyHash("1L3zkde4kSpfd1L7NYmNYSBf1Bvh6fZLk"),
+                Hex.decode("039a676b65273eeca96af35e35c05e482650c979")
+        );
     }
 }

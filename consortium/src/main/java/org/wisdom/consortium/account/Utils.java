@@ -5,6 +5,7 @@ import org.wisdom.crypto.Base58Utility;
 import org.wisdom.crypto.HashFunctions;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 public class Utils {
     public static byte[] publicKeyToHash(byte[] publicKey) {
@@ -24,11 +25,11 @@ public class Utils {
     }
 
 
-    public static byte[] addressToPublicKeyHash(String address) {
+    public static Optional<byte[]> addressToPublicKeyHash(String address) {
         if (!verifyAddress(address)){
-            return null;
+            return Optional.empty();
         }
-        return Arrays.copyOfRange(Base58Utility.decode(address), 1, 21);
+        return Optional.of(Arrays.copyOfRange(Base58Utility.decode(address), 1, 21));
     }
 
     private static boolean verifyAddress(String address) {

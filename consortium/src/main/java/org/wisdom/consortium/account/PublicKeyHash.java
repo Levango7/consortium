@@ -23,12 +23,9 @@ public class PublicKeyHash {
                 return Optional.of(fromPublicKey(publicKeyHash));
             }
         } catch (Exception e) {
-            publicKeyHash = addressToPublicKeyHash(hex);
+            return addressToPublicKeyHash(hex).map(PublicKeyHash::new);
         }
-        if (publicKeyHash == null) {
-            return Optional.empty();
-        }
-        return Optional.of(new PublicKeyHash(publicKeyHash));
+        return Optional.empty();
     }
 
     public PublicKeyHash(byte[] publicKeyHash) {
