@@ -3,6 +3,7 @@ package org.wisdom.common;
 import java.util.Collection;
 import java.util.List;
 
+// orphan node manager
 public interface OrphansPool<T extends Chained> extends ConsortiumRepositoryListener{
     List<T> filterAndCacheOrphans(Collection<? extends T> nodes);
 
