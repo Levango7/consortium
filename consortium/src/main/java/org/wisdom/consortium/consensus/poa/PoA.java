@@ -9,6 +9,7 @@ import org.wisdom.common.*;
 import org.wisdom.consortium.consensus.poa.config.Genesis;
 import org.wisdom.consortium.util.FileUtils;
 import org.wisdom.exception.ConsensusEngineLoadException;
+import org.wisdom.exception.StateUpdateException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -84,12 +85,27 @@ public class PoA implements ConsensusEngine {
     }
 
     @Override
-    public <T extends State<T>> void registerGenesis(T genesisState) {
-        
+    public <T extends State<T>> void registerGenesis(T genesisState) throws StateUpdateException {
+
+    }
+
+    @Override
+    public <T extends ForkAbleState<T>> void registerForkAbles(Block genesis, T... forkAbleStates) {
+
     }
 
     @Override
     public <T extends State<T>> Optional<T> getState(Block last, Class<T> clazz) {
         return Optional.empty();
+    }
+
+    @Override
+    public <T extends ForkAbleState<T>> Optional<T> getForkAbleState(Block last, String id, Class<T> clazz) {
+        return Optional.empty();
+    }
+
+    @Override
+    public void update(Block b) {
+
     }
 }

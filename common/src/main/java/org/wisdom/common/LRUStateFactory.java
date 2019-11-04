@@ -5,7 +5,7 @@ import com.google.common.cache.CacheBuilder;
 
 import java.util.Optional;
 
-public class LRUStateFactory<T extends State<T>> {
+public class LRUStateFactory<T extends State<T>> implements StateFactory<T>{
     private static final long MAXIMUM_TRAVERSE_DEPTH = 2048;
 
     private Cache<String, T> cache;

@@ -28,9 +28,18 @@ public class ForkAbleStateSets<T extends ForkAbleState<T>> implements Cloneable<
         return height;
     }
 
-    public ForkAbleStateSets(T empty) {
-        this.empty = empty;
+    private ForkAbleStateSets(){}
+
+    public ForkAbleStateSets(Block genesis, T... states) {
+        if (states.length == 0) throw new RuntimeException("at lease one states required");
+        this.empty = states[0];
         this.cache = new HashMap<>();
+        for (T s : states) {
+            cache.put(s.getIdentifier(), s);
+        }
+        this.height = genesis.getHeight();
+        this.hash = genesis.getHash();
+        this.hashPrev = genesis.getHashPrev();
     }
 
     private Map<String, T> cache;
@@ -72,7 +81,10 @@ public class ForkAbleStateSets<T extends ForkAbleState<T>> implements Cloneable<
 
     @Override
     public ForkAbleStateSets<T> clone() {
-        ForkAbleStateSets<T> res = new ForkAbleStateSets<>(empty);
+        ForkAbleStateSets<T> res = new ForkAbleStateSets<>();
+        res.empty = this.empty;
+        res.hashPrev = this.hashPrev;
+        res.hash = this.hash;
         res.cache = new HashMap<>(cache);
         res.parent = parent;
         return res;

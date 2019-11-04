@@ -11,9 +11,8 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
     // where of the root
     private HexBytes where;
 
-    public ForkAbleStatesTree(T empty, Block genesis) throws StateUpdateException {
-        root = new ForkAbleStateSets<>(empty);
-        root.updateBlock(genesis);
+    public ForkAbleStatesTree(Block genesis, T... states) throws StateUpdateException {
+        root = new ForkAbleStateSets<>(genesis, states);
         cache = new ChainCache<>();
         cache.add(root);
         where = genesis.getHash();
@@ -43,8 +42,8 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
         }
         List<ForkAbleStateSets<T>> children = cache.getChildren(root.getHash().getBytes());
         // clear
-        for(ForkAbleStateSets<T> node: children){
-            if(!node.getHash().equals(block.getHash())){
+        for (ForkAbleStateSets<T> node : children) {
+            if (!node.getHash().equals(block.getHash())) {
                 cache.remove(cache.getDescendants(node));
                 continue;
             }

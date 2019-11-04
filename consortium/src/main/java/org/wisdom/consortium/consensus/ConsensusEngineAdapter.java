@@ -2,6 +2,7 @@ package org.wisdom.consortium.consensus;
 
 import org.wisdom.common.*;
 import org.wisdom.exception.ConsensusEngineLoadException;
+import org.wisdom.exception.StateUpdateException;
 
 import java.util.List;
 import java.util.Optional;
@@ -65,6 +66,7 @@ public class ConsensusEngineAdapter implements ConsensusEngine {
 
     @Override
     public void onNewBestBlock(Block block) {
+
     }
 
     @Override
@@ -72,19 +74,33 @@ public class ConsensusEngineAdapter implements ConsensusEngine {
 
     }
 
-
     @Override
     public ValidateResult validateTransaction(Transaction transaction) {
         return null;
     }
 
     @Override
-    public <T extends State<T>> void registerGenesis(T genesisState) {
+    public <T extends State<T>> void registerGenesis(T genesisState) throws StateUpdateException {
+
+    }
+
+    @Override
+    public <T extends ForkAbleState<T>> void registerForkAbles(Block genesis, T... forkAbleStates) {
 
     }
 
     @Override
     public <T extends State<T>> Optional<T> getState(Block last, Class<T> clazz) {
         return Optional.empty();
+    }
+
+    @Override
+    public <T extends ForkAbleState<T>> Optional<T> getForkAbleState(Block last, String id, Class<T> clazz) {
+        return Optional.empty();
+    }
+
+    @Override
+    public void update(Block b) {
+
     }
 }
