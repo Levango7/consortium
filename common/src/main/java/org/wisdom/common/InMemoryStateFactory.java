@@ -28,6 +28,7 @@ public class InMemoryStateFactory<T extends State<T>> implements StateFactory<T>
             try {
                 copied.update(b, tx);
             } catch (StateUpdateException e) {
+                // this should never happen, for the block b had been validated
                 throw new RuntimeException(e.getMessage());
             }
         }

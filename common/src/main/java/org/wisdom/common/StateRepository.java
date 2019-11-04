@@ -14,4 +14,6 @@ public interface StateRepository {
     <T extends ForkAbleState<T>> Optional<T> getForkAbleState(Block last, String id, Class<T> clazz);
 
     void update(Block b);
+
+    void confirm(Block b);
 }

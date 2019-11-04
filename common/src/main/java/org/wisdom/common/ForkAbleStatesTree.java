@@ -18,15 +18,20 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
         where = genesis.getHash();
     }
 
-    public void update(Block b) throws StateUpdateException {
+    public void update(Block b)  {
         if (cache.contains(b.getHash().getBytes())) return;
         Optional<ForkAbleStateSets<T>> o = cache.get(b.getHashPrev().getBytes());
-        if (!o.isPresent()) throw new StateUpdateException(
+        if (!o.isPresent()) throw new RuntimeException(
                 "state sets not found at " + b.getHashPrev()
         );
         ForkAbleStateSets<T> parent = o.get();
         ForkAbleStateSets<T> copied = parent.clone();
-        copied.updateBlock(b);
+        try {
+            copied.updateBlock(b);
+        } catch (StateUpdateException e) {
+            // this should never happen, for the block b had been validated
+            throw new RuntimeException(e.getMessage());
+        }
         copied.parent = parent;
         cache.add(copied);
     }

@@ -108,4 +108,9 @@ public class PoA implements ConsensusEngine {
     public void update(Block b) {
 
     }
+
+    @Override
+    public void confirm(Block b) {
+
+    }
 }

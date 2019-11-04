@@ -10,14 +10,12 @@ import java.util.Optional;
 
 @Slf4j
 public class ConsortiumStateRepository implements StateRepository {
-    private static final long CACHE_SIZE = 256;
     private Map<String, StateFactory> factories;
 
     private Map<String, ForkAbleStatesTree> trees;
 
-    private BlockRepository repository;
 
-    public ConsortiumStateRepository(BlockRepository repository) {
+    public ConsortiumStateRepository() {
         factories = new HashMap<>();
         trees = new HashMap<>();
     }
@@ -31,7 +29,7 @@ public class ConsortiumStateRepository implements StateRepository {
     public <T extends ForkAbleState<T>> void registerForkAbles(Block genesis, T... forkAbleStates) {
         if (forkAbleStates.length == 0) throw new RuntimeException("requires at least one state");
         try {
-            trees.put(forkAbleStates[0].getClass().toString(), new ForkAbleStatesTree(genesis, forkAbleStates));
+            trees.put(forkAbleStates[0].getClass().toString(), new ForkAbleStatesTree<>(genesis, forkAbleStates));
         } catch (StateUpdateException e) {
             log.error(e.getMessage());
         }
@@ -53,6 +51,13 @@ public class ConsortiumStateRepository implements StateRepository {
 
     @Override
     public void update(Block b) {
+        factories.values().forEach(f -> f.update(b));
+        trees.values().forEach(t -> t.update(b));
+    }
 
+    @Override
+    public void confirm(Block b) {
+        factories.values().forEach(f -> f.confirm(b));
+        trees.values().forEach(t -> t.confirm(b));
     }
 }

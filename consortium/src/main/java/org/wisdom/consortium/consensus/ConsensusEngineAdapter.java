@@ -103,4 +103,9 @@ public class ConsensusEngineAdapter implements ConsensusEngine {
     public void update(Block b) {
 
     }
+
+    @Override
+    public void confirm(Block b) {
+        
+    }
 }
