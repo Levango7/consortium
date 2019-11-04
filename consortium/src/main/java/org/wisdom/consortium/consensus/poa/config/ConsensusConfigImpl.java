@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-public class ConsensusConfigImpl implements ConsensusConfig{
+public class ConsensusConfigImpl implements ConsensusConfig {
 
     @Autowired
     private Genesis genesis;

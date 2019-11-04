@@ -17,7 +17,6 @@ import org.wisdom.consortium.consensus.poa.PoA;
 
 import java.util.Optional;
 
-
 @EnableAsync
 @EnableScheduling
 @SpringBootApplication
