@@ -36,7 +36,8 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
         cache.add(copied);
     }
 
-    public void update(Block b, T... allStates){
+    // provide all already updated state
+    public void update(Block b, Collection<? extends T> allStates){
         if (cache.contains(b.getHash().getBytes())) return;
         Optional<ForkAbleStateSets<T>> o = cache.get(b.getHashPrev().getBytes());
         if (!o.isPresent()) throw new RuntimeException(

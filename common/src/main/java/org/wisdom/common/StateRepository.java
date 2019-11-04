@@ -2,6 +2,7 @@ package org.wisdom.common;
 
 import org.wisdom.exception.StateUpdateException;
 
+import java.util.Collection;
 import java.util.Optional;
 
 public interface StateRepository {
@@ -14,6 +15,10 @@ public interface StateRepository {
     <T extends ForkAbleState<T>> Optional<T> getForkAbleState(Block last, String id, Class<T> clazz);
 
     void update(Block b);
+
+    void update(Block b, State state);
+
+    void update(Block b, Collection<ForkAbleState> forkAbleStates, Class<? extends ForkAbleState> clazz);
 
     void confirm(Block b);
 }

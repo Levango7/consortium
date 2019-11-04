@@ -2,6 +2,7 @@ package org.wisdom.common;
 
 import org.wisdom.exception.StateUpdateException;
 
+// if T not implements Chained, wrap it as Chained
 public class ChainedState<T extends State<T>> implements State<ChainedState<T>>, Chained{
     private HexBytes hashPrev;
     private long height;

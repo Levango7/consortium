@@ -4,6 +4,7 @@ import org.wisdom.common.*;
 import org.wisdom.exception.ConsensusEngineLoadException;
 import org.wisdom.exception.StateUpdateException;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
@@ -97,6 +98,16 @@ public class ConsensusEngineAdapter implements ConsensusEngine {
     @Override
     public <T extends ForkAbleState<T>> Optional<T> getForkAbleState(Block last, String id, Class<T> clazz) {
         return Optional.empty();
+    }
+
+    @Override
+    public void update(Block b, State state) {
+
+    }
+
+    @Override
+    public void update(Block b, Collection<ForkAbleState> forkAbleStates, Class<? extends ForkAbleState> clazz) {
+
     }
 
     @Override

@@ -74,7 +74,7 @@ public class ForkAbleStateSets<T extends ForkAbleState<T>> implements Cloneable<
         height = b.getHeight();
     }
 
-    void update(Block b, T... allStates){
+    void update(Block b, Collection<? extends T> allStates){
         Set<String> all = new HashSet<>();
         b.getBody().stream().map(empty::getIdentifiersOf).forEach(all::addAll);
         for(T s: allStates){

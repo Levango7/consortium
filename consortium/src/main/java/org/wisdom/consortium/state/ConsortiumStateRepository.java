@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.wisdom.common.*;
 import org.wisdom.exception.StateUpdateException;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -49,6 +50,23 @@ public class ConsortiumStateRepository implements StateRepository {
     public void update(Block b) {
         factories.values().forEach(f -> f.update(b));
         trees.values().forEach(t -> t.update(b));
+    }
+
+    @Override
+    public void update(Block b, State state) {
+        if (!factories.containsKey(state.getClass().toString())) throw new RuntimeException(
+                state.getClass().toString() + " has not been registered"
+        );
+        factories.get(state.getClass().toString()).update(b, state);
+    }
+
+    @Override
+    public void update(Block b, Collection<ForkAbleState> forkAbleStates, Class<? extends ForkAbleState> clazz) {
+        String k = clazz.toString();
+        if (!trees.containsKey(k)) throw new RuntimeException(
+                clazz.toString() + " has not been registered"
+        );
+        trees.get(k).update(b, forkAbleStates);
     }
 
     @Override

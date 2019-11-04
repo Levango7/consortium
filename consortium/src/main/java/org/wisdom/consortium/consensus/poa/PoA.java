@@ -11,10 +11,7 @@ import org.wisdom.consortium.util.FileUtils;
 import org.wisdom.exception.ConsensusEngineLoadException;
 import org.wisdom.exception.StateUpdateException;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Properties;
+import java.util.*;
 
 // poa is a minimal non-trivial consensus engine
 public class PoA implements ConsensusEngine {
@@ -107,6 +104,16 @@ public class PoA implements ConsensusEngine {
 
     @Override
     public void update(Block b) {
+
+    }
+
+    @Override
+    public void update(Block b, State state) {
+
+    }
+
+    @Override
+    public void update(Block b, Collection<ForkAbleState> forkAbleStates, Class<? extends ForkAbleState> clazz) {
 
     }
 
