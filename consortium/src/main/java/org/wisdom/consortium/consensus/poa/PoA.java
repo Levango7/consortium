@@ -114,4 +114,24 @@ public class PoA implements ConsensusEngine {
     public void confirm(Block b) {
 
     }
+
+    @Override
+    public void onMessage(Context context, PeerServer server) {
+        
+    }
+
+    @Override
+    public void onStart(PeerServer server) {
+
+    }
+
+    @Override
+    public void onNewPeer(Peer peer, PeerServer server) {
+
+    }
+
+    @Override
+    public void onDisconnect(Peer peer, PeerServer server) {
+
+    }
 }

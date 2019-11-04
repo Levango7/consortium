@@ -9,7 +9,8 @@ public interface ConsensusEngine extends Miner,
         PendingTransactionValidator,
         ConfirmedBlocksProvider,
         StateRepository,
-        HashPolicy
+        HashPolicy,
+        Plugin
 {
     Block getGenesis();
 
