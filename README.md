@@ -39,4 +39,7 @@ https://jingyan.baidu.com/article/0a52e3f4e53ca1bf63ed725c.html
 
 # override default spring config with your custom config                     
 java -jar consortium\build\libs\consortium-0.0.1-SNAPSHOT.jar -Dspring.config.location=classpath:\application.yml,some-path\custom-config.yml
+
+# you can also load your config by environment
+SPRING_CONFIG_LOCATION=classpath:\application.yml,some-path\custom-config.yml java -jar consortium\build\libs\consortium-0.0.1-SNAPSHOT.jar
 ```  
