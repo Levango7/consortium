@@ -12,7 +12,7 @@ public interface PeerServer {
 
     void use(Plugin... plugins);
 
-    void start(int port);
+    void start();
 
     void load(Properties properties);
 }
