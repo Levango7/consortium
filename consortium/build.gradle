@@ -29,6 +29,7 @@ dependencies {
     testCompile "junit:junit"
 
     compile project(':common')
+    compile project(':crypto')
     compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
     compileOnly 'org.springframework.boot:spring-boot-configuration-processor'
 

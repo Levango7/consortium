@@ -1,5 +1,6 @@
 package org.wisdom.consortium.consensus.poa.config;
 
+import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.wisdom.common.Block;
 import org.wisdom.consortium.consensus.poa.Proposer;
@@ -7,6 +8,8 @@ import org.wisdom.consortium.consensus.poa.Proposer;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+
 
 public class ConsensusConfigImpl implements ConsensusConfig {
 
@@ -30,7 +33,7 @@ public class ConsensusConfigImpl implements ConsensusConfig {
 
     @Override
     public List<String> getValidators() {
-        return null;
+        return genesis.miners.stream().map(x -> Hex.encodeHexString(wallet.KeystoreAction.addressToPubKeyHash(x.address))).collect(Collectors.toList());
     }
 
     @Override
