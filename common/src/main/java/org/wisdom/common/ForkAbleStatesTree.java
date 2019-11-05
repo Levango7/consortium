@@ -12,8 +12,6 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
     private ForkAbleStateSet<T> root;
     private ChainCache<ForkAbleStateSet<T>> cache;
     private T some;
-    // where of the root
-    private HexBytes where;
 
     public ForkAbleStatesTree(Block genesis, T... states) {
         if (states.length == 0) throw new RuntimeException("at lease one states required");
@@ -21,7 +19,6 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
         root = new ForkAbleStateSet<>(genesis, states);
         cache = new ChainCache<>();
         cache.put(root);
-        where = genesis.getHash();
     }
 
     public void update(Block b) {
@@ -34,9 +31,8 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
         Set<String> all = new HashSet<>();
         b.getBody().stream().map(some::getIdentifiersOf).forEach(all::addAll);
         Map<String, T> states = all.stream()
-                .map(id -> parent.findRecursively(id).orElse(some.createEmpty(id)))
+                .map(id -> this.get(id, parent.getHash().getBytes()).orElse(some.createEmpty(id)))
                 .collect(Collectors.toMap(ForkAbleState::getIdentifier, (s) -> s));
-
         for (Transaction tx : b.getBody()) {
             for (T t : states.values()) {
                 try {
@@ -59,31 +55,39 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
         ForkAbleStateSet<T> parent = o.get();
         ForkAbleStateSet<T> copied = parent.clone();
         copied.put(node, allStates);
-        copied.parent = parent;
         cache.put(copied);
     }
 
     public Optional<T> get(String id, byte[] where) {
-        return cache.get(where)
-                .flatMap(x -> x.findRecursively(id));
+        if(root.getHash().equals(new HexBytes(where))){
+            return Optional.ofNullable(root.cache.get(id)).map(Cloneable::clone);
+        }
+        Optional<ForkAbleStateSet<T>> set = cache.get(where);
+        if(!set.isPresent()){
+            return Optional.empty();
+        }
+        if (set.get().cache.containsKey(id))
+            return Optional.of(set.get().cache.get(id).clone());
+        return get(id, set.get().getHashPrev().getBytes());
     }
 
     public T getLastConfirmed(String id) {
-        return cache.get(where.getBytes()).flatMap(x -> x.findRecursively(id)).orElse(some.createEmpty(id));
+        if (root.cache.containsKey(id)) return root.cache.get(id);
+        return some.createEmpty(id);
     }
 
-    public synchronized void confirm(byte[] hash) {
+    public void confirm(byte[] hash) {
         HexBytes h = new HexBytes(hash);
-        List<ForkAbleStateSet<T>> children = cache.getChildren(where.getBytes());
+        if(root.getHash().equals(h)) return;
+        List<ForkAbleStateSet<T>> children = cache.getChildren(root.getHash().getBytes());
         Optional<ForkAbleStateSet<T>> o = children.stream().filter(x -> x.getHash().equals(h)).findFirst();
         if (!o.isPresent()) {
             throw new RuntimeException("the state to confirm not found or confirmed block is not child of current node");
         }
         ForkAbleStateSet<T> set = o.get();
         children.stream().filter(x -> !x.getHash().equals(h))
-                .forEach(n -> cache.remove(n.getHash().getBytes()));
+                .forEach(n -> cache.removeDescendants(n.getHash().getBytes()));
         set.merge(root);
         this.root = set;
-        where = h;
     }
 }

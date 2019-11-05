@@ -2,10 +2,7 @@ package org.wisdom.consortium.state;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.wisdom.common.Block;
-import org.wisdom.common.ForkAbleState;
-import org.wisdom.common.HexBytes;
-import org.wisdom.common.Transaction;
+import org.wisdom.common.*;
 import org.wisdom.consortium.account.PublicKeyHash;
 import org.wisdom.consortium.account.Utils;
 import org.wisdom.exception.StateUpdateException;
@@ -19,10 +16,6 @@ public class Account implements ForkAbleState<Account> {
     private PublicKeyHash publicKeyHash;
 
     private long balance;
-
-    private HexBytes hashPrev;
-    private long height;
-    private HexBytes hash;
 
     @Override
     public String getIdentifier() {
@@ -39,11 +32,11 @@ public class Account implements ForkAbleState<Account> {
 
     @Override
     public Account createEmpty(String id) {
-        return new Account(PublicKeyHash.fromHex(id).get(), 0, new HexBytes(), 0, new HexBytes());
+        return new Account(PublicKeyHash.fromHex(id).get(), 0);
     }
 
     @Override
-    public void update(Block b) throws StateUpdateException {
+    public void update(Header h) throws StateUpdateException {
 
     }
 
@@ -55,13 +48,10 @@ public class Account implements ForkAbleState<Account> {
         if (Utils.publicKeyHashToAddress(t.getTo().getBytes()).equals(publicKeyHash.getAddress())){
             balance += t.getAmount();
         }
-        hashPrev = b.getHashPrev();
-        height = b.getHeight();
-        hash = b.getHash();
     }
 
     @Override
     public Account clone() {
-        return new Account(publicKeyHash, balance, hashPrev, height, hash);
+        return new Account(publicKeyHash, balance);
     }
 }

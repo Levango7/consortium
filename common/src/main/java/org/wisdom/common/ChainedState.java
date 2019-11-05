@@ -16,10 +16,10 @@ public class ChainedState<T extends State<T>> implements State<ChainedState<T>>,
     }
 
     @Override
-    public void update(Block b) throws StateUpdateException {
-        state.update(b);
-        hashPrev = b.getHashPrev();
-        hash = b.getHash();
+    public void update(Header h) throws StateUpdateException {
+        state.update(h);
+        hashPrev = h.getHashPrev();
+        hash = h.getHash();
     }
 
     public ChainedState<T> clone() {

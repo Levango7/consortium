@@ -33,9 +33,9 @@ public class StateFactoryTests {
         }
 
         @Override
-        public void update(Block b) throws StateUpdateException {
+        public void update(Header h) throws StateUpdateException {
             if (hashes == null) hashes = new HashSet<>();
-            hashes.add(b.getHash().toString());
+            hashes.add(h.getHash().toString());
             if (hashes.size() > Byte.MAX_VALUE) {
                 evicted += hashes.size();
                 hashes = new HashSet<>();
@@ -52,7 +52,7 @@ public class StateFactoryTests {
         }
     }
 
-    private List<Block> getBlocks() throws Exception {
+    public static List<Block> getBlocks() throws Exception {
         return ChainCacheTest.getCache(0).getAll().stream().map(n -> new Block(
                 Header.builder().hash(n.getHash())
                         .hashPrev(n.getHashPrev()).height(n.getHeight()).build()

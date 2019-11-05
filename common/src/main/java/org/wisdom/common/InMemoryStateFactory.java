@@ -25,7 +25,7 @@ public class InMemoryStateFactory<T extends State<T>> implements StateFactory<T>
         if (!s.isPresent()) throw new RuntimeException("state not found at " + b.getHashPrev());
         ChainedState<T> copied = s.get().clone();
         try {
-            copied.update(b);
+            copied.update(b.getHeader());
         } catch (StateUpdateException e) {
             e.printStackTrace();
         }

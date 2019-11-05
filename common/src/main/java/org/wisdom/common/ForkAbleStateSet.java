@@ -1,16 +1,20 @@
 package org.wisdom.common;
 
-
-import org.wisdom.exception.StateUpdateException;
-
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class ForkAbleStateSet<T extends ForkAbleState<T>> implements Cloneable<ForkAbleStateSet<T>>, Chained {
     private T some;
 
     private HexBytes hashPrev;
     private HexBytes hash;
+
+    public void setHashPrev(HexBytes hashPrev) {
+        this.hashPrev = hashPrev;
+    }
+
+    public void setHash(HexBytes hash) {
+        this.hash = hash;
+    }
 
     @Override
     public HexBytes getHashPrev() {
@@ -36,20 +40,7 @@ public class ForkAbleStateSet<T extends ForkAbleState<T>> implements Cloneable<F
         this.hashPrev = genesis.getHashPrev();
     }
 
-    private Map<String, T> cache;
-
-    ForkAbleStateSet<T> parent;
-
-    Optional<T> findRecursively(String id) {
-        if (cache.containsKey(id)) {
-            return Optional.of(cache.get(id).clone());
-        }
-        if (parent == null) {
-            return Optional.empty();
-        }
-        return parent.findRecursively(id);
-    }
-
+    Map<String, T> cache;
 
     void put(Chained node, Collection<? extends T> allStates){
         for(T s: allStates){
@@ -72,7 +63,6 @@ public class ForkAbleStateSet<T extends ForkAbleState<T>> implements Cloneable<F
         res.hashPrev = this.hashPrev;
         res.hash = this.hash;
         res.cache = new HashMap<>(cache);
-        res.parent = parent;
         return res;
     }
 }
