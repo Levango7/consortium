@@ -16,28 +16,27 @@ public class InMemoryStateFactory<T extends State<T>> implements StateFactory<T>
     }
 
     public Optional<T> get(byte[] hash) {
-        return cache.get(hash).map(ChainedState::get);
+        return cache.get(hash).map(s -> s.get()).map(s -> s.clone());
     }
 
     @Override
     public void update(Block b) {
-        Optional<ChainedState<T>> s = cache.get(b.getHashPrev().getBytes());
-        if (!s.isPresent()) throw new RuntimeException("state not found at " + b.getHashPrev());
-        ChainedState<T> copied = s.get().clone();
+        Optional<T> parent = get(b.getHashPrev().getBytes());
+        if (!parent.isPresent()) throw new RuntimeException("state not found at " + b.getHashPrev());
         try {
-            copied.update(b.getHeader());
+            parent.get().update(b.getHeader());
         } catch (StateUpdateException e) {
             e.printStackTrace();
         }
         for (Transaction tx : b.getBody()) {
             try {
-                copied.update(b, tx);
+                parent.get().update(b, tx);
             } catch (StateUpdateException e) {
                 // this should never happen, for the block b had been validated
                 throw new RuntimeException(e.getMessage());
             }
         }
-        cache.put(copied);
+        cache.put(new ChainedState<>(b.getHashPrev(), b.getHash(), parent.get()));
     }
 
     @Override
@@ -56,7 +55,6 @@ public class InMemoryStateFactory<T extends State<T>> implements StateFactory<T>
                     " to confirm not found or confirmed block is not child of current node"
             );
         }
-        ChainedState<T> s = o.get();
         children.stream().filter(x -> !x.getHash().equals(h))
                 .forEach(n -> cache.removeDescendants(n.getHash().getBytes()));
         Optional<ChainedState<T>> root = cache.get(where.getBytes());
