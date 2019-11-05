@@ -221,6 +221,7 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
     }
 
     public List<T> getChildren(byte[] hash){
+        if (!childrenHashes.containsKey(HexBytes.encode(hash))) return new ArrayList<>();
         return getNodes(childrenHashes.get(HexBytes.encode(hash)));
     }
 }

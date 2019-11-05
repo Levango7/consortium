@@ -211,4 +211,13 @@ public class ChainCacheTest {
             assert nodes.get(i).getHeight() == sorted.get(i).getHeight();
         }
     }
+
+    @Test
+    public void testGetChildren() throws Exception{
+        assert getCache(0).getChildren(Hex.decodeHex("0206".toCharArray())).size() == 0;
+        Set<String> children = getCache(0).getChildren(Hex.decodeHex("0103".toCharArray())).stream()
+                .map(n -> n.hash.toString()).collect(Collectors.toSet());
+        assert children.size() == 2;
+        assert children.containsAll(Arrays.asList("0104", "0204"));
+    }
 }
