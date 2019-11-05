@@ -73,6 +73,6 @@ public class InMemoryStateFactory<T extends State<T>> implements StateFactory<T>
         if (!root.isPresent()) {
             throw new RuntimeException("confirmed state missing");
         }
-        return root.get().get();
+        return root.get().get().clone();
     }
 }

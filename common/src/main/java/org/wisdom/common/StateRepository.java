@@ -12,7 +12,11 @@ public interface StateRepository {
 
     <T extends State<T>> Optional<T> get(byte[] hash, Class<T> clazz);
 
-    <T extends ForkAbleState<T>> Optional<T> get(byte[] hash, String id, Class<T> clazz);
+    <T extends ForkAbleState<T>> Optional<T> get(String id, byte[] hash, Class<T> clazz);
+
+    <T extends State<T>> T getLastConfirmed(Class<T> clazz);
+
+    <T extends ForkAbleState<T>> T getLastConfirmed(String id, Class<T> clazz);
 
     void update(Block b);
 

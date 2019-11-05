@@ -1,7 +1,9 @@
 package org.wisdom.common;
 
-import java.util.List;
-import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
+import org.wisdom.exception.StateUpdateException;
+
+import java.util.*;
 
 public interface TransactionRepository {
     boolean hasTransaction(byte[] hash);
@@ -29,4 +31,5 @@ public interface TransactionRepository {
     List<Transaction> getTransactionsByBlockHash(byte[] blockHash, int page, int size);
 
     List<Transaction> getTransactionsByBlockHeight(long height, int page, int size);
+
 }

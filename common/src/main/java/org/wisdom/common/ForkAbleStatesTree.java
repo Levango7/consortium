@@ -18,13 +18,19 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
         some = states.stream().findFirst().get();
         root = new ForkAbleStateSet<>(genesis.getHashPrev(), genesis.getHash(), states);
         cache = new ChainCache<>();
-        cache.put(root);
     }
 
     public void update(Block b) {
         if (cache.contains(b.getHash().getBytes())) return;
-        Optional<ForkAbleStateSet<T>> o = cache.get(b.getHashPrev().getBytes());
-        if (!o.isPresent()) throw new RuntimeException(
+        if (b.getHeight() == 0) {
+            // manually assign genesis states is better
+            return;
+        }
+        if (!cache.contains(
+                b.getHashPrev().getBytes()) &&
+                !b.getHashPrev().equals(root.getHash())
+        )
+            throw new RuntimeException(
                 "state sets not found at " + b.getHashPrev()
         );
         Set<String> all = new HashSet<>();
@@ -39,14 +45,14 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
                 e.printStackTrace();
             }
         });
-        for (Transaction tx : b.getBody()) {
-            for (T t : states.values()) {
+        for (T s : states.values()) {
+            b.getBody().forEach(tx -> {
                 try {
-                    t.update(b, tx);
+                    s.update(b, tx);
                 } catch (StateUpdateException e) {
                     e.printStackTrace();
                 }
-            }
+            });
         }
         put(b, states.values());
     }
@@ -59,12 +65,12 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
     }
 
     public Optional<T> get(String id, byte[] where) {
-        if(root.getHash().equals(new HexBytes(where))){
+        if (root.getHash().equals(new HexBytes(where))) {
             // WARNING: do not use method reference here State::clone
             return Optional.ofNullable(root.get().get(id)).map(s -> s.clone());
         }
         Optional<ForkAbleStateSet<T>> o = cache.get(where);
-        if(!o.isPresent()){
+        if (!o.isPresent()) {
             return Optional.empty();
         }
         ForkAbleStateSet<T> set = o.get();
@@ -74,13 +80,13 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
     }
 
     public T getLastConfirmed(String id) {
-        if (root.get().containsKey(id)) return root.get().get(id);
+        if (root.get().containsKey(id)) return root.get().get(id).clone();
         return some.createEmpty(id);
     }
 
     public void confirm(byte[] hash) {
         HexBytes h = new HexBytes(hash);
-        if(root.getHash().equals(h)) return;
+        if (root.getHash().equals(h)) return;
         List<ForkAbleStateSet<T>> children = cache.getChildren(root.getHash().getBytes());
         Optional<ForkAbleStateSet<T>> o = children.stream().filter(x -> x.getHash().equals(h)).findFirst();
         if (!o.isPresent()) {
@@ -89,7 +95,9 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
         ForkAbleStateSet<T> set = o.get();
         children.stream().filter(x -> !x.getHash().equals(h))
                 .forEach(n -> cache.removeDescendants(n.getHash().getBytes()));
-        set.merge(root);
+        cache.remove(set.getHash().getBytes());
+        cache.remove(root.getHash().getBytes());
+        root.merge(set);
         this.root = set;
     }
 }

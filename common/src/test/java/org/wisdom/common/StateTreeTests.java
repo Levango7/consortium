@@ -15,7 +15,7 @@ public class StateTreeTests {
     private static final HexBytes ADDRESS_B = new HexBytes(new byte[]{0x0b});
 
     // account to test
-    public static class Account implements ForkAbleState<Account>{
+    public static class Account implements ForkAbleState<Account> {
         private String address;
         private long balance;
 
@@ -36,10 +36,10 @@ public class StateTreeTests {
 
         @Override
         public void update(Block b, Transaction t) throws StateUpdateException {
-            if(t.getFrom().toString().equals(address)){
+            if (t.getFrom().toString().equals(address)) {
                 balance -= t.getAmount();
             }
-            if(t.getTo().toString().equals(address)){
+            if (t.getTo().toString().equals(address)) {
                 balance += t.getAmount();
             }
         }
@@ -68,7 +68,7 @@ public class StateTreeTests {
         }
     }
 
-    private ForkAbleStatesTree<Account> getTree() throws Exception{
+    private ForkAbleStatesTree<Account> getTree() throws Exception {
         Map<String, Block> blocks = StateFactoryTests.getBlocks().stream()
                 .collect(Collectors.toMap(
                         b -> b.getHash().toString(),
@@ -79,26 +79,41 @@ public class StateTreeTests {
         ForkAbleStatesTree<Account> tree = new ForkAbleStatesTree<>(
                 blocks.get("0000"),
                 Arrays.asList(new Account(ADDRESS_A.toString(), 100),
-                new Account(ADDRESS_B.toString(), 100))
+                        new Account(ADDRESS_B.toString(), 100))
         );
         blocks.values().stream().sorted(Comparator.comparingLong(Block::getHeight)).forEach(tree::update);
         return tree;
     }
 
+    private StateRepository getRepository() throws Exception {
+        StateRepository repository = new ConsortiumStateRepository();
+        Map<String, Block> blocks = StateFactoryTests.getBlocks().stream()
+                .collect(Collectors.toMap(
+                        b -> b.getHash().toString(),
+                        b -> b
+                ));
+        blocks.get("0002").getBody().add(Transaction.builder().from(ADDRESS_A).to(ADDRESS_B).amount(50).build());
+        blocks.get("0102").getBody().add(Transaction.builder().from(ADDRESS_A).to(ADDRESS_B).amount(60).build());
+        repository.register(blocks.get("0000"), Arrays.asList(new Account(ADDRESS_A.toString(), 100),
+                new Account(ADDRESS_B.toString(), 100)));
+        blocks.values().stream().sorted(Comparator.comparingLong(Block::getHeight)).forEach(repository::update);
+        return repository;
+    }
+
     @Test
-    public void testGetTree() throws Exception{
+    public void testGetTree() throws Exception {
         getTree();
     }
 
     @Test
-    public void testGetState() throws Exception{
+    public void testGetState() throws Exception {
         Optional<Account> o = getTree().get(ADDRESS_A.toString(), Hex.decodeHex("0000".toCharArray()));
         assert o.isPresent();
         assert o.get().balance == 100;
     }
 
     @Test
-    public void testUpdate() throws Exception{
+    public void testUpdate() throws Exception {
         Optional<Account> o = getTree().get(ADDRESS_A.toString(), Hex.decodeHex("0002".toCharArray()));
         assert o.isPresent();
         assert o.get().balance == 50;
@@ -117,11 +132,45 @@ public class StateTreeTests {
     }
 
     @Test
-    public void testConfirm() throws Exception{
+    public void testConfirm() throws Exception {
         ForkAbleStatesTree<Account> tree = getTree();
         tree.confirm(Hex.decodeHex("0001".toCharArray()));
         tree.confirm(Hex.decodeHex("0102".toCharArray()));
         Optional<Account> o = tree.get(ADDRESS_B.toString(), Hex.decodeHex("0002".toCharArray()));
         assert !o.isPresent();
+        assert tree.getLastConfirmed(ADDRESS_B.toString()).getBalance() == 160;
+    }
+
+    @Test
+    public void testImmutable() throws Exception {
+        ForkAbleStatesTree<Account> tree = getTree();
+        Account a = tree.getLastConfirmed(ADDRESS_A.toString());
+        a.balance = 0;
+        assert tree.getLastConfirmed(ADDRESS_A.toString()).balance == 100;
+    }
+
+    @Test
+    public void testRepository() throws Exception {
+        StateRepository repository = getRepository();
+        Optional<Account> o = repository.get(ADDRESS_A.toString(), Hex.decodeHex("0002".toCharArray()), Account.class);
+        assert o.isPresent();
+        assert o.get().balance == 50;
+        o = repository.get(ADDRESS_B.toString(), Hex.decodeHex("0002".toCharArray()), Account.class);
+        assert o.isPresent();
+        assert o.get().balance == 150;
+        o = repository.get(ADDRESS_A.toString(), Hex.decodeHex("0102".toCharArray()), Account.class);
+        assert o.isPresent();
+        assert o.get().balance == 40;
+        o = repository.get(ADDRESS_B.toString(), Hex.decodeHex("0102".toCharArray()), Account.class);
+        assert o.isPresent();
+        assert o.get().balance == 160;
+        o = repository.get(ADDRESS_B.toString(), Hex.decodeHex("0105".toCharArray()), Account.class);
+        assert o.isPresent();
+        assert o.get().balance == 160;
+        repository.confirm(Hex.decodeHex("0001".toCharArray()));
+        repository.confirm(Hex.decodeHex("0102".toCharArray()));
+        o = repository.get(ADDRESS_B.toString(), Hex.decodeHex("0002".toCharArray()), Account.class);
+        assert !o.isPresent();
+        assert repository.getLastConfirmed(ADDRESS_B.toString(), Account.class).getBalance() == 160;
     }
 }

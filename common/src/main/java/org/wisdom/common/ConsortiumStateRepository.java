@@ -1,7 +1,6 @@
-package org.wisdom.consortium.state;
+package org.wisdom.common;
 
 import lombok.extern.slf4j.Slf4j;
-import org.wisdom.common.*;
 import org.wisdom.exception.StateUpdateException;
 
 import java.util.Collection;
@@ -9,7 +8,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-@Slf4j
 public class ConsortiumStateRepository implements StateRepository {
     private Map<String, StateFactory> factories;
 
@@ -42,7 +40,7 @@ public class ConsortiumStateRepository implements StateRepository {
     }
 
     @Override
-    public <T extends ForkAbleState<T>> Optional<T> get(byte[] hash, String id, Class<T> clazz) {
+    public <T extends ForkAbleState<T>> Optional<T> get(String id, byte[] hash, Class<T> clazz) {
         if (!trees.containsKey(clazz.toString())) return Optional.empty();
         Optional o = trees.get(clazz.toString()).get(id, hash);
         if (!o.isPresent()) return Optional.empty();
@@ -76,5 +74,15 @@ public class ConsortiumStateRepository implements StateRepository {
     public void confirm(byte[] hash) {
         factories.values().forEach(f -> f.confirm(hash));
         trees.values().forEach(t -> t.confirm(hash));
+    }
+
+    @Override
+    public <T extends State<T>> T getLastConfirmed(Class<T> clazz) {
+        return (T) factories.get(clazz.toString()).getLastConfirmed();
+    }
+
+    @Override
+    public <T extends ForkAbleState<T>> T getLastConfirmed(String id, Class<T> clazz) {
+        return (T) trees.get(clazz.toString()).getLastConfirmed(id);
     }
 }

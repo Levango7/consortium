@@ -98,8 +98,18 @@ public class PoA implements ConsensusEngine {
     }
 
     @Override
-    public <T extends ForkAbleState<T>> Optional<T> get(byte[] hash, String id, Class<T> clazz) {
+    public <T extends ForkAbleState<T>> Optional<T> get(String id, byte[] hash, Class<T> clazz) {
         return Optional.empty();
+    }
+
+    @Override
+    public <T extends State<T>> T getLastConfirmed(Class<T> clazz) {
+        return null;
+    }
+
+    @Override
+    public <T extends ForkAbleState<T>> T getLastConfirmed(String id, Class<T> clazz) {
+        return null;
     }
 
     @Override
