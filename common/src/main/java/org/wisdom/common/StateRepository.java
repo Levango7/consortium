@@ -16,9 +16,9 @@ public interface StateRepository {
 
     void update(Block b);
 
-    void update(Block b, State state);
+    void put(Chained chained, State state);
 
-    void update(Block b, Collection<ForkAbleState> forkAbleStates, Class<? extends ForkAbleState> clazz);
+    void put(Chained chained, Collection<ForkAbleState> forkAbleStates, Class<? extends ForkAbleState> clazz);
 
     void confirm(byte[] hash);
 }

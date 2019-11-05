@@ -53,20 +53,20 @@ public class ConsortiumStateRepository implements StateRepository {
     }
 
     @Override
-    public void update(Block b, State state) {
+    public void put(Chained chained, State state) {
         if (!factories.containsKey(state.getClass().toString())) throw new RuntimeException(
                 state.getClass().toString() + " has not been registered"
         );
-        factories.get(state.getClass().toString()).update(b, state);
+        factories.get(state.getClass().toString()).put(chained, state);
     }
 
     @Override
-    public void update(Block b, Collection<ForkAbleState> forkAbleStates, Class<? extends ForkAbleState> clazz) {
+    public void put(Chained chained, Collection<ForkAbleState> forkAbleStates, Class<? extends ForkAbleState> clazz) {
         String k = clazz.toString();
         if (!trees.containsKey(k)) throw new RuntimeException(
                 clazz.toString() + " has not been registered"
         );
-        trees.get(k).update(b, forkAbleStates);
+        trees.get(k).put(chained, forkAbleStates);
     }
 
     @Override

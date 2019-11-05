@@ -1,5 +1,7 @@
 package org.wisdom.common;
 
+import lombok.NonNull;
+
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -122,20 +124,40 @@ public class ChainCacheWrapper<T extends Chained> extends ChainCache<T> {
     }
 
     @Override
-    public void add(T node) {
+    public void put(T node, boolean evict) {
         lock.writeLock().lock();
         try {
-            super.add(node);
+            super.put(node, evict);
         } finally {
             lock.writeLock().unlock();
         }
     }
 
     @Override
-    public void add(Collection<? extends T> nodes) {
+    public void put(Collection<? extends T> nodes, boolean evict) {
         lock.writeLock().lock();
         try {
-            super.add(nodes);
+            super.put(nodes, evict);
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public void put(@NonNull T node) {
+        lock.writeLock().lock();
+        try {
+            super.put(node);
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public void put(@NonNull Collection<? extends T> nodes) {
+        lock.writeLock().lock();
+        try {
+            super.put(nodes);
         } finally {
             lock.writeLock().unlock();
         }
@@ -211,4 +233,6 @@ public class ChainCacheWrapper<T extends Chained> extends ChainCache<T> {
             lock.readLock().unlock();
         }
     }
+
+
 }

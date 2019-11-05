@@ -108,12 +108,12 @@ public class PoA implements ConsensusEngine {
     }
 
     @Override
-    public void update(Block b, State state) {
+    public void put(Chained chained, State state) {
 
     }
 
     @Override
-    public void update(Block b, Collection<ForkAbleState> forkAbleStates, Class<? extends ForkAbleState> clazz) {
+    public void put(Chained chained, Collection<ForkAbleState> forkAbleStates, Class<? extends ForkAbleState> clazz) {
 
     }
 

@@ -2,8 +2,8 @@ package org.wisdom.common;
 
 import org.wisdom.exception.StateUpdateException;
 
-import java.lang.reflect.Type;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * State tree for account related object storage
@@ -20,7 +20,7 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
         some = states[0];
         root = new ForkAbleStateSet<>(genesis, states);
         cache = new ChainCache<>();
-        cache.add(root);
+        cache.put(root);
         where = genesis.getHash();
     }
 
@@ -31,29 +31,36 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
                 "state sets not found at " + b.getHashPrev()
         );
         ForkAbleStateSet<T> parent = o.get();
-        ForkAbleStateSet<T> copied = parent.clone();
-        try {
-            copied.update(b);
-        } catch (StateUpdateException e) {
-            // this should never happen, for the block b had been validated
-            throw new RuntimeException(e.getMessage());
+        Set<String> all = new HashSet<>();
+        b.getBody().stream().map(some::getIdentifiersOf).forEach(all::addAll);
+        Map<String, T> states = all.stream()
+                .map(id -> parent.findRecursively(id).orElse(some.createEmpty(id)))
+                .collect(Collectors.toMap(ForkAbleState::getIdentifier, (s) -> s));
+
+        for (Transaction tx : b.getBody()) {
+            for (T t : states.values()) {
+                try {
+                    t.update(b, tx);
+                } catch (StateUpdateException e) {
+                    e.printStackTrace();
+                }
+            }
         }
-        copied.parent = parent;
-        cache.add(copied);
+        put(b, states.values());
     }
 
     // provide all already updated state
-    public void update(Block b, Collection<? extends T> allStates){
-        if (cache.contains(b.getHash().getBytes())) return;
-        Optional<ForkAbleStateSet<T>> o = cache.get(b.getHashPrev().getBytes());
+    public void put(Chained node, Collection<? extends T> allStates) {
+        if (cache.contains(node.getHash().getBytes())) return;
+        Optional<ForkAbleStateSet<T>> o = cache.get(node.getHashPrev().getBytes());
         if (!o.isPresent()) throw new RuntimeException(
-                "state sets not found at " + b.getHashPrev()
+                "state sets not found at " + node.getHashPrev()
         );
         ForkAbleStateSet<T> parent = o.get();
         ForkAbleStateSet<T> copied = parent.clone();
-        copied.update(b, allStates);
+        copied.put(node, allStates);
         copied.parent = parent;
-        cache.add(copied);
+        cache.put(copied);
     }
 
     public Optional<T> get(String id, byte[] where) {
@@ -61,7 +68,7 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
                 .flatMap(x -> x.findRecursively(id));
     }
 
-    public T getLastConfirmed(String id){
+    public T getLastConfirmed(String id) {
         return cache.get(where.getBytes()).flatMap(x -> x.findRecursively(id)).orElse(some.createEmpty(id));
     }
 
@@ -69,7 +76,7 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
         HexBytes h = new HexBytes(hash);
         List<ForkAbleStateSet<T>> children = cache.getChildren(where.getBytes());
         Optional<ForkAbleStateSet<T>> o = children.stream().filter(x -> x.getHash().equals(h)).findFirst();
-        if(!o.isPresent()){
+        if (!o.isPresent()) {
             throw new RuntimeException("the state to confirm not found or confirmed block is not child of current node");
         }
         ForkAbleStateSet<T> set = o.get();

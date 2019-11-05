@@ -50,33 +50,13 @@ public class ForkAbleStateSet<T extends ForkAbleState<T>> implements Cloneable<F
         return parent.findRecursively(id);
     }
 
-    void update(Block b) throws StateUpdateException {
-        Set<String> all = new HashSet<>();
-        b.getBody().stream().map(some::getIdentifiersOf).forEach(all::addAll);
-        Map<String, T> states = all.stream()
-                .map(id -> findRecursively(id).orElse(some.createEmpty(id)))
-                .collect(Collectors.toMap(ForkAbleState::getIdentifier, (s) -> s));
 
-        for (Transaction tx : b.getBody()) {
-            for (T t : states.values()) {
-                t.update(b, tx);
-            }
-        }
-        states.forEach((k, v) -> cache.put(k, v));
-        hash = b.getHash();
-        hashPrev = b.getHashPrev();
-    }
-
-    void update(Block b, Collection<? extends T> allStates){
-        Set<String> all = new HashSet<>();
-        b.getBody().stream().map(some::getIdentifiersOf).forEach(all::addAll);
+    void put(Chained node, Collection<? extends T> allStates){
         for(T s: allStates){
-            if (!all.contains(s.getIdentifier())) throw new RuntimeException(
-                    "not enough related state provided, missing " + s.getIdentifier());
             cache.put(s.getIdentifier(), s);
         }
-        hash = b.getHash();
-        hashPrev = b.getHashPrev();
+        hash = node.getHash();
+        hashPrev = node.getHashPrev();
     }
 
     void merge(ForkAbleStateSet<T> sets) {

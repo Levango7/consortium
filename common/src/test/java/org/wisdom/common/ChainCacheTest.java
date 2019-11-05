@@ -95,10 +95,10 @@ public class ChainCacheTest {
         }else{
             cache = new ChainCache<>(sizeLimit, Comparator.comparingLong(Node::getHeight));
         }
-        cache.add(genesis);
-        cache.add(chain0);
-        cache.add(chain1);
-        cache.add(chain2);
+        cache.put(genesis);
+        cache.put(chain0);
+        cache.put(chain1);
+        cache.put(chain2);
         return cache;
     }
 
@@ -219,5 +219,14 @@ public class ChainCacheTest {
                 .map(n -> n.hash.toString()).collect(Collectors.toSet());
         assert children.size() == 2;
         assert children.containsAll(Arrays.asList("0104", "0204"));
+    }
+
+    @Test
+    public void testPutEvict() throws Exception{
+        ChainCache<Node> cache = getCache(0);
+        cache.put(new Node(HexBytes.parse("0206"), HexBytes.parse("0205"), 100), false);
+        assert cache.get(Hex.decodeHex("0206".toCharArray())).get().getHeight() == 6;
+        cache.put(new Node(HexBytes.parse("0206"), HexBytes.parse("0205"), 100), true);
+        assert cache.get(Hex.decodeHex("0206".toCharArray())).get().getHeight() == 100;
     }
 }

@@ -39,12 +39,12 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>> {
 
     public ChainCache(T node) {
         this();
-        add(node);
+        put(node);
     }
 
     public ChainCache(Collection<? extends T> nodes) {
         this();
-        add(nodes);
+        put(nodes);
     }
 
     public Optional<T> get(byte[] hash) {
@@ -66,7 +66,7 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>> {
         return copied;
     }
 
-    private Set<String> getDescendantsHash(byte[] hash){
+    private Set<String> getDescendantsHash(byte[] hash) {
         LinkedList<Set<String>> descendantBlocksHash = new LinkedList<>();
         String key = HexBytes.encode(hash);
         descendantBlocksHash.add(Collections.singleton(key));
@@ -106,11 +106,11 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>> {
         return res;
     }
 
-    public void removeDescendants(byte[] hash){
+    public void removeDescendants(byte[] hash) {
         getDescendantsHash(hash).forEach(this::remove);
     }
 
-    private void remove(String key){
+    private void remove(String key) {
         String prevHash = parentHash.get(key);
         nodes.remove(key);
         parentHash.remove(key);
@@ -178,11 +178,20 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>> {
                 .forEach(this::remove);
     }
 
-    public void add(@NonNull T node) {
+    public void put(@NonNull T node) {
+        put(node, false);
+    }
+
+    public void put(@NonNull Collection<? extends T> nodes) {
+        put(nodes, false);
+    }
+
+    public void put(@NonNull T node, boolean evict) {
         String key = node.getHash().toString();
-        if (this.nodes.containsKey(key)) {
-            return;
+        if (evict) {
+            remove(key);
         }
+        if (nodes.containsKey(key)) return;
         nodes.put(key, node);
         String prevHash = node.getHashPrev().toString();
         childrenHashes.putIfAbsent(prevHash, new HashSet<>());
@@ -191,9 +200,9 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>> {
         evict();
     }
 
-    public void add(@NonNull Collection<? extends T> nodes) {
+    public void put(@NonNull Collection<? extends T> nodes, boolean evict) {
         for (T b : nodes) {
-            add(b);
+            put(b, evict);
         }
     }
 

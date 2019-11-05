@@ -1,5 +1,6 @@
 package org.wisdom.common;
 
+import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -100,5 +101,30 @@ public class StateFactoryTests {
         factory.confirm(Hex.decodeHex("0001".toCharArray()));
         factory.confirm(Hex.decodeHex("0002".toCharArray()));
         assert factory.getLastConfirmed().getHeight() == 2;
+    }
+
+    @Test
+    public void testPut() throws Exception{
+        StateFactory<Height> factory = getStateFactory();
+        factory.put(new Chained() {
+            @Override
+            public HexBytes getHashPrev() {
+                try {
+                    return new HexBytes("0206");
+                } catch (DecoderException e) {
+                    return new HexBytes();
+                }
+            }
+
+            @Override
+            public HexBytes getHash() {
+                try {
+                    return new HexBytes("0207");
+                } catch (DecoderException e) {
+                    return new HexBytes();
+                }
+            }
+        }, new Height(new HashSet<>(), 7));
+        assert factory.get(Hex.decodeHex("0207".toCharArray())).get().getHeight() == 7;
     }
 }
