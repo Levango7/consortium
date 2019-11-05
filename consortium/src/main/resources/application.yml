@@ -1,3 +1,5 @@
+# use SPRING_CONFIG_LOCATION environment to locate your custom spring config
+# for example: SPRING_CONFIG_LOCATION=classpath:\application.yml,some-path\custom-config.yml
 spring:
   datasource:
     url: 'jdbc:postgresql://localhost:5432/your-data-base' # SPRING_DATASOURCE_URL
