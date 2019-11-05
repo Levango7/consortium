@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @RunWith(JUnit4.class)
+// set env WRAPPER=true to test wrapper method
 public class ChainCacheTest {
 
     public static class Node implements Chained {
@@ -38,6 +39,7 @@ public class ChainCacheTest {
     }
 
     private static ChainCache<Node> getCache(int sizeLimit) throws Exception {
+
         Node genesis = new Node(new HexBytes("0000"), new HexBytes("ffff"), 0);
         List<String> hashes = Arrays.asList("0001", "0002", "0003", "0004", "0005");
         List<Node> chain0 = new ArrayList<>();
@@ -87,7 +89,12 @@ public class ChainCacheTest {
 
             ));
         }
-        ChainCache<Node> cache = new ChainCache<>(sizeLimit, Comparator.comparingLong(Node::getHeight));
+        ChainCache<Node> cache;
+        if ("true".equals(System.getenv("WRAPPER"))){
+            cache = new ChainCacheWrapper<>(sizeLimit, Comparator.comparingLong(Node::getHeight));
+        }else{
+            cache = new ChainCache<>(sizeLimit, Comparator.comparingLong(Node::getHeight));
+        }
         cache.add(genesis);
         cache.add(chain0);
         cache.add(chain1);
