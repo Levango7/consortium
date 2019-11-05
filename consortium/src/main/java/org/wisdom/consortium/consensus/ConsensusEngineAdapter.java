@@ -91,12 +91,12 @@ public class ConsensusEngineAdapter implements ConsensusEngine {
     }
 
     @Override
-    public <T extends State<T>> Optional<T> getState(Block last, Class<T> clazz) {
+    public <T extends State<T>> Optional<T> get(byte[] hash, Class<T> clazz) {
         return Optional.empty();
     }
 
     @Override
-    public <T extends ForkAbleState<T>> Optional<T> getForkAbleState(Block last, String id, Class<T> clazz) {
+    public <T extends ForkAbleState<T>> Optional<T> get(byte[] hash, String id, Class<T> clazz) {
         return Optional.empty();
     }
 
@@ -116,7 +116,7 @@ public class ConsensusEngineAdapter implements ConsensusEngine {
     }
 
     @Override
-    public void confirm(Block b) {
+    public void confirm(byte[] hash) {
 
     }
 

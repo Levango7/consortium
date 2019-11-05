@@ -1,7 +1,5 @@
 package org.wisdom.common;
 
-import lombok.NonNull;
-
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -53,12 +51,22 @@ public class ChainCacheWrapper<T extends Chained> extends ChainCache<T> {
     }
 
     @Override
-    public List<T> getDescendants(T node) {
+    public List<T> getDescendants(byte[] hash) {
         lock.readLock().lock();
         try {
-            return super.getDescendants(node);
+            return super.getDescendants(hash);
         } finally {
             lock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public void removeDescendants(byte[] hash) {
+        lock.writeLock().lock();
+        try{
+            super.removeDescendants(hash);
+        }finally {
+            lock.writeLock().unlock();
         }
     }
 
@@ -73,17 +81,17 @@ public class ChainCacheWrapper<T extends Chained> extends ChainCache<T> {
     }
 
     @Override
-    public void remove(T node) {
+    public void remove(byte[] hash) {
         lock.writeLock().lock();
         try{
-            super.remove(node);
+            super.remove(hash);
         }finally {
             lock.writeLock().unlock();
         }
     }
 
     @Override
-    public final void remove(Collection<? extends T> nodes) {
+    public final void remove(Collection<byte[]> nodes) {
         lock.writeLock().lock();
         try{
             super.remove(nodes);
@@ -185,10 +193,10 @@ public class ChainCacheWrapper<T extends Chained> extends ChainCache<T> {
 
 
     @Override
-    public List<T> getAncestors(@NonNull T node) {
+    public List<T> getAncestors(byte[] hash) {
         lock.readLock().lock();
         try{
-            return super.getAncestors(node);
+            return super.getAncestors(hash);
         }finally {
             lock.readLock().unlock();
         }

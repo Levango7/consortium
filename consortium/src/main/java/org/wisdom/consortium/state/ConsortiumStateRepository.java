@@ -33,15 +33,15 @@ public class ConsortiumStateRepository implements StateRepository {
     }
 
     @Override
-    public <T extends State<T>> Optional<T> getState(Block last, Class<T> clazz) {
+    public <T extends State<T>> Optional<T> get(byte[] hash, Class<T> clazz) {
         if (!factories.containsKey(clazz.toString())) return Optional.empty();
-        return factories.get(clazz.toString()).get(last);
+        return factories.get(clazz.toString()).get(hash);
     }
 
     @Override
-    public <T extends ForkAbleState<T>> Optional<T> getForkAbleState(Block last, String id, Class<T> clazz) {
+    public <T extends ForkAbleState<T>> Optional<T> get(byte[] hash, String id, Class<T> clazz) {
         if (!trees.containsKey(clazz.toString())) return Optional.empty();
-        Optional o = trees.get(clazz.toString()).get(id, last.getHash());
+        Optional o = trees.get(clazz.toString()).get(id, hash);
         if (!o.isPresent()) return Optional.empty();
         return Optional.of((T) o.get());
     }
@@ -70,8 +70,8 @@ public class ConsortiumStateRepository implements StateRepository {
     }
 
     @Override
-    public void confirm(Block b) {
-        factories.values().forEach(f -> f.confirm(b));
-        trees.values().forEach(t -> t.confirm(b));
+    public void confirm(byte[] hash) {
+        factories.values().forEach(f -> f.confirm(hash));
+        trees.values().forEach(t -> t.confirm(hash));
     }
 }

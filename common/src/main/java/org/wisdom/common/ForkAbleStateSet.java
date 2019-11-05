@@ -6,7 +6,7 @@ import org.wisdom.exception.StateUpdateException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ForkAbleStateSets<T extends ForkAbleState<T>> implements Cloneable<ForkAbleStateSets<T>>, Chained {
+public class ForkAbleStateSet<T extends ForkAbleState<T>> implements Cloneable<ForkAbleStateSet<T>>, Chained {
     private T some;
 
     private HexBytes hashPrev;
@@ -23,9 +23,9 @@ public class ForkAbleStateSets<T extends ForkAbleState<T>> implements Cloneable<
     }
 
 
-    private ForkAbleStateSets(){}
+    private ForkAbleStateSet(){}
 
-    public ForkAbleStateSets(Block genesis, T... states) {
+    public ForkAbleStateSet(Block genesis, T... states) {
         if (states.length == 0) throw new RuntimeException("at lease one states required");
         this.some = states[0];
         this.cache = new HashMap<>();
@@ -38,7 +38,7 @@ public class ForkAbleStateSets<T extends ForkAbleState<T>> implements Cloneable<
 
     private Map<String, T> cache;
 
-    ForkAbleStateSets<T> parent;
+    ForkAbleStateSet<T> parent;
 
     Optional<T> findRecursively(String id) {
         if (cache.containsKey(id)) {
@@ -79,15 +79,15 @@ public class ForkAbleStateSets<T extends ForkAbleState<T>> implements Cloneable<
         hashPrev = b.getHashPrev();
     }
 
-    void merge(ForkAbleStateSets<T> sets) {
+    void merge(ForkAbleStateSet<T> sets) {
         for (String k : sets.cache.keySet()) {
             this.cache.put(k, sets.cache.get(k));
         }
     }
 
     @Override
-    public ForkAbleStateSets<T> clone() {
-        ForkAbleStateSets<T> res = new ForkAbleStateSets<>();
+    public ForkAbleStateSet<T> clone() {
+        ForkAbleStateSet<T> res = new ForkAbleStateSet<>();
         res.some = this.some;
         res.hashPrev = this.hashPrev;
         res.hash = this.hash;

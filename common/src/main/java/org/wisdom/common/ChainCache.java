@@ -9,11 +9,13 @@ import java.util.stream.Stream;
 
 /**
  * Tree-like object storage
+ *
  * @author sal 1564319846@qq.com
  */
-public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
+public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>> {
     private Map<String, T> nodes;
     private Map<String, Set<String>> childrenHashes;
+    private Map<String, String> parentHash;
     private int sizeLimit;
     private Comparator<T> comparator;
 
@@ -32,6 +34,7 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
     public ChainCache() {
         this.nodes = new HashMap<>();
         this.childrenHashes = new HashMap<>();
+        this.parentHash = new HashMap<>();
     }
 
     public ChainCache(T node) {
@@ -52,7 +55,7 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
         Stream<T> stream = new HashSet<>(hashes).stream()
                 .map(k -> nodes.get(k))
                 .filter(Objects::nonNull);
-        if(comparator != null) stream = stream.sorted(comparator);
+        if (comparator != null) stream = stream.sorted(comparator);
         return stream.collect(Collectors.toList());
     }
 
@@ -63,9 +66,9 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
         return copied;
     }
 
-    public List<T> getDescendants(T node) {
+    private Set<String> getDescendantsHash(byte[] hash){
         LinkedList<Set<String>> descendantBlocksHash = new LinkedList<>();
-        String key = node.getHash().toString();
+        String key = HexBytes.encode(hash);
         descendantBlocksHash.add(Collections.singleton(key));
         while (true) {
             Set<String> tmp = new HashSet<>();
@@ -85,12 +88,17 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
             prev.addAll(y);
             return prev;
         });
-        return getNodes(all);
+        return all;
+    }
+
+    public List<T> getDescendants(byte[] hash) {
+        return getNodes(getDescendantsHash(hash));
     }
 
     public List<List<T>> getAllForks() {
         List<List<T>> res = getLeavesHash().stream()
                 .map(k -> nodes.get(k))
+                .map(k -> k.getHash().getBytes())
                 .map(this::getAncestors)
                 .sorted(Comparator.comparingLong(List::size))
                 .collect(Collectors.toList());
@@ -98,21 +106,28 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
         return res;
     }
 
+    public void removeDescendants(byte[] hash){
+        getDescendantsHash(hash).forEach(this::remove);
+    }
 
-    public void remove(T node) {
-        String hash = node.getHash().toString();
-        String prevHash = node.getHashPrev().toString();
-        nodes.remove(hash);
+    private void remove(String key){
+        String prevHash = parentHash.get(key);
+        nodes.remove(key);
+        parentHash.remove(key);
         if (childrenHashes.containsKey(prevHash)) {
-            childrenHashes.get(prevHash).remove(hash);
+            childrenHashes.get(prevHash).remove(key);
         }
         if (childrenHashes.containsKey(prevHash) && childrenHashes.get(prevHash).size() == 0) {
             childrenHashes.remove(prevHash);
         }
     }
 
-    public void remove(Collection<? extends T> nodes) {
-        for (T node : nodes) {
+    public void remove(byte[] hash) {
+        remove(HexBytes.encode(hash));
+    }
+
+    public void remove(Collection<byte[]> nodes) {
+        for (byte[] node : nodes) {
             remove(node);
         }
     }
@@ -150,8 +165,8 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
     }
 
     // evict
-    private void evict(){
-        if (comparator == null || sizeLimit <= 0){
+    private void evict() {
+        if (comparator == null || sizeLimit <= 0) {
             return;
         }
         long toRemove = size() - sizeLimit;
@@ -159,6 +174,7 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
         this.nodes.values()
                 .stream().sorted(comparator)
                 .limit(toRemove)
+                .map(n -> n.getHash().getBytes())
                 .forEach(this::remove);
     }
 
@@ -169,10 +185,9 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
         }
         nodes.put(key, node);
         String prevHash = node.getHashPrev().toString();
-        if (!childrenHashes.containsKey(prevHash)) {
-            childrenHashes.put(prevHash, new HashSet<>());
-        }
+        childrenHashes.putIfAbsent(prevHash, new HashSet<>());
         childrenHashes.get(prevHash).add(key);
+        parentHash.put(key, prevHash);
         evict();
     }
 
@@ -193,7 +208,7 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
         }
         res.sort(Comparator.comparingInt(List::size));
         List<T> longest = res.get(res.size() - 1);
-        remove(longest);
+        remove(longest.stream().map(n -> n.getHash().getBytes()).collect(Collectors.toList()));
         return longest;
     }
 
@@ -210,8 +225,9 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
     }
 
 
-    public List<T> getAncestors(@NonNull T node) {
+    public List<T> getAncestors(byte[] hash) {
         List<T> res = new ArrayList<>();
+        T node = nodes.get(HexBytes.encode(hash));
         while (node != null) {
             res.add(node);
             node = nodes.get(node.getHashPrev().toString());
@@ -220,7 +236,7 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
         return res;
     }
 
-    public List<T> getChildren(byte[] hash){
+    public List<T> getChildren(byte[] hash) {
         if (!childrenHashes.containsKey(HexBytes.encode(hash))) return new ArrayList<>();
         return getNodes(childrenHashes.get(HexBytes.encode(hash)));
     }

@@ -7,15 +7,17 @@ public class ChainedState<T extends State<T>> implements State<ChainedState<T>>,
     private HexBytes hashPrev;
     private HexBytes hash;
     private T state;
-    private Chained chained;
 
     @Override
     public void update(Block b, Transaction t) throws StateUpdateException {
         state.update(b, t);
-        if (chained != null) {
-            chained = (Chained) state;
-            return;
-        }
+        hashPrev = b.getHashPrev();
+        hash = b.getHash();
+    }
+
+    @Override
+    public void update(Block b) throws StateUpdateException {
+        state.update(b);
         hashPrev = b.getHashPrev();
         hash = b.getHash();
     }
@@ -25,17 +27,15 @@ public class ChainedState<T extends State<T>> implements State<ChainedState<T>>,
     }
 
     public HexBytes getHashPrev() {
-        if(chained != null) return chained.getHashPrev();
         return hashPrev;
     }
 
 
     public HexBytes getHash() {
-        if (chained != null) return chained.getHash();
         return hash;
     }
 
-    public T getState(){
+    public T get(){
         return state;
     }
 
@@ -43,6 +43,5 @@ public class ChainedState<T extends State<T>> implements State<ChainedState<T>>,
         this.hashPrev = hashPrev;
         this.hash = hash;
         this.state = state;
-        if (state instanceof Chained) this.chained = (Chained) state;
     }
 }

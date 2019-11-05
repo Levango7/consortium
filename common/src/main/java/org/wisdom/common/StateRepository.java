@@ -10,9 +10,9 @@ public interface StateRepository {
 
     <T extends ForkAbleState<T>> void register(Block genesis, T... forkAbleStates);
 
-    <T extends State<T>> Optional<T> getState(Block last, Class<T> clazz);
+    <T extends State<T>> Optional<T> get(byte[] hash, Class<T> clazz);
 
-    <T extends ForkAbleState<T>> Optional<T> getForkAbleState(Block last, String id, Class<T> clazz);
+    <T extends ForkAbleState<T>> Optional<T> get(byte[] hash, String id, Class<T> clazz);
 
     void update(Block b);
 
@@ -20,5 +20,5 @@ public interface StateRepository {
 
     void update(Block b, Collection<ForkAbleState> forkAbleStates, Class<? extends ForkAbleState> clazz);
 
-    void confirm(Block b);
+    void confirm(byte[] hash);
 }

@@ -38,7 +38,7 @@ public class ChainCacheTest {
         }
     }
 
-    private static ChainCache<Node> getCache(int sizeLimit) throws Exception {
+    public static ChainCache<Node> getCache(int sizeLimit) throws Exception {
 
         Node genesis = new Node(new HexBytes("0000"), new HexBytes("ffff"), 0);
         List<String> hashes = Arrays.asList("0001", "0002", "0003", "0004", "0005");
@@ -112,10 +112,10 @@ public class ChainCacheTest {
     @Test
     public void testGetDescendants() throws Exception {
         ChainCache<Node> cache = getCache(0);
-        int size = cache.getDescendants(new Node(new HexBytes("0000"), new HexBytes("ffff"), 0)).size();
+        int size = cache.getDescendants(new HexBytes("0000").getBytes()).size();
         assert size == 13;
-        assert cache.getDescendants(new Node(new HexBytes("0001"), new HexBytes("0000"), 0)).size() == 12;
-        Set<String> nodes = cache.getDescendants(new Node(new HexBytes("0103"), new HexBytes("0102"), 0))
+        assert cache.getDescendants(new HexBytes("0001").getBytes()).size() == 12;
+        Set<String> nodes = cache.getDescendants(new HexBytes("0103").getBytes())
                 .stream().map(n -> n.hash.toString()).collect(Collectors.toSet());
         assert nodes.size() == 6;
         assert nodes.containsAll(Arrays.asList("0103", "0104", "0105", "0204", "0205", "0206"));
@@ -135,11 +135,11 @@ public class ChainCacheTest {
     @Test
     public void testRemove() throws Exception {
         ChainCache<Node> cache = getCache(0);
-        cache.remove(cache.getAll());
+        cache.remove(cache.getAll().stream().map(n -> n.hash.getBytes()).collect(Collectors.toList()));
         assert cache.isEmpty();
         assert cache.size() == 0;
         cache = getCache(0);
-        cache.remove(new Node(new HexBytes("0000"), new HexBytes("ffff"), 0));
+        cache.remove(new HexBytes("0000").getBytes());
         assert cache.size() == 12;
         assert !cache.isEmpty();
     }
@@ -148,14 +148,14 @@ public class ChainCacheTest {
     public void testGetAncestors() throws Exception {
         ChainCache<Node> cache = getCache(0);
         Set<String> ancestors = cache.getAncestors(
-                new Node(new HexBytes("0206"), new HexBytes("0205"), 6)
+                new HexBytes("0206").getBytes()
         ).stream().map(n -> n.hash.toString()).collect(Collectors.toSet());
 
         assert ancestors.size() == 7;
         assert ancestors.containsAll(Arrays.asList("0204", "0205", "0206", "0102", "0103", "0001", "0000"));
 
 
-        ancestors = cache.getAncestors(new Node(new HexBytes("0000"), new HexBytes("ffff"), 0)).stream()
+        ancestors = cache.getAncestors(new HexBytes("0000").getBytes()).stream()
                 .map(n -> n.hash.toString()).collect(Collectors.toSet());
 
         assert ancestors.size() == 1;

@@ -43,6 +43,11 @@ public class Account implements ForkAbleState<Account> {
     }
 
     @Override
+    public void update(Block b) throws StateUpdateException {
+
+    }
+
+    @Override
     public void update(Block b, Transaction t) throws StateUpdateException {
         if (Utils.publicKeyToAddress(t.getFrom().getBytes()).equals(publicKeyHash.getAddress())){
             balance -= t.getAmount();

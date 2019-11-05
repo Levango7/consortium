@@ -15,8 +15,8 @@ public class InMemoryStateFactory<T extends State<T>> implements StateFactory<T>
         this.where = genesis.getHash();
     }
 
-    public Optional<T> get(Block block) {
-        return cache.get(block.getHash().getBytes()).map(ChainedState::getState);
+    public Optional<T> get(byte[] hash) {
+        return cache.get(hash).map(ChainedState::get);
     }
 
     @Override
@@ -24,6 +24,11 @@ public class InMemoryStateFactory<T extends State<T>> implements StateFactory<T>
         Optional<ChainedState<T>> s = cache.get(b.getHashPrev().getBytes());
         if (!s.isPresent()) throw new RuntimeException("state not found at " + b.getHashPrev());
         ChainedState<T> copied = s.get().clone();
+        try {
+            copied.update(b);
+        } catch (StateUpdateException e) {
+            e.printStackTrace();
+        }
         for (Transaction tx : b.getBody()) {
             try {
                 copied.update(b, tx);
@@ -41,18 +46,33 @@ public class InMemoryStateFactory<T extends State<T>> implements StateFactory<T>
     }
 
     @Override
-    public void confirm(Block b) {
-        if (!b.getHashPrev().equals(where)) {
-            throw new RuntimeException("confirmed block is not child of current root node");
-        }
+    public void confirm(byte[] hash) {
+        HexBytes h = new HexBytes(hash);
         List<ChainedState<T>> children = cache.getChildren(where.getBytes());
-        // clear
-        for (ChainedState<T> node : children) {
-            if (!node.getHash().equals(b.getHash())) {
-                cache.remove(cache.getDescendants(node));
-            }
+        Optional<ChainedState<T>> o = children.stream().filter(x -> x.getHash().equals(h)).findFirst();
+        if(!o.isPresent()){
+            throw new RuntimeException("the state at "
+                    + h +
+                    " to confirm not found or confirmed block is not child of current node"
+            );
         }
-        cache.get(where.getBytes()).ifPresent(n -> cache.remove(n));
-        where = b.getHash();
+        ChainedState<T> s = o.get();
+        children.stream().filter(x -> !x.getHash().equals(h))
+                .forEach(n -> cache.removeDescendants(n.getHash().getBytes()));
+        Optional<ChainedState<T>> root = cache.get(where.getBytes());
+        if (!root.isPresent()){
+            throw new RuntimeException("confirmed state missing");
+        }
+        cache.remove(root.get().getHash().getBytes());
+        where = h;
+    }
+
+    @Override
+    public T getLastConfirmed() {
+        Optional<ChainedState<T>> root = cache.get(where.getBytes());
+        if (!root.isPresent()){
+            throw new RuntimeException("confirmed state missing");
+        }
+        return root.get().get();
     }
 }
