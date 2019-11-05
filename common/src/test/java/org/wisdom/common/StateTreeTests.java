@@ -78,8 +78,8 @@ public class StateTreeTests {
         blocks.get("0102").getBody().add(Transaction.builder().from(ADDRESS_A).to(ADDRESS_B).amount(60).build());
         ForkAbleStatesTree<Account> tree = new ForkAbleStatesTree<>(
                 blocks.get("0000"),
-                new Account(ADDRESS_A.toString(), 100),
-                new Account(ADDRESS_B.toString(), 100)
+                Arrays.asList(new Account(ADDRESS_A.toString(), 100),
+                new Account(ADDRESS_B.toString(), 100))
         );
         blocks.values().stream().sorted(Comparator.comparingLong(Block::getHeight)).forEach(tree::update);
         return tree;

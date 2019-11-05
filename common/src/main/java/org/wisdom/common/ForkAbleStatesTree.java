@@ -13,10 +13,10 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
     private ChainCache<ForkAbleStateSet<T>> cache;
     private T some;
 
-    public ForkAbleStatesTree(Block genesis, T... states) {
-        if (states.length == 0) throw new RuntimeException("at lease one states required");
-        some = states[0];
-        root = new ForkAbleStateSet<>(genesis.getHashPrev(), genesis.getHash(), Arrays.asList(states));
+    public ForkAbleStatesTree(Block genesis, Collection<? extends T> states) {
+        if (states.size() == 0) throw new RuntimeException("at lease one states required");
+        some = states.stream().findFirst().get();
+        root = new ForkAbleStateSet<>(genesis.getHashPrev(), genesis.getHash(), states);
         cache = new ChainCache<>();
         cache.put(root);
     }
@@ -32,6 +32,13 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
         Map<String, T> states = all.stream()
                 .map(id -> this.get(id, b.getHashPrev().getBytes()).orElse(some.createEmpty(id)))
                 .collect(Collectors.toMap(ForkAbleState::getIdentifier, (s) -> s));
+        states.values().forEach(s -> {
+            try {
+                s.update(b.getHeader());
+            } catch (StateUpdateException e) {
+                e.printStackTrace();
+            }
+        });
         for (Transaction tx : b.getBody()) {
             for (T t : states.values()) {
                 try {
@@ -54,19 +61,20 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
     public Optional<T> get(String id, byte[] where) {
         if(root.getHash().equals(new HexBytes(where))){
             // WARNING: do not use method reference here State::clone
-            return Optional.ofNullable(root.cache.get(id)).map(s -> s.clone());
+            return Optional.ofNullable(root.get().get(id)).map(s -> s.clone());
         }
-        Optional<ForkAbleStateSet<T>> set = cache.get(where);
-        if(!set.isPresent()){
+        Optional<ForkAbleStateSet<T>> o = cache.get(where);
+        if(!o.isPresent()){
             return Optional.empty();
         }
-        if (set.get().cache.containsKey(id))
-            return Optional.of(set.get().cache.get(id).clone());
-        return get(id, set.get().getHashPrev().getBytes());
+        ForkAbleStateSet<T> set = o.get();
+        if (set.get().containsKey(id))
+            return Optional.of(set.get().get(id).clone());
+        return get(id, set.getHashPrev().getBytes());
     }
 
     public T getLastConfirmed(String id) {
-        if (root.cache.containsKey(id)) return root.cache.get(id);
+        if (root.get().containsKey(id)) return root.get().get(id);
         return some.createEmpty(id);
     }
 

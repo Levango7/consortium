@@ -88,7 +88,7 @@ public class PoA implements ConsensusEngine {
     }
 
     @Override
-    public <T extends ForkAbleState<T>> void register(Block genesis, T... forkAbleStates) {
+    public <T extends ForkAbleState<T>> void register(Block genesis, Collection<? extends T> forkAbleStates) {
 
     }
 

@@ -27,9 +27,12 @@ public class ConsortiumStateRepository implements StateRepository {
     }
 
     @Override
-    public <T extends ForkAbleState<T>> void register(Block genesis, T... forkAbleStates) {
-        if (forkAbleStates.length == 0) throw new RuntimeException("requires at least one state");
-        trees.put(forkAbleStates[0].getClass().toString(), new ForkAbleStatesTree<>(genesis, forkAbleStates));
+    public <T extends ForkAbleState<T>> void register(Block genesis, Collection<? extends T> forkAbleStates) {
+        if (forkAbleStates.size() == 0) throw new RuntimeException("requires at least one state");
+        trees.put(
+                forkAbleStates.stream().findFirst().get().getClass().toString(),
+                new ForkAbleStatesTree<>(genesis, forkAbleStates)
+        );
     }
 
     @Override

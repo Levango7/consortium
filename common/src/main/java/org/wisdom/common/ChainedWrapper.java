@@ -1,10 +1,10 @@
 package org.wisdom.common;
 
 // if T not implements Chained, wrap it as Chained
-public class ChainedState<T extends State<T>> implements Chained{
-    private HexBytes hashPrev;
-    private HexBytes hash;
-    private T state;
+public class ChainedWrapper<T> implements Chained{
+    protected HexBytes hashPrev;
+    protected HexBytes hash;
+    protected T data;
 
     public HexBytes getHashPrev() {
         return hashPrev;
@@ -15,12 +15,15 @@ public class ChainedState<T extends State<T>> implements Chained{
     }
 
     public T get(){
-        return state;
+        return data;
     }
 
-    public ChainedState(HexBytes hashPrev, HexBytes hash, T state) {
+    public ChainedWrapper() {
+    }
+
+    public ChainedWrapper(HexBytes hashPrev, HexBytes hash, T data) {
         this.hashPrev = hashPrev;
         this.hash = hash;
-        this.state = state;
+        this.data = data;
     }
 }

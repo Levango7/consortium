@@ -1,52 +1,31 @@
 package org.wisdom.common;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
-public class ForkAbleStateSet<T extends ForkAbleState<T>> implements Chained {
-    private HexBytes hashPrev;
-    private HexBytes hash;
-
-    public void setHashPrev(HexBytes hashPrev) {
-        this.hashPrev = hashPrev;
+public class ForkAbleStateSet<T extends ForkAbleState<T>> extends ChainedWrapper<Map<String, T>> {
+    public ForkAbleStateSet(HexBytes hashPrev, HexBytes hash, Map<String, T> data) {
+        super(hashPrev, hash, data);
     }
 
-    public void setHash(HexBytes hash) {
+    public ForkAbleStateSet(HexBytes hashPrev, HexBytes hash, Collection<? extends T> states) {
+        this.data = states.stream().collect(Collectors.toMap(ForkAbleState::getIdentifier, Function.identity()));
+        this.hashPrev = hashPrev;
         this.hash = hash;
     }
 
-    @Override
-    public HexBytes getHashPrev() {
-        return hashPrev;
-    }
-
-    @Override
-    public HexBytes getHash() {
-        return hash;
-    }
-
-
-    ForkAbleStateSet(HexBytes hashPrev, HexBytes hash, Collection<? extends T> states) {
-        this.cache = new HashMap<>();
-        for (T s : states) {
-            cache.put(s.getIdentifier(), s);
-        }
-        this.hash = hash;
-        this.hashPrev = hashPrev;
-    }
-
-    Map<String, T> cache;
-
-    void put(Chained node, Collection<? extends T> allStates){
-        for(T s: allStates){
-            cache.put(s.getIdentifier(), s);
+    void put(Chained node, Collection<? extends T> allStates) {
+        for (T s : allStates) {
+            data.put(s.getIdentifier(), s);
         }
         hash = node.getHash();
         hashPrev = node.getHashPrev();
     }
 
-    void merge(ForkAbleStateSet<T> sets) {
-        for (String k : sets.cache.keySet()) {
-            this.cache.put(k, sets.cache.get(k));
+    void merge(ForkAbleStateSet<T> set) {
+        for (String k : set.data.keySet()) {
+            data.put(k, set.data.get(k));
         }
     }
 }

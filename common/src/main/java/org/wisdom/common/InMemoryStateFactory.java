@@ -6,12 +6,12 @@ import java.util.List;
 import java.util.Optional;
 
 public class InMemoryStateFactory<T extends State<T>> implements StateFactory<T> {
-    private ChainCache<ChainedState<T>> cache;
+    private ChainCache<ChainedWrapper<T>> cache;
     private HexBytes where;
 
     public InMemoryStateFactory(Block genesis, T state) {
         this.cache = new ChainCache<>();
-        cache.put(new ChainedState<>(genesis.getHashPrev(), genesis.getHash(), state));
+        cache.put(new ChainedWrapper<>(genesis.getHashPrev(), genesis.getHash(), state));
         this.where = genesis.getHash();
     }
 
@@ -38,19 +38,19 @@ public class InMemoryStateFactory<T extends State<T>> implements StateFactory<T>
                 throw new RuntimeException(e.getMessage());
             }
         }
-        cache.put(new ChainedState<>(b.getHashPrev(), b.getHash(), parent.get()));
+        cache.put(new ChainedWrapper<>(b.getHashPrev(), b.getHash(), parent.get()));
     }
 
     @Override
     public void put(Chained where, T state) {
-        cache.put(new ChainedState<>(where.getHashPrev(), where.getHash(), state));
+        cache.put(new ChainedWrapper<>(where.getHashPrev(), where.getHash(), state));
     }
 
     @Override
     public void confirm(byte[] hash) {
         HexBytes h = new HexBytes(hash);
-        List<ChainedState<T>> children = cache.getChildren(where.getBytes());
-        Optional<ChainedState<T>> o = children.stream().filter(x -> x.getHash().equals(h)).findFirst();
+        List<ChainedWrapper<T>> children = cache.getChildren(where.getBytes());
+        Optional<ChainedWrapper<T>> o = children.stream().filter(x -> x.getHash().equals(h)).findFirst();
         if (!o.isPresent()) {
             throw new RuntimeException("the state at "
                     + h +
@@ -59,7 +59,7 @@ public class InMemoryStateFactory<T extends State<T>> implements StateFactory<T>
         }
         children.stream().filter(x -> !x.getHash().equals(h))
                 .forEach(n -> cache.removeDescendants(n.getHash().getBytes()));
-        Optional<ChainedState<T>> root = cache.get(where.getBytes());
+        Optional<ChainedWrapper<T>> root = cache.get(where.getBytes());
         if (!root.isPresent()) {
             throw new RuntimeException("confirmed state missing");
         }
@@ -69,7 +69,7 @@ public class InMemoryStateFactory<T extends State<T>> implements StateFactory<T>
 
     @Override
     public T getLastConfirmed() {
-        Optional<ChainedState<T>> root = cache.get(where.getBytes());
+        Optional<ChainedWrapper<T>> root = cache.get(where.getBytes());
         if (!root.isPresent()) {
             throw new RuntimeException("confirmed state missing");
         }
