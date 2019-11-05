@@ -111,9 +111,9 @@ public class StateTreeTests {
         o = getTree().get(ADDRESS_B.toString(), Hex.decodeHex("0102".toCharArray()));
         assert o.isPresent();
         assert o.get().balance == 160;
-//        o = getTree().get(ADDRESS_B.toString(), Hex.decodeHex("0105".toCharArray()));
-//        assert o.isPresent();
-//        assert o.get().balance == 160;
+        o = getTree().get(ADDRESS_B.toString(), Hex.decodeHex("0105".toCharArray()));
+        assert o.isPresent();
+        assert o.get().balance == 160;
     }
 
     @Test
