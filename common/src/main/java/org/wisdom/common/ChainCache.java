@@ -154,7 +154,7 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
         if (comparator == null || sizeLimit <= 0){
             return;
         }
-        long toRemove = sizeLimit - size();
+        long toRemove = size() - sizeLimit;
         toRemove = toRemove > 0 ? toRemove : 0;
         this.nodes.values()
                 .stream().sorted(comparator)
@@ -163,7 +163,6 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
     }
 
     public void add(@NonNull T node) {
-        evict();
         String key = node.getHash().toString();
         if (this.nodes.containsKey(key)) {
             return;
@@ -174,6 +173,7 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
             childrenHashes.put(prevHash, new HashSet<>());
         }
         childrenHashes.get(prevHash).add(key);
+        evict();
     }
 
     public void add(@NonNull Collection<? extends T> nodes) {
@@ -191,6 +191,7 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
         if (res.size() == 0) {
             return new ArrayList<>();
         }
+        res.sort(Comparator.comparingInt(List::size));
         List<T> longest = res.get(res.size() - 1);
         remove(longest);
         return longest;
