@@ -1,5 +1,6 @@
 package org.wisdom.common;
 
+import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
 public class StateTreeTests {
     private static final HexBytes ADDRESS_A = new HexBytes(new byte[]{0x0a});
     private static final HexBytes ADDRESS_B = new HexBytes(new byte[]{0x0b});
+    private static final HexBytes ADDRESS_C = new HexBytes(new byte[]{0x0c});
 
     // account to test
     public static class Account implements ForkAbleState<Account> {
@@ -150,6 +152,31 @@ public class StateTreeTests {
     }
 
     @Test
+    public void testPut() throws Exception{
+        ForkAbleStatesTree<Account> tree = getTree();
+        tree.put(new Chained() {
+            @Override
+            public HexBytes getHashPrev() {
+                try {
+                    return new HexBytes("0206");
+                } catch (DecoderException e) {
+                    return new HexBytes();
+                }
+            }
+
+            @Override
+            public HexBytes getHash() {
+                try {
+                    return new HexBytes("0207");
+                } catch (DecoderException e) {
+                    return new HexBytes();
+                }
+            }
+        }, Collections.singletonList(new Account(ADDRESS_C.toString(), 1000)));
+        assert tree.get(ADDRESS_C.toString(), Hex.decodeHex("0207".toCharArray())).get().balance == 1000;
+    }
+
+    @Test
     public void testRepository() throws Exception {
         StateRepository repository = getRepository();
         Optional<Account> o = repository.get(ADDRESS_A.toString(), Hex.decodeHex("0002".toCharArray()), Account.class);
@@ -172,5 +199,25 @@ public class StateTreeTests {
         o = repository.get(ADDRESS_B.toString(), Hex.decodeHex("0002".toCharArray()), Account.class);
         assert !o.isPresent();
         assert repository.getLastConfirmed(ADDRESS_B.toString(), Account.class).getBalance() == 160;
+        repository.put(new Chained() {
+            @Override
+            public HexBytes getHashPrev() {
+                try {
+                    return new HexBytes("0206");
+                } catch (DecoderException e) {
+                    return new HexBytes();
+                }
+            }
+
+            @Override
+            public HexBytes getHash() {
+                try {
+                    return new HexBytes("0207");
+                } catch (DecoderException e) {
+                    return new HexBytes();
+                }
+            }
+        }, Collections.singletonList(new Account(ADDRESS_C.toString(), 1000)), Account.class);
+        assert repository.get(ADDRESS_C.toString(), Hex.decodeHex("0207".toCharArray()), Account.class).get().balance == 1000;
     }
 }

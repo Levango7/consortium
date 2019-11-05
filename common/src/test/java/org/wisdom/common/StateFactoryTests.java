@@ -69,6 +69,17 @@ public class StateFactoryTests {
         return factory;
     }
 
+    private StateRepository getRepository() throws Exception {
+        Block genesis = getBlocks().get(0);
+        StateRepository repository = new ConsortiumStateRepository();
+        repository.register(genesis, new Height());
+        List<Block> blocks = getBlocks();
+        for (Block b : blocks.subList(1, blocks.size())) {
+            repository.update(b);
+        }
+        return repository;
+    }
+
     @Test
     public void testUpdate() throws Exception {
         getStateFactory();
@@ -126,5 +137,42 @@ public class StateFactoryTests {
             }
         }, new Height(new HashSet<>(), 7));
         assert factory.get(Hex.decodeHex("0207".toCharArray())).get().getHeight() == 7;
+    }
+
+    @Test
+    public void testRepository() throws Exception {
+        StateRepository repository = getRepository();
+        assert repository.get(Hex.decodeHex("0206".toCharArray()), Height.class).get().getHeight() == 6;
+        for(Block b: getBlocks()){
+            assert repository.get(b.getHash().getBytes(), Height.class).isPresent();
+        }
+        repository.confirm(Hex.decodeHex("0001".toCharArray()));
+        assert !repository.get(Hex.decodeHex("0000".toCharArray()), Height.class).isPresent();
+        assert repository.get(Hex.decodeHex("0102".toCharArray()), Height.class).isPresent();
+        repository.confirm(Hex.decodeHex("0002".toCharArray()));
+        for(Chained n :ChainCacheTest.getCache(0).getDescendants(Hex.decodeHex("0102".toCharArray()))){
+            assert !repository.get(n.getHash().getBytes(), Height.class).isPresent();
+        }
+        assert repository.getLastConfirmed(Height.class).getHeight() == 2;
+        repository.put(new Chained() {
+            @Override
+            public HexBytes getHashPrev() {
+                try {
+                    return new HexBytes("0206");
+                } catch (DecoderException e) {
+                    return new HexBytes();
+                }
+            }
+
+            @Override
+            public HexBytes getHash() {
+                try {
+                    return new HexBytes("0207");
+                } catch (DecoderException e) {
+                    return new HexBytes();
+                }
+            }
+        }, new Height(new HashSet<>(), 7));
+        assert repository.get(Hex.decodeHex("0207".toCharArray()), Height.class).get().getHeight() == 7;
     }
 }
