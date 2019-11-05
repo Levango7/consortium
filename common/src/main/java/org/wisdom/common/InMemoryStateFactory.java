@@ -11,7 +11,7 @@ public class InMemoryStateFactory<T extends State<T>> implements StateFactory<T>
 
     public InMemoryStateFactory(Block genesis, T state) {
         this.cache = new ChainCache<>();
-        cache.add(new ChainedState<>(genesis.getHashPrev(), genesis.getHeight(), genesis.getHash(), state));
+        cache.add(new ChainedState<>(genesis.getHashPrev(), genesis.getHash(), state));
         this.where = genesis.getHash();
     }
 
@@ -37,7 +37,7 @@ public class InMemoryStateFactory<T extends State<T>> implements StateFactory<T>
 
     @Override
     public void update(Block b, T state) {
-        cache.add(new ChainedState<>(b.getHashPrev(), b.getHeight(), b.getHash(), state));
+        cache.add(new ChainedState<>(b.getHashPrev(), b.getHash(), state));
     }
 
     @Override

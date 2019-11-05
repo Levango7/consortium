@@ -3,6 +3,7 @@ package org.wisdom.common;
 import lombok.NonNull;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -11,8 +12,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class ChainCacheWrapper<T extends Chained> extends ChainCache<T> {
     private ReadWriteLock lock;
 
-    public ChainCacheWrapper(int sizeLimit) {
-        super(sizeLimit);
+    public ChainCacheWrapper(int sizeLimit, Comparator<T> comparator) {
+        super(sizeLimit, comparator);
         lock = new ReentrantReadWriteLock();
     }
 
@@ -182,15 +183,6 @@ public class ChainCacheWrapper<T extends Chained> extends ChainCache<T> {
         }
     }
 
-    @Override
-    public Optional<T> getAncestor(T node, long height) {
-        lock.readLock().lock();
-        try{
-            return super.getAncestor(node, height);
-        }finally {
-            lock.readLock().unlock();
-        }
-    }
 
     @Override
     public List<T> getAncestors(@NonNull T node) {

@@ -11,7 +11,6 @@ public class ForkAbleStateSets<T extends ForkAbleState<T>> implements Cloneable<
 
     private HexBytes hashPrev;
     private HexBytes hash;
-    private long height;
 
     @Override
     public HexBytes getHashPrev() {
@@ -23,10 +22,6 @@ public class ForkAbleStateSets<T extends ForkAbleState<T>> implements Cloneable<
         return hash;
     }
 
-    @Override
-    public long getHeight() {
-        return height;
-    }
 
     private ForkAbleStateSets(){}
 
@@ -37,7 +32,6 @@ public class ForkAbleStateSets<T extends ForkAbleState<T>> implements Cloneable<
         for (T s : states) {
             cache.put(s.getIdentifier(), s);
         }
-        this.height = genesis.getHeight();
         this.hash = genesis.getHash();
         this.hashPrev = genesis.getHashPrev();
     }
@@ -71,7 +65,6 @@ public class ForkAbleStateSets<T extends ForkAbleState<T>> implements Cloneable<
         states.forEach((k, v) -> cache.put(k, v));
         hash = b.getHash();
         hashPrev = b.getHashPrev();
-        height = b.getHeight();
     }
 
     void update(Block b, Collection<? extends T> allStates){
@@ -84,7 +77,6 @@ public class ForkAbleStateSets<T extends ForkAbleState<T>> implements Cloneable<
         }
         hash = b.getHash();
         hashPrev = b.getHashPrev();
-        height = b.getHeight();
     }
 
     void merge(ForkAbleStateSets<T> sets) {

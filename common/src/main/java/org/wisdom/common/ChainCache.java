@@ -4,6 +4,7 @@ import lombok.NonNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 /**
@@ -13,19 +14,24 @@ import java.util.stream.Collectors;
 public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
     private Map<String, T> nodes;
     private Map<String, Set<String>> childrenHashes;
-    private Map<Long, Set<String>> heightIndex;
     private int sizeLimit;
+    private Comparator<T> comparator;
+
+    public ChainCache<T> withComparator(Comparator<T> comparator) {
+        this.comparator = comparator;
+        return this;
+    }
 
     // lru
-    public ChainCache(int sizeLimit) {
+    public ChainCache(int sizeLimit, Comparator<T> comparator) {
         this();
         this.sizeLimit = sizeLimit;
+        this.comparator = comparator;
     }
 
     public ChainCache() {
         this.nodes = new HashMap<>();
         this.childrenHashes = new HashMap<>();
-        this.heightIndex = new TreeMap<>();
     }
 
     public ChainCache(T node) {
@@ -43,18 +49,17 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
     }
 
     private List<T> getNodes(Collection<String> hashes) {
-        return new HashSet<>(hashes).stream()
+        Stream<T> stream = new HashSet<>(hashes).stream()
                 .map(k -> nodes.get(k))
-                .filter(Objects::nonNull)
-                .sorted((x, y) -> (int) (x.getHeight() - y.getHeight()))
-                .collect(Collectors.toList());
+                .filter(Objects::nonNull);
+        if(comparator != null) stream = stream.sorted(comparator);
+        return stream.collect(Collectors.toList());
     }
 
     public ChainCache<T> clone() {
         ChainCache<T> copied = new ChainCache<>();
         copied.nodes = new HashMap<>(nodes);
         copied.childrenHashes = new HashMap<>(childrenHashes);
-        copied.heightIndex = new TreeMap<>(heightIndex);
         return copied;
     }
 
@@ -104,12 +109,6 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
         if (childrenHashes.containsKey(prevHash) && childrenHashes.get(prevHash).size() == 0) {
             childrenHashes.remove(prevHash);
         }
-        if (heightIndex.containsKey(node.getHeight())) {
-            heightIndex.get(node.getHeight()).remove(hash);
-        }
-        if (heightIndex.containsKey(node.getHeight()) && heightIndex.get(node.getHeight()).size() == 0) {
-            heightIndex.remove(node.getHeight());
-        }
     }
 
     public void remove(Collection<? extends T> nodes) {
@@ -143,10 +142,6 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
         Set<String> res = new HashSet<>();
         for (String key : nodes.keySet()) {
             T node = nodes.get(key);
-            if (nodes.get(key).getHeight() == 0) {
-                res.add(key);
-                continue;
-            }
             if (!nodes.containsKey(node.getHashPrev().toString())) {
                 res.add(key);
             }
@@ -154,13 +149,21 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
         return res;
     }
 
-    public void add(@NonNull T node) {
-        while (sizeLimit != 0 && this.nodes.size() > sizeLimit) {
-            this.nodes.values()
-                    .stream()
-                    .min(Comparator.comparingLong(Chained::getHeight))
-                    .ifPresent(this::remove);
+    // evict
+    private void evict(){
+        if (comparator == null || sizeLimit <= 0){
+            return;
         }
+        long toRemove = sizeLimit - size();
+        toRemove = toRemove > 0 ? toRemove : 0;
+        this.nodes.values()
+                .stream().sorted(comparator)
+                .limit(toRemove)
+                .forEach(this::remove);
+    }
+
+    public void add(@NonNull T node) {
+        evict();
         String key = node.getHash().toString();
         if (this.nodes.containsKey(key)) {
             return;
@@ -171,10 +174,6 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
             childrenHashes.put(prevHash, new HashSet<>());
         }
         childrenHashes.get(prevHash).add(key);
-        if (!heightIndex.containsKey(node.getHeight())) {
-            heightIndex.put(node.getHeight(), new HashSet<>());
-        }
-        heightIndex.get(node.getHeight()).add(key);
     }
 
     public void add(@NonNull Collection<? extends T> nodes) {
@@ -209,15 +208,6 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>>{
         return nodes.containsKey(HexBytes.encode(hash));
     }
 
-    public Optional<T> getAncestor(T node, long height) {
-        while (node != null && node.getHeight() > height) {
-            node = nodes.get(node.getHashPrev().toString());
-        }
-        if (node != null && node.getHeight() == height) {
-            return Optional.of(node);
-        }
-        return Optional.empty();
-    }
 
     public List<T> getAncestors(@NonNull T node) {
         List<T> res = new ArrayList<>();

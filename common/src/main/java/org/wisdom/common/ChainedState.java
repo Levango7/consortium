@@ -5,7 +5,6 @@ import org.wisdom.exception.StateUpdateException;
 // if T not implements Chained, wrap it as Chained
 public class ChainedState<T extends State<T>> implements State<ChainedState<T>>, Chained{
     private HexBytes hashPrev;
-    private long height;
     private HexBytes hash;
     private T state;
     private Chained chained;
@@ -18,12 +17,11 @@ public class ChainedState<T extends State<T>> implements State<ChainedState<T>>,
             return;
         }
         hashPrev = b.getHashPrev();
-        height = b.getHeight();
         hash = b.getHash();
     }
 
     public ChainedState<T> clone() {
-        return new ChainedState<>(hashPrev, height, hash, state.clone());
+        return new ChainedState<>(hashPrev,  hash, state.clone());
     }
 
     public HexBytes getHashPrev() {
@@ -31,10 +29,6 @@ public class ChainedState<T extends State<T>> implements State<ChainedState<T>>,
         return hashPrev;
     }
 
-    public long getHeight() {
-        if (chained != null) return chained.getHeight();
-        return height;
-    }
 
     public HexBytes getHash() {
         if (chained != null) return chained.getHash();
@@ -45,9 +39,8 @@ public class ChainedState<T extends State<T>> implements State<ChainedState<T>>,
         return state;
     }
 
-    public ChainedState(HexBytes hashPrev, long height, HexBytes hash, T state) {
+    public ChainedState(HexBytes hashPrev, HexBytes hash, T state) {
         this.hashPrev = hashPrev;
-        this.height = height;
         this.hash = hash;
         this.state = state;
         if (state instanceof Chained) this.chained = (Chained) state;

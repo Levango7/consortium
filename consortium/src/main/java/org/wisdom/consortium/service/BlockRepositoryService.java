@@ -173,7 +173,9 @@ public class BlockRepositoryService implements BlockRepository {
         Optional<Header> header = getHeader(hash);
         return header.map(h -> getHeadersBetween(ancestorHeight, h.getHeight()))
                 .map(ChainCache::new)
-                .flatMap(c -> c.getAncestor(header.get(), ancestorHeight));
+                .map(c -> c.getAncestors(header.get()))
+                .flatMap(li -> li.stream().filter(x -> x.getHeight() == ancestorHeight).findFirst())
+                ;
     }
 
     @Override
