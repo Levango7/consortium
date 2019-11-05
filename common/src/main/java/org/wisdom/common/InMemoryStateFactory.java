@@ -16,6 +16,8 @@ public class InMemoryStateFactory<T extends State<T>> implements StateFactory<T>
     }
 
     public Optional<T> get(byte[] hash) {
+        // warning: do not use method references here !!!
+        // DO NOT USE cache.get(hash).map(ChainedState::get).map(Cloneable::clone)
         return cache.get(hash).map(s -> s.get()).map(s -> s.clone());
     }
 

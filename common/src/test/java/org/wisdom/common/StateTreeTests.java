@@ -121,7 +121,7 @@ public class StateTreeTests {
         ForkAbleStatesTree<Account> tree = getTree();
         tree.confirm(Hex.decodeHex("0001".toCharArray()));
         tree.confirm(Hex.decodeHex("0102".toCharArray()));
-        Optional<Account> o = getTree().get(ADDRESS_B.toString(), Hex.decodeHex("0002".toCharArray()));
+        Optional<Account> o = tree.get(ADDRESS_B.toString(), Hex.decodeHex("0002".toCharArray()));
         assert !o.isPresent();
     }
 }

@@ -16,7 +16,7 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
     public ForkAbleStatesTree(Block genesis, T... states) {
         if (states.length == 0) throw new RuntimeException("at lease one states required");
         some = states[0];
-        root = new ForkAbleStateSet<>(genesis, states);
+        root = new ForkAbleStateSet<>(genesis.getHashPrev(), genesis.getHash(), Arrays.asList(states));
         cache = new ChainCache<>();
         cache.put(root);
     }
@@ -27,11 +27,10 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
         if (!o.isPresent()) throw new RuntimeException(
                 "state sets not found at " + b.getHashPrev()
         );
-        ForkAbleStateSet<T> parent = o.get();
         Set<String> all = new HashSet<>();
         b.getBody().stream().map(some::getIdentifiersOf).forEach(all::addAll);
         Map<String, T> states = all.stream()
-                .map(id -> this.get(id, parent.getHash().getBytes()).orElse(some.createEmpty(id)))
+                .map(id -> this.get(id, b.getHashPrev().getBytes()).orElse(some.createEmpty(id)))
                 .collect(Collectors.toMap(ForkAbleState::getIdentifier, (s) -> s));
         for (Transaction tx : b.getBody()) {
             for (T t : states.values()) {
@@ -48,19 +47,14 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
     // provide all already updated state
     public void put(Chained node, Collection<? extends T> allStates) {
         if (cache.contains(node.getHash().getBytes())) return;
-        Optional<ForkAbleStateSet<T>> o = cache.get(node.getHashPrev().getBytes());
-        if (!o.isPresent()) throw new RuntimeException(
-                "state sets not found at " + node.getHashPrev()
-        );
-        ForkAbleStateSet<T> parent = o.get();
-        ForkAbleStateSet<T> copied = parent.clone();
-        copied.put(node, allStates);
-        cache.put(copied);
+        ForkAbleStateSet<T> forked = new ForkAbleStateSet<>(node.getHashPrev(), node.getHash(), allStates);
+        cache.put(forked);
     }
 
     public Optional<T> get(String id, byte[] where) {
         if(root.getHash().equals(new HexBytes(where))){
-            return Optional.ofNullable(root.cache.get(id)).map(Cloneable::clone);
+            // WARNING: do not use method reference here State::clone
+            return Optional.ofNullable(root.cache.get(id)).map(s -> s.clone());
         }
         Optional<ForkAbleStateSet<T>> set = cache.get(where);
         if(!set.isPresent()){

@@ -2,9 +2,7 @@ package org.wisdom.common;
 
 import java.util.*;
 
-public class ForkAbleStateSet<T extends ForkAbleState<T>> implements Cloneable<ForkAbleStateSet<T>>, Chained {
-    private T some;
-
+public class ForkAbleStateSet<T extends ForkAbleState<T>> implements Chained {
     private HexBytes hashPrev;
     private HexBytes hash;
 
@@ -27,17 +25,13 @@ public class ForkAbleStateSet<T extends ForkAbleState<T>> implements Cloneable<F
     }
 
 
-    private ForkAbleStateSet(){}
-
-    public ForkAbleStateSet(Block genesis, T... states) {
-        if (states.length == 0) throw new RuntimeException("at lease one states required");
-        this.some = states[0];
+    ForkAbleStateSet(HexBytes hashPrev, HexBytes hash, Collection<? extends T> states) {
         this.cache = new HashMap<>();
         for (T s : states) {
             cache.put(s.getIdentifier(), s);
         }
-        this.hash = genesis.getHash();
-        this.hashPrev = genesis.getHashPrev();
+        this.hash = hash;
+        this.hashPrev = hashPrev;
     }
 
     Map<String, T> cache;
@@ -54,15 +48,5 @@ public class ForkAbleStateSet<T extends ForkAbleState<T>> implements Cloneable<F
         for (String k : sets.cache.keySet()) {
             this.cache.put(k, sets.cache.get(k));
         }
-    }
-
-    @Override
-    public ForkAbleStateSet<T> clone() {
-        ForkAbleStateSet<T> res = new ForkAbleStateSet<>();
-        res.some = this.some;
-        res.hashPrev = this.hashPrev;
-        res.hash = this.hash;
-        res.cache = new HashMap<>(cache);
-        return res;
     }
 }
