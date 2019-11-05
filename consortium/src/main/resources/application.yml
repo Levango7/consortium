@@ -4,11 +4,10 @@ spring:
     username: 'username'
     password: 'password'
 
-#  jpa:
-#    database-platform: org.hibernate.dialect.MySQL5Dialect
-#    hibernate:
-#      ddl-auto: create-drop # create, update
-#    show-sql: true # enable jpa sql logs
+  jpa:
+    hibernate:
+      ddl-auto: create-drop # create, update
+    show-sql: true # enable jpa sql logs
 
 
 
@@ -16,7 +15,7 @@ spring:
 consortium:
   consensus:
     name: 'poa'
-    genesis: 'genesis/wisdom-genesis-generator.json'
+    genesis: 'genesis/wisdom-genesis-generator-test.json'
     block-interval: '30'
     enable-mining: 'true'
     miner-coin-base: '1JWhUiZCWps56uZckAvzxy2ex6VGhrMXdD'
