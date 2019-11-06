@@ -6,10 +6,11 @@ import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import lombok.experimental.Delegate;
 import org.springframework.core.io.Resource;
 import org.wisdom.common.*;
+import org.wisdom.consortium.account.PublicKeyHash;
 import org.wisdom.consortium.consensus.poa.config.Genesis;
+import org.wisdom.consortium.state.Account;
 import org.wisdom.consortium.util.FileUtils;
 import org.wisdom.exception.ConsensusEngineLoadException;
-import org.wisdom.exception.StateUpdateException;
 
 import java.util.*;
 
@@ -29,7 +30,12 @@ public class PoA implements ConsensusEngine {
     @Delegate
     private PendingTransactionValidator transactionValidator;
 
+    @Delegate
+    private StateRepository repository;
+
     private Genesis genesis;
+
+    private Block genesisBlock;
 
     public PoA() {
         this.hashPolicy = PoAHashPolicy.HASH_POLICY;
@@ -40,7 +46,9 @@ public class PoA implements ConsensusEngine {
 
     @Override
     public Block getGenesis() {
-        return genesis.getBlock();
+        if (genesisBlock != null) return genesisBlock;
+        genesisBlock = genesis.getBlock();
+        return genesisBlock;
     }
 
     @Override
@@ -79,56 +87,12 @@ public class PoA implements ConsensusEngine {
         poaMiner.setGenesis(genesis);
         poaMiner.setRepository(repository);
         this.miner = poaMiner;
+        this.repository = new ConsortiumStateRepository();
+        Optional<PublicKeyHash> o = PublicKeyHash.from(poAConfig.getMinerCoinBase());
 
-    }
-
-    @Override
-    public <T extends State<T>> void register(Block genesis, T genesisState) throws StateUpdateException {
-
-    }
-
-    @Override
-    public <T extends ForkAbleState<T>> void register(Block genesis, Collection<? extends T> forkAbleStates) {
-
-    }
-
-    @Override
-    public <T extends State<T>> Optional<T> get(byte[] hash, Class<T> clazz) {
-        return Optional.empty();
-    }
-
-    @Override
-    public <T extends ForkAbleState<T>> Optional<T> get(String id, byte[] hash, Class<T> clazz) {
-        return Optional.empty();
-    }
-
-    @Override
-    public <T extends State<T>> T getLastConfirmed(Class<T> clazz) {
-        return null;
-    }
-
-    @Override
-    public <T extends ForkAbleState<T>> T getLastConfirmed(String id, Class<T> clazz) {
-        return null;
-    }
-
-    @Override
-    public void update(Block b) {
-
-    }
-
-    @Override
-    public void put(Chained chained, State state) {
-
-    }
-
-    @Override
-    public void put(Chained chained, Collection<ForkAbleState> forkAbleStates, Class<? extends ForkAbleState> clazz) {
-
-    }
-
-    @Override
-    public void confirm(byte[] hash) {
+        // register miner accounts
+        if (!o.isPresent()) return;
+        this.repository.register(getGenesis(), Collections.singleton(new Account(o.get(), 0)));
 
     }
 

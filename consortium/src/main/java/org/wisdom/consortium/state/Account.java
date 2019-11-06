@@ -32,7 +32,7 @@ public class Account implements ForkAbleState<Account> {
 
     @Override
     public Account createEmpty(String id) {
-        return new Account(PublicKeyHash.fromHex(id).get(), 0);
+        return new Account(PublicKeyHash.from(id).get(), 0);
     }
 
     @Override

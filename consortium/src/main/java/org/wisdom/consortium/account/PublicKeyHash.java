@@ -15,7 +15,7 @@ public class PublicKeyHash {
         return new PublicKeyHash(publicKeyToHash(publicKey));
     }
 
-    public static Optional<PublicKeyHash> fromHex(String hex){
+    public static Optional<PublicKeyHash> from(String hex){
         byte[] publicKeyHash;
         try {
             publicKeyHash = Hex.decodeHex(hex);
