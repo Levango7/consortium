@@ -96,7 +96,6 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
         children.stream().filter(x -> !x.getHash().equals(h))
                 .forEach(n -> cache.removeDescendants(n.getHash().getBytes()));
         cache.remove(set.getHash().getBytes());
-        cache.remove(root.getHash().getBytes());
         root.merge(set);
         root.hashPrev = root.hash;
         root.hash = h;

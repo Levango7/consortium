@@ -83,6 +83,7 @@ public class Start {
         }
         engine.load(consensusProperties, consortiumRepository);
         consortiumRepository.setProvider(engine.provider());
+        // register event listeners
         consortiumRepository.addListeners(engine.repository());
         consortiumRepository.saveGenesis(engine.genesis());
         return engine;
@@ -91,6 +92,7 @@ public class Start {
     abstract static class NewMinedBlockWriter implements MinerListener{
     }
 
+    // create a miner listener for write block
     @Bean
     public NewMinedBlockWriter newMinedBlockWriter(ConsortiumRepository repository, ConsensusEngine engine){
         return new NewMinedBlockWriter() {
