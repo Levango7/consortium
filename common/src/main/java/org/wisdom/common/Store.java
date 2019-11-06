@@ -7,5 +7,7 @@ public interface Store<K, V> {
 
     void put(K k, V v);
 
+    void putIfAbsent(K k, V v);
+
     void remove(K k);
 }
