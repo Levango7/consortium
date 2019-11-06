@@ -12,7 +12,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.util.Assert;
 import org.wisdom.common.*;
-import org.wisdom.consortium.consensus.ConsensusEngineAdapter;
+import org.wisdom.consortium.consensus.None;
 import org.wisdom.consortium.consensus.poa.PoA;
 
 import java.util.Optional;
@@ -68,7 +68,7 @@ public class Start {
             // none consensus selected, used for unit test
             case ApplicationConstants.CONSENSUS_NONE:
                 log.warn("none consensus engine selected, please ensure you are in test mode");
-                return new ConsensusEngineAdapter();
+                return new None();
             case ApplicationConstants.CONSENSUS_POA:
                 // use poa as default consensus
                 // another engine: pow, pos, pow+pos, vrf
