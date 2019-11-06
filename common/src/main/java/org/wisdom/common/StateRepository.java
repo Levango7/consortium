@@ -5,7 +5,7 @@ import org.wisdom.exception.StateUpdateException;
 import java.util.Collection;
 import java.util.Optional;
 
-public interface StateRepository {
+public interface StateRepository extends ConsortiumRepositoryListener{
     <T extends State<T>> void register(Block genesis, T genesisState) throws StateUpdateException;
 
     <T extends ForkAbleState<T>> void register(Block genesis, Collection<? extends T> forkAbleStates);

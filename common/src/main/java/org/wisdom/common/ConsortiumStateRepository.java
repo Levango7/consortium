@@ -1,6 +1,5 @@
 package org.wisdom.common;
 
-import lombok.extern.slf4j.Slf4j;
 import org.wisdom.exception.StateUpdateException;
 
 import java.util.Collection;
@@ -84,5 +83,20 @@ public class ConsortiumStateRepository implements StateRepository {
     @Override
     public <T extends ForkAbleState<T>> T getLastConfirmed(String id, Class<T> clazz) {
         return (T) trees.get(clazz.toString()).getLastConfirmed(id);
+    }
+
+    @Override
+    public void onBlockWritten(Block block) {
+        update(block);
+    }
+
+    @Override
+    public void onNewBestBlock(Block block) {
+
+    }
+
+    @Override
+    public void onBlockConfirmed(Block block) {
+        confirm(block.getHash().getBytes());
     }
 }

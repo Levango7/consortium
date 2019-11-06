@@ -1,12 +1,12 @@
 package org.wisdom.consortium.consensus.poa;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.DecoderException;
 import org.springframework.util.Assert;
 import org.wisdom.common.*;
+import org.wisdom.consortium.account.PublicKeyHash;
 import org.wisdom.consortium.consensus.poa.config.Genesis;
+import org.wisdom.exception.ConsensusEngineLoadException;
 import org.wisdom.util.BigEndian;
 
 import java.nio.charset.StandardCharsets;
@@ -23,15 +23,9 @@ import static org.wisdom.consortium.consensus.poa.PoAHashPolicy.HASH_POLICY;
 
 @Slf4j
 public class PoAMiner implements Miner {
-    @Getter
-    @AllArgsConstructor
-    public static class MinedResult {
-        private boolean success;
-        private Block block;
-        private String reason;
-    }
-
     private PoAConfig poAConfig;
+
+    PublicKeyHash minerPublicKeyHash;
 
     private Genesis genesis;
 
@@ -47,8 +41,11 @@ public class PoAMiner implements Miner {
         this.genesis = genesis;
     }
 
-    public void setPoAConfig(PoAConfig poAConfig) {
+    public void setPoAConfig(PoAConfig poAConfig) throws ConsensusEngineLoadException {
         this.poAConfig = poAConfig;
+        this.minerPublicKeyHash = PublicKeyHash.from(poAConfig.getMinerCoinBase()).orElseThrow(
+                () -> new ConsensusEngineLoadException("invalid address " + poAConfig.getMinerCoinBase())
+        );
     }
 
     public void setRepository(BlockRepository blockRepository) {
@@ -148,7 +145,7 @@ public class PoAMiner implements Miner {
                 .from(PoAConstants.ZERO_BYTES)
                 .amount(EconomicModelImpl.getConsensusRewardAtHeight(height))
                 .payload(PoAConstants.ZERO_BYTES)
-                .to(new HexBytes(poAConfig.getMinerCoinBase().getBytes(StandardCharsets.UTF_8)))
+                .to(new HexBytes(minerPublicKeyHash.getPublicKeyHash()))
                 .signature(PoAConstants.ZERO_BYTES).build();
         tx.setHash(HASH_POLICY.getHash(tx));
         return tx;

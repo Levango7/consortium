@@ -1,5 +1,5 @@
 package org.wisdom.common;
 
 public interface PendingTransactionValidator {
-    ValidateResult validateTransaction(Transaction transaction);
+    ValidateResult validate(Transaction transaction);
 }

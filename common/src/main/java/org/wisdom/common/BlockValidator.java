@@ -1,5 +1,5 @@
 package org.wisdom.common;
 
 public interface BlockValidator {
-    ValidateResult validateBlock(Block block, Block dependency);
+    ValidateResult validate(Block block, Block dependency);
 }

@@ -2,9 +2,9 @@ package org.wisdom.consortium.consensus.poa;
 
 import org.wisdom.common.*;
 
-public class PoaValidator implements BlockValidator, PendingTransactionValidator {
+public class PoaValidator implements ConsensusEngine.Validator {
     @Override
-    public ValidateResult validateBlock(Block block, Block dependency) {
+    public ValidateResult validate(Block block, Block dependency) {
         if (dependency.getHeight() + 1 != block.getHeight()){
             return ValidateResult.fault("block height not increase strictly");
         }
@@ -18,7 +18,7 @@ public class PoaValidator implements BlockValidator, PendingTransactionValidator
     }
 
     @Override
-    public ValidateResult validateTransaction(Transaction transaction) {
+    public ValidateResult validate(Transaction transaction) {
         if(transaction.getVersion() != PoAConstants.TRANSACTION_VERSION){
             return ValidateResult.fault("transaction version not match");
         }

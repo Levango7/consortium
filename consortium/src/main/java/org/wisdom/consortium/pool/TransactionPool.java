@@ -41,7 +41,7 @@ public class TransactionPool implements org.wisdom.common.TransactionPool {
         for(Transaction transaction: transactions){
             String k = transaction.getHash().toString();
             if (cache.asMap().containsKey(k)) continue;
-            if(validator.validateTransaction(transaction).isSuccess()){
+            if(validator.validate(transaction).isSuccess()){
                 cache.put(transaction.getHash().toString(), transaction);
                 listeners.forEach(c -> c.onNewTransactionCollected(transaction));
             }

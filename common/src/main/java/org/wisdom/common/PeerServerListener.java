@@ -1,6 +1,6 @@
 package org.wisdom.common;
 
-public interface Plugin {
+public interface PeerServerListener {
     void onMessage(Context context, PeerServer server);
 
     void onStart(PeerServer server);

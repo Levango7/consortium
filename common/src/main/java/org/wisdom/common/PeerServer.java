@@ -10,7 +10,7 @@ public interface PeerServer {
 
     List<Peer> getPeers();
 
-    void use(Plugin... plugins);
+    void use(PeerServerListener... peerServerListeners);
 
     void start();
 

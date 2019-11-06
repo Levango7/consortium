@@ -3,10 +3,8 @@ package org.wisdom.consortium.consensus.poa;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
-import lombok.experimental.Delegate;
 import org.springframework.core.io.Resource;
 import org.wisdom.common.*;
-import org.wisdom.consortium.account.PublicKeyHash;
 import org.wisdom.consortium.consensus.poa.config.Genesis;
 import org.wisdom.consortium.state.Account;
 import org.wisdom.consortium.util.FileUtils;
@@ -14,23 +12,30 @@ import org.wisdom.exception.ConsensusEngineLoadException;
 
 import java.util.*;
 
+import static org.wisdom.consortium.consensus.poa.PoAHashPolicy.HASH_POLICY;
+
 // poa is a minimal non-trivial consensus engine
 public class PoA implements ConsensusEngine {
     private PoAConfig poAConfig;
 
-    @Delegate
     private Miner miner;
 
-    @Delegate
-    private HashPolicy hashPolicy;
+    @Override
+    public Miner miner() {
+        return miner;
+    }
 
-    @Delegate
-    private BlockValidator blockValidator;
+    @Override
+    public StateRepository repository() {
+        return repository;
+    }
 
-    @Delegate
-    private PendingTransactionValidator transactionValidator;
+    public HashPolicy policy() {
+        return HASH_POLICY;
+    }
 
-    @Delegate
+    private Validator validator;
+
     private StateRepository repository;
 
     private Genesis genesis;
@@ -38,23 +43,16 @@ public class PoA implements ConsensusEngine {
     private Block genesisBlock;
 
     public PoA() {
-        this.hashPolicy = PoAHashPolicy.HASH_POLICY;
-        PoaValidator validator = new PoaValidator();
-        this.blockValidator = validator;
-        this.transactionValidator = validator;
+        this.validator = new PoaValidator();
     }
 
     @Override
-    public Block getGenesis() {
+    public Block genesis() {
         if (genesisBlock != null) return genesisBlock;
         genesisBlock = genesis.getBlock();
         return genesisBlock;
     }
 
-    @Override
-    public List<Block> getConfirmed(List<Block> unconfirmed) {
-        return new ArrayList<>();
-    }
 
     @Override
     public void load(Properties properties, ConsortiumRepository repository) throws ConsensusEngineLoadException {
@@ -87,32 +85,65 @@ public class PoA implements ConsensusEngine {
         poaMiner.setGenesis(genesis);
         poaMiner.setRepository(repository);
         this.miner = poaMiner;
-        this.repository = new ConsortiumStateRepository();
-        Optional<PublicKeyHash> o = PublicKeyHash.from(poAConfig.getMinerCoinBase());
+
+        this.repository = new ConsortiumStateRepository() {
+            @Override
+            public void onBlockWritten(Block block) {
+                update(block);
+            }
+
+            @Override
+            public void onNewBestBlock(Block block) {
+
+            }
+
+            @Override
+            public void onBlockConfirmed(Block block) {
+                confirm(block.getHash().getBytes());
+            }
+        };
 
         // register miner accounts
-        if (!o.isPresent()) return;
-        this.repository.register(getGenesis(), Collections.singleton(new Account(o.get(), 0)));
-
+        this.repository.register(genesis(), Collections.singleton(new Account(poaMiner.minerPublicKeyHash, 0)));
     }
 
     @Override
-    public void onMessage(Context context, PeerServer server) {
-
+    public Validator validator() {
+        return validator;
     }
 
     @Override
-    public void onStart(PeerServer server) {
-
+    public ConfirmedBlocksProvider provider() {
+        return new ConfirmedBlocksProvider() {
+            @Override
+            public List<Block> getConfirmed(List<Block> unconfirmed) {
+                return unconfirmed;
+            }
+        };
     }
 
     @Override
-    public void onNewPeer(Peer peer, PeerServer server) {
+    public PeerServerListener handler() {
+        return new PeerServerListener() {
+            @Override
+            public void onMessage(Context context, PeerServer server) {
 
-    }
+            }
 
-    @Override
-    public void onDisconnect(Peer peer, PeerServer server) {
+            @Override
+            public void onStart(PeerServer server) {
 
+            }
+
+            @Override
+            public void onNewPeer(Peer peer, PeerServer server) {
+
+            }
+
+            @Override
+            public void onDisconnect(Peer peer, PeerServer server) {
+
+            }
+        };
     }
 }

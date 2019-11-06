@@ -15,6 +15,7 @@ import org.wisdom.common.*;
 import org.wisdom.consortium.consensus.ConsensusEngineAdapter;
 import org.wisdom.consortium.consensus.poa.PoA;
 
+import javax.annotation.PostConstruct;
 import java.util.Optional;
 
 @EnableAsync
@@ -46,6 +47,20 @@ public class Start {
     }
 
     @Bean
+    public Miner miner(ConsensusEngine engine, NewMinedBlockWriter writer){
+        Miner miner = engine.miner();
+        miner.addListeners(writer);
+        miner.start();
+        return miner;
+    }
+
+    @Bean
+    public StateRepository stateRepository(ConsensusEngine engine){return engine.repository();}
+
+    @Bean
+    public PendingTransactionValidator transactionValidator(ConsensusEngine engine){return engine.validator();}
+
+    @Bean
     public ConsensusEngine consensusEngine(ConsensusProperties consensusProperties, ConsortiumRepository consortiumRepository) throws Exception {
         String name = consensusProperties.getConsensus().getProperty(ConsensusProperties.CONSENSUS_NAME);
         name = name == null ? "" : name;
@@ -67,32 +82,31 @@ public class Start {
                 log.error("roll back to poa consensus");
                 engine = new PoA();
         }
-
         engine.load(consensusProperties.getConsensus(), consortiumRepository);
-        consortiumRepository.saveGenesis(engine.getGenesis());
-        consortiumRepository.setProvider(engine);
-        engine.addListeners(new MinerListener() {
+        consortiumRepository.saveGenesis(engine.genesis());
+        consortiumRepository.setProvider(engine.provider());
+        return engine;
+    }
+
+    abstract static class NewMinedBlockWriter implements MinerListener{
+    }
+
+    @Bean
+    public NewMinedBlockWriter newMinedBlockWriter(ConsortiumRepository repository, ConsensusEngine engine){
+        return new NewMinedBlockWriter() {
             @Override
             public void onBlockMined(Block block) {
-                Optional<Block> o = consortiumRepository.getBlock(block.getHashPrev().getBytes());
-                if (!o.isPresent()){
-                    throw new RuntimeException("successfully mined on an unknown block");
+                Optional<Block> o = repository.getBlock(block.getHashPrev().getBytes());
+                if (!o.isPresent()) return;
+                if (engine.validator().validate(block, o.get()).isSuccess()){
+                    repository.writeBlock(block);
                 }
-                ValidateResult result = engine.validateBlock(block, o.get());
-                if (!result.isSuccess()){
-                    log.error("validate block failed");
-                    log.error(result.getReason());
-                    return;
-                }
-                consortiumRepository.writeBlock(block);
             }
 
             @Override
             public void onMiningFailed(Block block) {
 
             }
-        });
-        engine.start();
-        return engine;
+        };
     }
 }
