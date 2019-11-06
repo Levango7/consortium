@@ -86,22 +86,7 @@ public class PoA implements ConsensusEngine {
         poaMiner.setRepository(repository);
         this.miner = poaMiner;
 
-        this.repository = new ConsortiumStateRepository() {
-            @Override
-            public void onBlockWritten(Block block) {
-                update(block);
-            }
-
-            @Override
-            public void onNewBestBlock(Block block) {
-
-            }
-
-            @Override
-            public void onBlockConfirmed(Block block) {
-                confirm(block.getHash().getBytes());
-            }
-        };
+        this.repository = new ConsortiumStateRepository();
 
         // register miner accounts
         this.repository.register(genesis(), Collections.singleton(new Account(poaMiner.minerPublicKeyHash, 0)));
@@ -114,12 +99,7 @@ public class PoA implements ConsensusEngine {
 
     @Override
     public ConfirmedBlocksProvider provider() {
-        return new ConfirmedBlocksProvider() {
-            @Override
-            public List<Block> getConfirmed(List<Block> unconfirmed) {
-                return unconfirmed;
-            }
-        };
+        return unconfirmed -> unconfirmed;
     }
 
     @Override
