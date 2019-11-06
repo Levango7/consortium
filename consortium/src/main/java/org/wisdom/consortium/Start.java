@@ -15,7 +15,6 @@ import org.wisdom.common.*;
 import org.wisdom.consortium.consensus.ConsensusEngineAdapter;
 import org.wisdom.consortium.consensus.poa.PoA;
 
-import javax.annotation.PostConstruct;
 import java.util.Optional;
 
 @EnableAsync
@@ -62,7 +61,7 @@ public class Start {
 
     @Bean
     public ConsensusEngine consensusEngine(ConsensusProperties consensusProperties, ConsortiumRepository consortiumRepository) throws Exception {
-        String name = consensusProperties.getConsensus().getProperty(ConsensusProperties.CONSENSUS_NAME);
+        String name = consensusProperties.getProperty(ConsensusProperties.CONSENSUS_NAME);
         name = name == null ? "" : name;
         final ConsensusEngine engine;
         switch (name.toLowerCase()) {
@@ -82,7 +81,7 @@ public class Start {
                 log.error("roll back to poa consensus");
                 engine = new PoA();
         }
-        engine.load(consensusProperties.getConsensus(), consortiumRepository);
+        engine.load(consensusProperties, consortiumRepository);
         consortiumRepository.setProvider(engine.provider());
         consortiumRepository.addListeners(engine.repository());
         consortiumRepository.saveGenesis(engine.genesis());

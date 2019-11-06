@@ -5,9 +5,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Properties;
 
-@ConfigurationProperties(prefix = "consortium.consensus")
+@ConfigurationProperties(prefix = "consortium")
 @Component
-public class ConsensusProperties extends Properties{
-    static final String CONSENSUS_NAME = "name";
+public class GlobalConfig extends Properties {
 }
-
