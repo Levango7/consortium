@@ -83,8 +83,9 @@ public class Start {
                 engine = new PoA();
         }
         engine.load(consensusProperties.getConsensus(), consortiumRepository);
-        consortiumRepository.saveGenesis(engine.genesis());
         consortiumRepository.setProvider(engine.provider());
+        consortiumRepository.addListeners(engine.repository());
+        consortiumRepository.saveGenesis(engine.genesis());
         return engine;
     }
 

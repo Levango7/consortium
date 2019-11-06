@@ -19,7 +19,7 @@ public class Account implements ForkAbleState<Account> {
 
     @Override
     public String getIdentifier() {
-        return publicKeyHash.getHex();
+        return publicKeyHash.getAddress();
     }
 
     @Override

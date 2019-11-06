@@ -98,6 +98,7 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
         cache.remove(set.getHash().getBytes());
         cache.remove(root.getHash().getBytes());
         root.merge(set);
-        this.root = set;
+        root.hashPrev = root.hash;
+        root.hash = h;
     }
 }
