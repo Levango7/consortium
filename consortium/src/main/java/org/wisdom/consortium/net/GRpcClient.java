@@ -17,85 +17,59 @@ import static org.wisdom.consortium.net.Util.getRawForSign;
 
 @Slf4j
 public class GRpcClient implements Channel.ChannelListener {
-    private ConcurrentHashMap<Peer, Channel> channels = new ConcurrentHashMap<>();
+    ConcurrentHashMap<Peer, Channel> channels = new ConcurrentHashMap<>();
     private PeerImpl self;
     private AtomicLong nonce = new AtomicLong();
+    private Channel.ChannelListener listener;
 
     public GRpcClient(PeerImpl self) {
         this.self = self;
     }
 
-    public void dial(Peer peer, Nothing nothing, Channel.ChannelListener... listeners) {
-        dial(peer, buildMessage(1, nothing), listeners);
+    GRpcClient withListener(Channel.ChannelListener listener){
+        this.listener = listener;
+        return this;
     }
 
-    public void dial(Peer peer, Ping ping, Channel.ChannelListener... listeners) {
-        dial(peer, buildMessage(1, ping), listeners);
+    void broadcast(Code code, long ttl, byte[] body){
+        channels.values().forEach(ch -> ch.write(buildMessage(code, ttl, body)));
     }
 
-    public void dial(Peer peer, Pong pong, Channel.ChannelListener... listeners) {
-        dial(peer, buildMessage(1, pong), listeners);
+    public void dial(Peer peer, Code code, long ttl, byte[] body) {
+        dial(peer, buildMessage(code, ttl, body));
     }
 
-    public void dial(Peer peer, Lookup lookup, Channel.ChannelListener... listeners) {
-        dial(peer, buildMessage(1, lookup), listeners);
+    public void dial(String host, int port, Code code, long ttl, byte[] body) {
+        dial(host, port, buildMessage(code, ttl, body));
     }
 
-    public void dial(Peer peer, Peers peers, Channel.ChannelListener... listeners) {
-        dial(peer, buildMessage(1, peers), listeners);
+    private void dial(String host, int port, Message message) {
+        createChannel(host, port).write(message);
     }
 
-    void dial(String host, int port, Nothing message, Channel.ChannelListener... listeners) {
-        dial(host, port, buildMessage(1, message), listeners);
-    }
-
-    void dial(String host, int port, Ping message, Channel.ChannelListener... listeners) {
-        dial(host, port, buildMessage(1, message), listeners);
-    }
-
-    void dial(String host, int port, Pong message, Channel.ChannelListener... listeners) {
-        dial(host, port, buildMessage(1, message), listeners);
-    }
-
-    void dial(String host, int port, Lookup message, Channel.ChannelListener... listeners) {
-        dial(host, port, buildMessage(1, message), listeners);
-    }
-
-    void dial(String host, int port, Peers message, Channel.ChannelListener... listeners) {
-        dial(host, port, buildMessage(1, message), listeners);
-    }
-
-    void dial(String host, int port, byte[] message, Channel.ChannelListener... listeners) {
-        dial(host, port, buildMessage(1, message), listeners);
-    }
-
-    void dial(String host, int port, Message message, Channel.ChannelListener... listeners) {
-            createChannel(host, port, listeners).write(message);
-    }
-
-    void dial(Peer peer, Message message, Channel.ChannelListener... listeners) {
+    private void dial(Peer peer, Message message) {
         if (channels.containsKey(peer) && !channels.get(peer).isClosed()) {
             channels.get(peer).write(message);
         }
-        createChannel(peer.getHost(), peer.getPort(), listeners).write(message);
+        createChannel(peer.getHost(), peer.getPort()).write(message);
     }
 
 
-    Channel createChannel(String host, int port, Channel.ChannelListener... listeners) {
+    Channel createChannel(String host, int port) {
         ManagedChannel ch = ManagedChannelBuilder
                 .forAddress(host, port).usePlaintext().build();
         EntryGrpc.EntryStub stub = EntryGrpc.newStub(ch);
         PeerChannel channel = new PeerChannel();
         channel.addListener(this);
-        channel.addListener(listeners);
+        if (listener != null) channel.addListener(listener);
         channel.setOut(stub.entry(channel));
         return channel;
     }
 
-    StreamObserver<Message> createObserver(StreamObserver<Message> out, Channel.ChannelListener... listeners) {
+    StreamObserver<Message> createObserver(StreamObserver<Message> out) {
         PeerChannel channel = new PeerChannel();
         channel.addListener(this);
-        channel.addListener(listeners);
+
         channel.setOut(out);
         return channel;
     }
@@ -121,40 +95,34 @@ public class GRpcClient implements Channel.ChannelListener {
         channels.remove(remote.get());
     }
 
-    public Message buildMessage(long ttl, Nothing msg) {
-        return buildMessage(Code.NOTHING, nonce.incrementAndGet(), ttl, msg.toByteArray());
+    @Override
+    public void onClose(Channel channel) {
+
     }
 
-    public Message buildMessage(long ttl, Ping msg) {
-        return buildMessage(Code.PING, nonce.incrementAndGet(), ttl, msg.toByteArray());
-    }
-
-    public Message buildMessage(long ttl, Pong msg) {
-        return buildMessage(Code.PONG, nonce.incrementAndGet(), ttl, msg.toByteArray());
-    }
-
-    public Message buildMessage(long ttl, Lookup msg) {
-        return buildMessage(Code.LOOK_UP, nonce.incrementAndGet(), ttl, msg.toByteArray());
-    }
-
-    public Message buildMessage(long ttl, Peers msg) {
-        return buildMessage(Code.PEERS, nonce.incrementAndGet(), ttl, msg.toByteArray());
-    }
-
-    public Message buildMessage(long ttl, byte[] msg) {
-        return buildMessage(Code.ANOTHER, nonce.incrementAndGet(), ttl, msg);
-    }
-
-    public Message buildMessage(Code code, long nonce, long ttl, byte[] msg) {
+    public Message buildMessage(Code code, long ttl, byte[] msg) {
         Message.Builder builder = Message.newBuilder()
                 .setCode(code)
                 .setCreatedAt(Timestamp.newBuilder().setSeconds(System.currentTimeMillis() / 1000))
                 .setRemotePeer(self.encodeURI())
                 .setTtl(ttl)
-                .setNonce(nonce)
+                .setNonce(nonce.incrementAndGet())
                 .setBody(ByteString.copyFrom(msg));
         byte[] sig = self.getPrivateKey().sign(getRawForSign(builder.build()));
         return builder.setSignature(ByteString.copyFrom(sig)).build();
     }
 
+    void relay(Message message, Peer receivedFrom){
+        Message.Builder builder = Message.newBuilder().mergeFrom(message)
+                .setCreatedAt(
+                        Timestamp.newBuilder().setSeconds(System.currentTimeMillis() / 1000 ).build()
+                )
+                .setNonce(nonce.incrementAndGet())
+                .setTtl(message.getTtl() - 1);
+        byte[] sig = self.getPrivateKey().sign(getRawForSign(builder.build()));
+        message = builder.setSignature(ByteString.copyFrom(sig)).build();
+        for(Peer p: channels.keySet()){
+            if(!p.equals(receivedFrom)) channels.get(p).write(message);
+        }
+    }
 }

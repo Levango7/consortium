@@ -23,8 +23,11 @@ public interface Channel extends Closeable {
         // when new message received
         void onMessage(Message message, Channel channel);
 
-        // when error
+        // when error occurred
         void onError(Throwable throwable, Channel channel);
+
+        // when the channel been closed
+        void onClose(Channel channel);
     }
 
     Optional<PeerImpl> getRemote();

@@ -58,6 +58,8 @@ public class PeerChannel implements StreamObserver<Message>, Channel {
     }
 
     public void close() {
+        if(closed) return;
+        listeners.forEach(l -> l.onClose(this));
         out.onCompleted();
         closed = true;
     }

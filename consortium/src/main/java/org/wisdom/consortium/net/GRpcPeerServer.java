@@ -1,14 +1,12 @@
 package org.wisdom.consortium.net;
 
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
+import com.google.protobuf.AbstractMessage;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
-import org.wisdom.common.HexBytes;
-import org.wisdom.common.Peer;
-import org.wisdom.common.PeerServerListener;
-import org.wisdom.common.Serializable;
+import org.wisdom.common.*;
 import org.wisdom.consortium.proto.*;
 import org.wisdom.exception.PeerServerLoadException;
 
@@ -16,9 +14,9 @@ import java.io.IOException;
 import java.util.*;
 
 @Slf4j
-public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements ProtoPeerServer, Channel.ChannelListener {
+public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements Channel.ChannelListener, ProtoPeerServer {
     private PeerServerConfig config;
-    private List<PeerServerListener> listeners = new ArrayList<>();
+    private List<Plugin> plugins = new ArrayList<>();
     private Server server;
     private GRpcClient client;
     private PeerImpl self;
@@ -32,28 +30,28 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements ProtoPeer
         return self;
     }
 
-    public void setSelf(PeerImpl self) {
-        this.self = self;
-    }
-
     @Override
     public void dial(Peer peer, Serializable message) {
-        client.dial(peer, client.buildMessage(1, message.getBytes()), this);
+        client.dial(peer, Code.ANOTHER, 1, message.getBytes());
     }
 
     @Override
     public void broadcast(Serializable message) {
-
+        for(Channel ch: client.channels.values()){
+            ch.write(client.buildMessage(Code.ANOTHER, config.getMaxTTL(), message.getBytes()));
+        }
     }
 
     @Override
     public List<Peer> getPeers() {
-        return null;
+        return Arrays.asList(client.channels.keySet().toArray(new Peer[]{}));
     }
 
     @Override
     public void use(PeerServerListener... peerServerListeners) {
-        this.listeners.addAll(Arrays.asList(peerServerListeners));
+        for(PeerServerListener listener: peerServerListeners){
+            plugins.add(new PluginWrapper(listener));
+        }
     }
 
     @Override
@@ -69,7 +67,7 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements ProtoPeer
                         ,
                         self.getHost(),
                         self.getPort()));
-        listeners.forEach(l -> l.onStart(this));
+        plugins.forEach(l -> l.onStart(this));
         try {
             this.server = ServerBuilder.forPort(self.getPort()).addService(this).build().start();
         } catch (IOException e) {
@@ -77,7 +75,8 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements ProtoPeer
         }
         if (config.getBootstraps() == null) return;
         config.getBootstraps().forEach(x -> {
-            client.dial(x.getHost(), x.getPort(), Ping.newBuilder().build(), this);
+            client.dial(x.getHost(), x.getPort(), Code.PING,1
+                    , Ping.newBuilder().build().toByteArray());
         });
     }
 
@@ -101,11 +100,11 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements ProtoPeer
         } catch (Exception e) {
             throw new PeerServerLoadException("failed to load peer server invalid address " + config.getAddress());
         }
-        client = new GRpcClient(self);
+        client = new GRpcClient(self).withListener(this);
 
         // loading plugins
-        listeners.add(new MessageFilter(config));
-        listeners.add(new PeersManager());
+        plugins.add(new MessageFilter(config));
+        plugins.add(new PeersManager());
     }
 
     @Override
@@ -113,7 +112,7 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements ProtoPeer
             //
             StreamObserver<Message> responseObserver
     ) {
-        return client.createObserver(responseObserver, this);
+        return client.createObserver(responseObserver);
     }
 
     @Override
@@ -132,8 +131,8 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements ProtoPeer
                 .message(message)
                 .remote(peer.get()).build();
 
-        for (PeerServerListener listener : listeners) {
-            listener.onMessage(context, this);
+        for (Plugin plugin : plugins) {
+            plugin.onMessage(context, this);
         }
     }
 
@@ -143,27 +142,22 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements ProtoPeer
     }
 
     @Override
-    public void dial(PeerImpl peer, Nothing nothing) {
-        client.dial(peer, nothing, this);
+    public void onClose(Channel channel) {
+
     }
 
     @Override
-    public void dial(PeerImpl peer, Ping ping) {
-        client.dial(peer, ping, this);
+    public void dial(PeerImpl peer, Code code, long ttl, AbstractMessage message) {
+        client.dial(peer,code, ttl, message.toByteArray());
     }
 
     @Override
-    public void dial(PeerImpl peer, Pong ping) {
-        client.dial(peer, ping, this);
+    public void broadcast(Code code, long ttl, AbstractMessage message) {
+        client.broadcast(code, ttl, message.toByteArray());
     }
 
     @Override
-    public void dial(PeerImpl peer, Lookup lookup) {
-        client.dial(peer, lookup, this);
-    }
-
-    @Override
-    public void dial(PeerImpl peer, Peers peers) {
-        client.dial(peer, peers, this);
+    public Set<Peer> getPeerSet() {
+        return client.channels.keySet();
     }
 }

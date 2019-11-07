@@ -7,7 +7,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.wisdom.crypto.ed25519.Ed25519PublicKey;
 
 @Slf4j
-public class MessageFilter extends Plugin {
+public class MessageFilter implements Plugin {
     private Cache<String, Boolean> cache;
 
     public MessageFilter(PeerServerConfig config) {
@@ -48,6 +48,16 @@ public class MessageFilter extends Plugin {
 
     @Override
     public void onStart(ProtoPeerServer server) {
+
+    }
+
+    @Override
+    public void onNewPeer(PeerImpl peer, ProtoPeerServer server) {
+
+    }
+
+    @Override
+    public void onDisconnect(PeerImpl peer, ProtoPeerServer server) {
 
     }
 }

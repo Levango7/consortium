@@ -18,7 +18,9 @@ public class PeerServerConfig {
 
     private String name;
     @JsonProperty("max-peers")
-    private long maxPeers;
+    private int maxPeers;
+    @JsonProperty("max-ttl")
+    private long maxTTL;
     private String address;
     private List<URI> bootstraps;
 }

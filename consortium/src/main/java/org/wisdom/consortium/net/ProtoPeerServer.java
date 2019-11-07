@@ -1,12 +1,14 @@
 package org.wisdom.consortium.net;
 
+import com.google.protobuf.AbstractMessage;
+import org.wisdom.common.Peer;
 import org.wisdom.common.PeerServer;
 import org.wisdom.consortium.proto.*;
 
+import java.util.Set;
+
 public interface ProtoPeerServer extends PeerServer {
-    void dial(PeerImpl peer, Nothing nothing);
-    void dial(PeerImpl peer, Ping ping);
-    void dial(PeerImpl peer, Pong ping);
-    void dial(PeerImpl peer, Lookup lookup);
-    void dial(PeerImpl peer, Peers peers);
+    void dial(PeerImpl peer, Code code, long ttl, AbstractMessage message);
+    void broadcast(Code code, long ttl, AbstractMessage message);
+    Set<Peer> getPeerSet();
 }
