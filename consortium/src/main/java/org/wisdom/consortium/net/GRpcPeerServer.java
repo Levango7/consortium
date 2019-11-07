@@ -6,35 +6,40 @@ import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 import org.wisdom.common.Peer;
-import org.wisdom.common.PeerServer;
 import org.wisdom.common.PeerServerListener;
 import org.wisdom.common.Serializable;
-import org.wisdom.consortium.proto.EntryGrpc;
-import org.wisdom.consortium.proto.Message;
+import org.wisdom.consortium.proto.*;
+import org.wisdom.exception.PeerServerLoadException;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 
 @Slf4j
-public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements PeerServer {
+public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements ProtoPeerServer, Channel.ChannelListener {
     private PeerServerConfig config;
+
     private List<PeerServerListener> listeners = new ArrayList<>();
+
     private Server server;
     private GRpcClient client;
-    private org.wisdom.consortium.net.Peer self;
-    private ConcurrentHashMap<String, StreamObserver<Message>> channels;
+    private PeerImpl self;
 
     public GRpcPeerServer() {
-        client = new GRpcClient();
+
+    }
+
+    @Override
+    public Peer getSelf() {
+        return self;
+    }
+
+    public void setSelf(PeerImpl self) {
+        this.self = self;
     }
 
     @Override
     public void dial(Peer peer, Serializable message) {
-
+        client.dial(peer, client.buildMessage(1, message.getBytes()), this);
     }
 
     @Override
@@ -67,15 +72,16 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements PeerServe
     }
 
     @Override
-    public void load(Properties properties) {
+    public void load(Properties properties) throws PeerServerLoadException {
         JavaPropsMapper mapper = new JavaPropsMapper();
-        try{
+        try {
             config = mapper.readPropertiesAs(properties, PeerServerConfig.class);
-        }catch (Exception e){
+        } catch (Exception e) {
             String schema = "";
-            try{
+            try {
                 schema = mapper.writeValueAsProperties(new PeerServerConfig()).toString();
-            }catch (Exception ignored){}
+            } catch (Exception ignored) {
+            }
             throw new RuntimeException(
                     "load properties failed :" + properties.toString() + " expecting " + schema
             );
@@ -84,6 +90,16 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements PeerServe
         if (config.getProtocol() == null || config.getProtocol().equals("")) {
             config.setProtocol(PeerServerConfig.DEFAULT_PROTOCOL);
         }
+        try {
+            self = PeerImpl.create(config.getAddress());
+        } catch (Exception e) {
+            throw new PeerServerLoadException("failed to load peer server invalid address " + config.getAddress());
+        }
+        client = new GRpcClient(self);
+
+        // loading plugins
+        listeners.add(new MessageFilter(config));
+        listeners.add(new PeersManager());
     }
 
     @Override
@@ -91,9 +107,52 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements PeerServe
             //
             StreamObserver<Message> responseObserver
     ) {
-        PeerChannel channel = new PeerChannel();
-        channel.addListener(client);
-        channel.setOut(responseObserver);
-        return channel;
+        return client.createObserver(responseObserver, this);
+    }
+
+    @Override
+    public void onConnect(PeerImpl remote, Channel channel) {
+
+    }
+
+    @Override
+    public void onMessage(Message message, Channel channel) {
+        Optional<PeerImpl> peer = PeerImpl.parse(message.getRemotePeer());
+        if (!peer.isPresent()) {
+            channel.close();
+            throw new RuntimeException("failed to parse peer");
+        }
+        ContextImpl context = ContextImpl.builder()
+                .message(message)
+                .remote(peer.get()).build();
+
+        for(PeerServerListener listener: listeners){
+            listener.onMessage(context, this);
+        }
+    }
+
+    @Override
+    public void dial(PeerImpl peer, Nothing nothing) {
+        client.dial(peer, nothing, this);
+    }
+
+    @Override
+    public void dial(PeerImpl peer, Ping ping) {
+        client.dial(peer, ping, this);
+    }
+
+    @Override
+    public void dial(PeerImpl peer, Pong ping) {
+        client.dial(peer, ping, this);
+    }
+
+    @Override
+    public void dial(PeerImpl peer, Lookup lookup) {
+        client.dial(peer, lookup, this);
+    }
+
+    @Override
+    public void dial(PeerImpl peer, Peers peers) {
+        client.dial(peer, peers, this);
     }
 }

@@ -9,23 +9,23 @@ public class PeersCache {
     private static final int EVIL_SCORE = -(1 << 10);
     private int maximumPeers;
 
-    private Map<Integer, Map<String, Peer>> peers;
+    private Map<Integer, Map<String, PeerImpl>> peers;
 
 
-    private Set<Peer> bootstraps;
+    private Set<PeerImpl> bootstraps;
 
-    private Set<Peer> blocked;
+    private Set<PeerImpl> blocked;
 
-    private Set<Peer> pended;
+    private Set<PeerImpl> pended;
 
-    private Peer self;
+    private PeerImpl self;
 
 
     private boolean enableDiscovery;
 
     public PeersCache(
-            Peer self,
-            Collection<? extends Peer> bootstraps,
+            PeerImpl self,
+            Collection<? extends PeerImpl> bootstraps,
             boolean enableDiscovery,
             int maximumPeers
     ) {
@@ -42,12 +42,12 @@ public class PeersCache {
         return peers.values().stream().map(Map::size).reduce(Integer::sum).orElse(0);
     }
 
-    public boolean hasPeer(Peer peer) {
+    public boolean hasPeer(PeerImpl peer) {
         int idx = self.subTree(peer);
         return peers.containsKey(idx) && peers.get(idx).containsKey(peer.getID().toString());
     }
 
-    public void pend(Peer peer) {
+    public void pend(PeerImpl peer) {
         if (size() >= maximumPeers) {
             return;
         }
@@ -60,7 +60,7 @@ public class PeersCache {
         pended.add(peer);
     }
 
-    public void keepPeer(Peer peer) {
+    public void keepPeer(PeerImpl peer) {
         if (peer.equals(self)) {
             return;
         }
@@ -96,7 +96,7 @@ public class PeersCache {
         }
 
         // 2. exists some bucket which contains more than one peer
-        Optional<Map<String, Peer>> bucket = peers.values().stream()
+        Optional<Map<String, PeerImpl>> bucket = peers.values().stream()
                 .max(Comparator.comparingInt(Map::size));
 
         if (!bucket.isPresent() || bucket.get().size() <= 1) {
@@ -111,7 +111,7 @@ public class PeersCache {
     }
 
     // remove the peer and the peer can not be connected for a while
-    public void removePeer(Peer peer) {
+    public void removePeer(PeerImpl peer) {
         if (!enableDiscovery || blocked.contains(peer)) {
             return;
         }
@@ -123,31 +123,31 @@ public class PeersCache {
     }
 
 
-    public List<Peer> getBootstraps() {
+    public List<PeerImpl> getBootstraps() {
         return new ArrayList<>(bootstraps);
     }
 
-    public List<Peer> getBlocked() {
+    public List<PeerImpl> getBlocked() {
         return new ArrayList<>(blocked);
     }
 
-    public List<Peer> getPended() {
+    public List<PeerImpl> getPended() {
         return new ArrayList<>(pended);
     }
 
-    public List<Peer> popPended() {
-        List<Peer> res = new ArrayList<>(pended);
+    public List<PeerImpl> popPended() {
+        List<PeerImpl> res = new ArrayList<>(pended);
         pended.clear();
         return res;
     }
 
-    public Peer getSelf() {
+    public PeerImpl getSelf() {
         return self;
     }
 
     // get limit peers randomly
-    public List<Peer> getPeers(int limit) {
-        List<Peer> res = getPeers();
+    public List<PeerImpl> getPeers(int limit) {
+        List<PeerImpl> res = getPeers();
         Random rand = new Random();
         while (res.size() > 0 && res.size() > limit) {
             int idx = Math.abs(rand.nextInt()) % res.size();
@@ -156,17 +156,17 @@ public class PeersCache {
         return res;
     }
 
-    public List<Peer> getPeers() {
+    public List<PeerImpl> getPeers() {
         if (!enableDiscovery) {
-            Set<Peer> tmp = new HashSet<>(bootstraps);
+            Set<PeerImpl> tmp = new HashSet<>(bootstraps);
             return new ArrayList<>(tmp);
         }
-        List<Peer> res = peers.values().stream()
+        List<PeerImpl> res = peers.values().stream()
                 .map(x ->
-                        Arrays.asList(x.values().toArray(new Peer[]{}))
+                        Arrays.asList(x.values().toArray(new PeerImpl[]{}))
                 )
                 .reduce(new ArrayList<>(), (id, x) -> {
-                    List<Peer> tmp = new ArrayList<>(id);
+                    List<PeerImpl> tmp = new ArrayList<>(id);
                     tmp.addAll(x);
                     return tmp;
                 });
@@ -176,14 +176,14 @@ public class PeersCache {
         return bootstraps.stream().filter(p -> !blocked.contains(p)).collect(Collectors.toList());
     }
 
-    public void blockPeer(Peer peer) {
+    public void blockPeer(PeerImpl peer) {
         removePeer(peer);
         peer.score = EVIL_SCORE;
         blocked.add(peer);
     }
 
     // decrease score of peer
-    public void half(Peer peer) {
+    public void half(PeerImpl peer) {
         peer.score /= 2;
         if (peer.score == 0) {
             removePeer(peer);
@@ -193,18 +193,18 @@ public class PeersCache {
 
     // decrease score of all peer
     public void half() {
-        List<Peer> toRemove = new ArrayList<>();
-        for (Map<String, Peer> bucket : peers.values()) {
-            for (Peer peer : bucket.values()) {
+        List<PeerImpl> toRemove = new ArrayList<>();
+        for (Map<String, PeerImpl> bucket : peers.values()) {
+            for (PeerImpl peer : bucket.values()) {
                 peer.score /= 2;
                 if (peer.score == 0) {
                     toRemove.add(peer);
                 }
             }
         }
-        List<Peer> toRestore = new ArrayList<>();
+        List<PeerImpl> toRestore = new ArrayList<>();
         toRemove.forEach(this::removePeer);
-        for (Peer p : blocked) {
+        for (PeerImpl p : blocked) {
             p.score /= 2;
             if (p.score == 0) {
                 toRestore.add(p);

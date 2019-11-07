@@ -115,7 +115,7 @@ public class Start {
 
     // create peer server from properties
     @Bean
-    public PeerServer peerServer(PeerServerProperties properties, ConsensusEngine engine){
+    public PeerServer peerServer(PeerServerProperties properties, ConsensusEngine engine) throws Exception{
         PeerServer peerServer = new GRpcPeerServer();
         peerServer.load(properties);
         peerServer.use(engine.handler());

@@ -1,21 +1,26 @@
 package org.wisdom.consortium.net;
 
 import lombok.Builder;
+import org.wisdom.common.Peer;
 import org.wisdom.common.Serializable;
-import org.wisdom.consortium.proto.Message;
+import org.wisdom.consortium.proto.*;
 
 @Builder
-public class Context implements org.wisdom.common.Context {
+public class ContextImpl implements org.wisdom.common.Context {
     boolean keep;
     boolean relay;
     boolean exit;
     boolean disconnect;
     boolean block;
-    Peer remote;
+    PeerImpl remote;
     Message message;
     private Serializable response;
+    private Nothing nothing;
+    private Ping ping;
+    private Pong pong;
+    private Peers peers;
+    private Lookup lookup;
 
-    @Override
     public void exit() {
         exit = true;
     }
@@ -40,6 +45,22 @@ public class Context implements org.wisdom.common.Context {
         response = message;
     }
 
+    void response(Ping ping) {
+        this.ping = ping;
+    }
+
+    void response(Pong pong) {
+        this.pong = pong;
+    }
+
+    void response(Peers peers) {
+        this.peers = peers;
+    }
+
+    void response(Lookup lookup) {
+        this.lookup = lookup;
+    }
+
     @Override
     public void relay() {
         relay = true;
@@ -51,7 +72,7 @@ public class Context implements org.wisdom.common.Context {
     }
 
     @Override
-    public org.wisdom.common.Peer getRemote() {
+    public Peer getRemote() {
         return remote;
     }
 }

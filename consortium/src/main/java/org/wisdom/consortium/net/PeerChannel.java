@@ -14,7 +14,7 @@ import java.util.Optional;
 @Slf4j
 public class PeerChannel implements StreamObserver<Message>, Channel {
     private boolean closed;
-    private Peer remote;
+    private PeerImpl remote;
     private StreamObserver<Message> out;
     private boolean pinged;
     private List<ChannelListener> listeners = new ArrayList<>();
@@ -29,12 +29,13 @@ public class PeerChannel implements StreamObserver<Message>, Channel {
     @Override
     public void onNext(Message message) {
         if(closed) return;
+        handlePing(message);
         listeners.forEach(l -> l.onMessage(message, this));
     }
 
     private void handlePing(Message message) {
         if (pinged) return;
-        Optional<Peer> o = Peer.parse(message.getRemotePeer());
+        Optional<PeerImpl> o = PeerImpl.parse(message.getRemotePeer());
         if (!o.isPresent()) {
             log.error("cannot parse remote peer");
             close();
@@ -74,7 +75,7 @@ public class PeerChannel implements StreamObserver<Message>, Channel {
         return false;
     }
 
-    public Peer getRemote() {
+    public PeerImpl getRemote() {
         return remote;
     }
 

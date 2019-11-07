@@ -12,7 +12,7 @@ public interface Channel extends Closeable {
     boolean isClosed();
 
     interface ChannelListener {
-        void onConnect(Peer remote, Channel channel);
+        void onConnect(PeerImpl remote, Channel channel);
 
         void onMessage(Message message, Channel channel);
     }

@@ -1,5 +1,7 @@
 package org.wisdom.common;
 
+import org.wisdom.exception.PeerServerLoadException;
+
 import java.util.List;
 import java.util.Properties;
 
@@ -14,5 +16,7 @@ public interface PeerServer {
 
     void start();
 
-    void load(Properties properties);
+    void load(Properties properties) throws PeerServerLoadException;
+
+    Peer getSelf();
 }
