@@ -14,6 +14,7 @@ import org.springframework.util.Assert;
 import org.wisdom.common.*;
 import org.wisdom.consortium.consensus.None;
 import org.wisdom.consortium.consensus.poa.PoA;
+import org.wisdom.consortium.net.GRpcPeerServer;
 
 import java.util.Optional;
 
@@ -110,5 +111,15 @@ public class Start {
 
             }
         };
+    }
+
+    // create peer server from properties
+    @Bean
+    public PeerServer peerServer(PeerServerProperties properties, ConsensusEngine engine){
+        PeerServer peerServer = new GRpcPeerServer();
+        peerServer.load(properties);
+        peerServer.use(engine.handler());
+        peerServer.start();
+        return peerServer;
     }
 }

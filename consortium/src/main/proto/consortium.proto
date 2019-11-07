@@ -4,8 +4,8 @@ option java_multiple_files = true;
 
 import "google/protobuf/timestamp.proto";
 
-service Wisdom {
-    rpc Entry (Message) returns (Message) {
+service Entry{
+    rpc Entry (stream Message) returns (stream Message) {
     }
 }
 

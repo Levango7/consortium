@@ -1,4 +1,9 @@
 package org.wisdom.common;
 
-public class Peer {
+public interface Peer {
+    String getHost();
+
+    int getPort();
+
+    HexBytes getID();
 }
