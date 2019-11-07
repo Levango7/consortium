@@ -40,29 +40,18 @@ public class PeersCache {
 
     public int size() {
         return Stream.of(peers)
+                .filter(Objects::nonNull)
                 .map(x -> x.channels)
                 .map(Map::size)
-                .reduce(Integer::sum).orElse(0);
+                .reduce(0, Integer::sum);
     }
 
-    public boolean hasPeer(PeerImpl peer) {
+    public boolean has(PeerImpl peer) {
         int idx = self.subTree(peer);
         return peers[idx] != null && peers[idx].channels.containsKey(peer);
     }
 
-    public void pend(PeerImpl peer) {
-        if (size() >= maximumPeers) {
-            return;
-        }
-        if (peer.equals(self)) {
-            return;
-        }
-        if (hasPeer(peer) || blocked.contains(peer) || bootstraps.contains(peer)) {
-            return;
-        }
-    }
-
-    public void keepPeer(PeerImpl peer, Channel channel) {
+    public void keep(PeerImpl peer, Channel channel) {
         if (peer.equals(self)) {
             return;
         }
