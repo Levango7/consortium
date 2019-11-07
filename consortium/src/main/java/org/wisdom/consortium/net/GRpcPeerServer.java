@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements PeerServer {
@@ -24,6 +25,7 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements PeerServe
     private List<PeerServerListener> listeners = new ArrayList<>();
     private Server server;
     private org.wisdom.consortium.net.Peer self;
+    private ConcurrentHashMap<String, StreamObserver<Message>> channels;
 
     @Override
     public void dial(Peer peer, Serializable message) {
@@ -80,7 +82,26 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements PeerServe
     }
 
     @Override
-    public StreamObserver<Message> entry(StreamObserver<Message> responseObserver) {
-        return super.entry(responseObserver);
+    public StreamObserver<Message> entry(
+            //
+            StreamObserver<Message> responseObserver
+    ) {
+        responseObserver.onNext(Message.newBuilder().build());
+        return new StreamObserver<Message>() {
+            @Override
+            public void onNext(Message message) {
+                System.out.println("=================");
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                System.out.println(throwable.getMessage());
+            }
+
+            @Override
+            public void onCompleted() {
+                System.out.println("completed");
+            }
+        };
     }
 }

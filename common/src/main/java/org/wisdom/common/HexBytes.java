@@ -20,15 +20,15 @@ public class HexBytes {
     private byte[] bytes;
     private String hexCache;
 
-    public static String encode(byte[] bytes){
+    public static String encode(byte[] bytes) {
         return Hex.encodeHexString(bytes);
     }
 
-    public static HexBytes parse(String hex) throws DecoderException{
+    public static HexBytes parse(String hex) throws DecoderException {
         return new HexBytes(hex);
     }
 
-    public static HexBytes empty(){
+    public static HexBytes empty() {
         return new HexBytes(new byte[0]);
     }
 
@@ -36,17 +36,17 @@ public class HexBytes {
         return bytes;
     }
 
-    public int size(){
-        return bytes == null ? 0: bytes.length;
+    public int size() {
+        return bytes == null ? 0 : bytes.length;
     }
 
-    public String toString(){
+    public String toString() {
         if (hexCache != null) return hexCache;
         hexCache = Hex.encodeHexString(bytes);
         return hexCache;
     }
 
-    public HexBytes(){
+    public HexBytes() {
         this.bytes = new byte[0];
     }
 
@@ -57,6 +57,12 @@ public class HexBytes {
     public HexBytes(String hex) throws DecoderException {
         bytes = Hex.decodeHex(hex.toCharArray());
         hexCache = hex;
+    }
+
+    public HexBytes slice(int start, int end) {
+        while (start < 0) start += bytes.length;
+        while (end < 0) end += bytes.length;
+        return new HexBytes(Arrays.copyOfRange(bytes, start, end));
     }
 
     @Override
