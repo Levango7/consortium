@@ -1,6 +1,7 @@
 package org.wisdom.consortium.net;
 
 import org.wisdom.common.PeerServerListener;
+import org.wisdom.consortium.proto.Code;
 
 public class PluginWrapper implements Plugin{
     private PeerServerListener listener;
@@ -11,7 +12,9 @@ public class PluginWrapper implements Plugin{
 
     @Override
     public void onMessage(ContextImpl context, ProtoPeerServer server) {
-        listener.onMessage(context, server);
+        if(context.message.getCode().equals(Code.ANOTHER)){
+            listener.onMessage(context, server);
+        }
     }
 
     @Override

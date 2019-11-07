@@ -12,14 +12,14 @@ import java.util.Optional;
 
 // communicating channel with peer
 @Slf4j
-public class PeerChannel implements StreamObserver<Message>, Channel {
+public class ProtoChannel implements StreamObserver<Message>, Channel {
     private boolean closed;
     private PeerImpl remote;
     private StreamObserver<Message> out;
     private boolean pinged;
     private List<ChannelListener> listeners = new ArrayList<>();
 
-    public PeerChannel() {
+    public ProtoChannel() {
     }
 
     public void setOut(StreamObserver<Message> out) {

@@ -59,7 +59,7 @@ public class GRpcClient implements Channel.ChannelListener {
         ManagedChannel ch = ManagedChannelBuilder
                 .forAddress(host, port).usePlaintext().build();
         EntryGrpc.EntryStub stub = EntryGrpc.newStub(ch);
-        PeerChannel channel = new PeerChannel();
+        ProtoChannel channel = new ProtoChannel();
         channel.addListener(this);
         if (listener != null) channel.addListener(listener);
         channel.setOut(stub.entry(channel));
@@ -67,7 +67,7 @@ public class GRpcClient implements Channel.ChannelListener {
     }
 
     StreamObserver<Message> createObserver(StreamObserver<Message> out) {
-        PeerChannel channel = new PeerChannel();
+        ProtoChannel channel = new ProtoChannel();
         channel.addListener(this);
 
         channel.setOut(out);
@@ -89,15 +89,15 @@ public class GRpcClient implements Channel.ChannelListener {
 
     @Override
     public void onError(Throwable throwable, Channel channel) {
-        Optional<PeerImpl> remote = channel.getRemote();
-        if(!remote.isPresent()) return;
-        log.error("cannot connect to peer " + remote.get());
-        channels.remove(remote.get());
+        log.error(throwable.getMessage());
     }
 
     @Override
     public void onClose(Channel channel) {
-
+        Optional<PeerImpl> remote = channel.getRemote();
+        if(!remote.isPresent()) return;
+        log.error("close channel to " + remote.get());
+        channels.remove(remote.get());
     }
 
     public Message buildMessage(Code code, long ttl, byte[] msg) {

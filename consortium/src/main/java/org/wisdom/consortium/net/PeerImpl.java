@@ -108,6 +108,7 @@ public class PeerImpl implements org.wisdom.common.Peer {
         return res;
     }
 
+    // subtree is less than 256
     public int subTree(PeerImpl that) {
         byte[] bits = new byte[32];
         byte mask = (byte) (1 << 7);

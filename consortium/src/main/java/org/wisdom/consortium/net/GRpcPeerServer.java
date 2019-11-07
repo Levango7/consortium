@@ -85,6 +85,7 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements Channel.C
         JavaPropsMapper mapper = new JavaPropsMapper();
         try {
             config = mapper.readPropertiesAs(properties, PeerServerConfig.class);
+            if(config.getMaxTTL() <= 0) config.setMaxTTL(PeerServerConfig.DEFAULT_MAX_TTL);
         } catch (Exception e) {
             String schema = "";
             try {
@@ -117,7 +118,9 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements Channel.C
 
     @Override
     public void onConnect(PeerImpl remote, Channel channel) {
-
+        for (Plugin plugin : plugins) {
+            plugin.onNewPeer(remote, this);
+        }
     }
 
     @Override
@@ -143,7 +146,11 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements Channel.C
 
     @Override
     public void onClose(Channel channel) {
-
+        if(channel.getRemote().isPresent()){
+            for (Plugin plugin : plugins) {
+                plugin.onDisconnect(channel.getRemote().get(), this);
+            }
+        }
     }
 
     @Override

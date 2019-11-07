@@ -15,6 +15,7 @@ import java.util.List;
 public class PeerServerConfig {
     public static final int DEFAULT_PORT = BigEndian.decodeInt32(new byte[]{'w', 'i'});
     public static final String DEFAULT_PROTOCOL = "node";
+    public static final long DEFAULT_MAX_TTL = 8;
 
     private String name;
     @JsonProperty("max-peers")
