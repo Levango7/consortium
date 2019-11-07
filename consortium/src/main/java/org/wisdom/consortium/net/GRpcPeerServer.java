@@ -28,6 +28,10 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements PeerServe
     private org.wisdom.consortium.net.Peer self;
     private ConcurrentHashMap<String, StreamObserver<Message>> channels;
 
+    public GRpcPeerServer() {
+        client = new GRpcClient();
+    }
+
     @Override
     public void dial(Peer peer, Serializable message) {
 
@@ -87,7 +91,8 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements PeerServe
             //
             StreamObserver<Message> responseObserver
     ) {
-        Channel channel = new Channel(client);
+        PeerChannel channel = new PeerChannel();
+        channel.addListener(client);
         channel.setOut(responseObserver);
         return channel;
     }

@@ -15,6 +15,7 @@ enum Code {
     PONG = 2; // pong message, response to a channel opened event
     LOOK_UP = 3; // query for peers
     PEERS = 4; // response to peers query
+    ANOTHER = 5; // used for application handlers
 }
 
 message Message {

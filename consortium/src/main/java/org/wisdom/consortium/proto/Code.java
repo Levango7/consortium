@@ -48,6 +48,14 @@ public enum Code
    * <code>PEERS = 4;</code>
    */
   PEERS(4),
+  /**
+   * <pre>
+   * used for application handlers
+   * </pre>
+   *
+   * <code>ANOTHER = 5;</code>
+   */
+  ANOTHER(5),
   UNRECOGNIZED(-1),
   ;
 
@@ -91,6 +99,14 @@ public enum Code
    * <code>PEERS = 4;</code>
    */
   public static final int PEERS_VALUE = 4;
+  /**
+   * <pre>
+   * used for application handlers
+   * </pre>
+   *
+   * <code>ANOTHER = 5;</code>
+   */
+  public static final int ANOTHER_VALUE = 5;
 
 
   public final int getNumber() {
@@ -122,6 +138,7 @@ public enum Code
       case 2: return PONG;
       case 3: return LOOK_UP;
       case 4: return PEERS;
+      case 5: return ANOTHER;
       default: return null;
     }
   }
