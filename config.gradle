@@ -5,4 +5,5 @@ ext {
     guavaVersion = '28.1-jre'
     lombokVersion = '1.18.10'
     jacksonVersion = '2.10.0'
+    gRPCVersion = '1.25.0'
 }

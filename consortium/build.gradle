@@ -36,6 +36,7 @@ dependencies {
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     compile "com.google.guava:guava:${guavaVersion}"
+    compile "io.grpc:grpc-all:${gRPCVersion}"
 }
 
 task copyDependencies(type: Copy) {
