@@ -104,7 +104,7 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements Channel.C
 
         // loading plugins
         plugins.add(new MessageFilter(config));
-        plugins.add(new PeersManager());
+        plugins.add(new PeersManager(config));
     }
 
     @Override
