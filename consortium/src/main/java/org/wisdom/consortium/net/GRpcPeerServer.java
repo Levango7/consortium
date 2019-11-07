@@ -24,6 +24,7 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements PeerServe
     private PeerServerConfig config;
     private List<PeerServerListener> listeners = new ArrayList<>();
     private Server server;
+    private GRpcClient client;
     private org.wisdom.consortium.net.Peer self;
     private ConcurrentHashMap<String, StreamObserver<Message>> channels;
 
@@ -86,22 +87,8 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements PeerServe
             //
             StreamObserver<Message> responseObserver
     ) {
-        responseObserver.onNext(Message.newBuilder().build());
-        return new StreamObserver<Message>() {
-            @Override
-            public void onNext(Message message) {
-                System.out.println("=================");
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                System.out.println(throwable.getMessage());
-            }
-
-            @Override
-            public void onCompleted() {
-                System.out.println("completed");
-            }
-        };
+        Channel channel = new Channel(client);
+        channel.setOut(responseObserver);
+        return channel;
     }
 }

@@ -10,6 +10,7 @@ import org.wisdom.crypto.ed25519.Ed25519PrivateKey;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Optional;
 
 @Getter
@@ -26,9 +27,16 @@ public class Peer implements org.wisdom.common.Peer {
     private int port;
     private HexBytes ID;
     private Ed25519PrivateKey privateKey;
+    long score;
 
     public String toString() {
         return String.format("%s://%s@%s:%d", protocol, ID, host, port);
+    }
+
+
+    @Override
+    public String encodeURI() {
+        return toString();
     }
 
     public static Optional<Peer> parse(String url) {
@@ -46,10 +54,7 @@ public class Peer implements org.wisdom.common.Peer {
             p.port = PeerServerConfig.DEFAULT_PORT;
         }
         p.host = u.getHost();
-        System.out.println(u.getRawAuthority());
-        System.out.println(u.getRawUserInfo());
         if (u.getRawUserInfo() == null || u.getRawUserInfo().equals("")) return Optional.empty();
-
         try {
             p.ID = new HexBytes(u.getRawUserInfo());
         } catch (DecoderException e) {
@@ -82,6 +87,49 @@ public class Peer implements org.wisdom.common.Peer {
 
         String errorMsg = "failed to parse url " + url;
         return Peer.parse(url).orElseThrow(() -> new Exception(errorMsg));
+    }
+
+    public int distance(Peer that) {
+        int res = 0;
+        byte[] bits = new byte[32];
+        for (int i = 0; i < bits.length; i++) {
+            bits[i] = (byte) (ID.getBytes()[i] ^ that.ID.getBytes()[i]);
+        }
+        for (int i = 0; i < bits.length; i++) {
+            for (int j = 0; j < 7; j++) {
+                res += ((1 << j) & bits[i]) >>> j;
+            }
+        }
+        return res;
+    }
+
+    public int subTree(Peer that) {
+        byte[] bits = new byte[32];
+        byte mask = (byte) (1 << 7);
+        for (int i = 0; i < bits.length; i++) {
+            bits[i] = (byte) (ID.getBytes()[i] ^ that.ID.getBytes()[i]);
+        }
+        for (int i = 0; i < 256; i++) {
+            if ((bits[i / 8] & (mask >>> (i % 8))) != 0) {
+                return i;
+            }
+        }
+        return 0;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Peer peer = (Peer) o;
+
+        return ID.equals(peer.ID);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(ID.getBytes());
     }
 
     public static void main(String[] args) throws Exception {

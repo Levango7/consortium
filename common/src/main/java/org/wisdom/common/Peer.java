@@ -6,4 +6,6 @@ public interface Peer {
     int getPort();
 
     HexBytes getID();
+
+    String encodeURI();
 }
