@@ -6,6 +6,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.wisdom.util.BigEndian;
 
+import java.net.URI;
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -16,7 +19,8 @@ public class PeerServerConfig {
     private String name;
     @JsonProperty("max-peers")
     private long maxPeers;
-    private int port;
     private String protocol;
     private String address;
+
+    private List<URI> bootstraps;
 }

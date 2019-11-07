@@ -17,6 +17,5 @@ public class StartTests {
     @Test
     public void test(){
         assert objectMapper != null;
-        System.out.println("===========================================");
     }
 }

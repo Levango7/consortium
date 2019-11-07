@@ -44,10 +44,34 @@ public class GRpcClient implements Channel.ChannelListener {
         dial(peer, buildMessage(1, peers), listeners);
     }
 
+    void dial(String host, int port, Nothing message, Channel.ChannelListener... listeners) {
+        dial(host, port, buildMessage(1, message), listeners);
+    }
+
+    void dial(String host, int port, Ping message, Channel.ChannelListener... listeners) {
+        dial(host, port, buildMessage(1, message), listeners);
+    }
+
+    void dial(String host, int port, Pong message, Channel.ChannelListener... listeners) {
+        dial(host, port, buildMessage(1, message), listeners);
+    }
+
+    void dial(String host, int port, Lookup message, Channel.ChannelListener... listeners) {
+        dial(host, port, buildMessage(1, message), listeners);
+    }
+
+    void dial(String host, int port, Peers message, Channel.ChannelListener... listeners) {
+        dial(host, port, buildMessage(1, message), listeners);
+    }
+
     void dial(String host, int port, byte[] message, Channel.ChannelListener... listeners) {
+        dial(host, port, buildMessage(1, message), listeners);
+    }
+
+    void dial(String host, int port, Message message, Channel.ChannelListener... listeners) {
         try {
             Channel ch = createChannel(host, port, listeners);
-            ch.write(buildMessage(1, message));
+            ch.write(message);
         } catch (Exception e) {
             log.error("cannot connect to peer " + host + ":" + port);
         }
@@ -78,7 +102,7 @@ public class GRpcClient implements Channel.ChannelListener {
         return channel;
     }
 
-    StreamObserver<Message> createObserver(StreamObserver<Message> out, Channel.ChannelListener... listeners){
+    StreamObserver<Message> createObserver(StreamObserver<Message> out, Channel.ChannelListener... listeners) {
         PeerChannel channel = new PeerChannel();
         channel.addListener(this);
         channel.addListener(listeners);
@@ -97,7 +121,6 @@ public class GRpcClient implements Channel.ChannelListener {
 
     @Override
     public void onMessage(Message message, Channel channel) {
-
     }
 
 
@@ -121,7 +144,7 @@ public class GRpcClient implements Channel.ChannelListener {
         return buildMessage(Code.PEERS, nonce.incrementAndGet(), ttl, msg.toByteArray());
     }
 
-    public Message buildMessage(long ttl, byte[] msg){
+    public Message buildMessage(long ttl, byte[] msg) {
         return buildMessage(Code.ANOTHER, nonce.incrementAndGet(), ttl, msg);
     }
 

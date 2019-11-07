@@ -24,10 +24,10 @@ consortium:
 
   p2p:
     name: 'gRPC'
-    port: '9999'
     max-peers: '16'
-    protocol: 'consortium'
-    address: 'localhost'
+    address: 'node://localhost'
+    bootstraps:
+      - 'node://localhost:9999'
 
 
 server:

@@ -17,9 +17,7 @@ import java.util.*;
 @Slf4j
 public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements ProtoPeerServer, Channel.ChannelListener {
     private PeerServerConfig config;
-
     private List<PeerServerListener> listeners = new ArrayList<>();
-
     private Server server;
     private GRpcClient client;
     private PeerImpl self;
@@ -61,14 +59,18 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements ProtoPeer
     public void start() {
         log.info("peer server is listening on " +
                 config.getProtocol() + "://" +
-                config.getAddress() + ":" + config.getPort());
+                config.getAddress() + ":" + self.getPort());
 
         listeners.forEach(l -> l.onStart(this));
         try {
-            this.server = ServerBuilder.forPort(config.getPort()).addService(this).build().start();
+            this.server = ServerBuilder.forPort(self.getPort()).addService(this).build().start();
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage());
         }
+        if(config.getBootstraps() == null )return;
+        config.getBootstraps().forEach(x -> {
+            client.dial(x.getHost(), x.getPort(), Ping.newBuilder().build(), this);
+        });
     }
 
     @Override
@@ -86,7 +88,6 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements ProtoPeer
                     "load properties failed :" + properties.toString() + " expecting " + schema
             );
         }
-        if (config.getPort() == 0) config.setPort(PeerServerConfig.DEFAULT_PORT);
         if (config.getProtocol() == null || config.getProtocol().equals("")) {
             config.setProtocol(PeerServerConfig.DEFAULT_PROTOCOL);
         }

@@ -17,6 +17,7 @@ public class MessageFilter extends Plugin {
 
     @Override
     public void onMessage(ContextImpl context, ProtoPeerServer server) {
+        System.out.println("==============================================================");
         // filter invalid signatures
         if (!new Ed25519PublicKey(context.getRemote().getID().getBytes()).verify(
                 Util.getRawForSign(context.message), context.message.getSignature().toByteArray()
