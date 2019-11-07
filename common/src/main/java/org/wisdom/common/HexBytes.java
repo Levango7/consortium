@@ -2,6 +2,7 @@ package org.wisdom.common;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.google.common.primitives.Bytes;
 import lombok.NonNull;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
@@ -50,8 +51,8 @@ public class HexBytes {
         this.bytes = new byte[0];
     }
 
-    public HexBytes(@NonNull byte[] bytes) {
-        this.bytes = bytes;
+    public HexBytes(@NonNull byte[]... bytes) {
+        this.bytes = Bytes.concat(bytes);
     }
 
     public HexBytes(String hex) throws DecoderException {

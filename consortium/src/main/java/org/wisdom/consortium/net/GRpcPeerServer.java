@@ -5,6 +5,7 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
+import org.wisdom.common.HexBytes;
 import org.wisdom.common.Peer;
 import org.wisdom.common.PeerServerListener;
 import org.wisdom.common.Serializable;
@@ -58,16 +59,23 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements ProtoPeer
     @Override
     public void start() {
         log.info("peer server is listening on " +
-                config.getProtocol() + "://" +
-                config.getAddress() + ":" + self.getPort());
-
+                self.encodeURI());
+        log.info("your p2p secret address is " +
+                String.format("%s://%s@%s:%d",
+                        self.getProtocol(),
+                        new HexBytes(
+                                self.getPrivateKey().getEncoded(),
+                                self.getPrivateKey().generatePublicKey().getEncoded())
+                        ,
+                        self.getHost(),
+                        self.getPort()));
         listeners.forEach(l -> l.onStart(this));
         try {
             this.server = ServerBuilder.forPort(self.getPort()).addService(this).build().start();
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage());
         }
-        if(config.getBootstraps() == null )return;
+        if (config.getBootstraps() == null) return;
         config.getBootstraps().forEach(x -> {
             client.dial(x.getHost(), x.getPort(), Ping.newBuilder().build(), this);
         });
@@ -87,9 +95,6 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements ProtoPeer
             throw new RuntimeException(
                     "load properties failed :" + properties.toString() + " expecting " + schema
             );
-        }
-        if (config.getProtocol() == null || config.getProtocol().equals("")) {
-            config.setProtocol(PeerServerConfig.DEFAULT_PROTOCOL);
         }
         try {
             self = PeerImpl.create(config.getAddress());
@@ -127,9 +132,14 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements ProtoPeer
                 .message(message)
                 .remote(peer.get()).build();
 
-        for(PeerServerListener listener: listeners){
+        for (PeerServerListener listener : listeners) {
             listener.onMessage(context, this);
         }
+    }
+
+    @Override
+    public void onError(Throwable throwable, Channel channel) {
+
     }
 
     @Override

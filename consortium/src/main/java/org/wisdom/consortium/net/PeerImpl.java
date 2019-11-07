@@ -4,6 +4,7 @@ import lombok.*;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.wisdom.common.HexBytes;
+import org.wisdom.common.Peer;
 import org.wisdom.crypto.KeyPair;
 import org.wisdom.crypto.ed25519.Ed25519;
 import org.wisdom.crypto.ed25519.Ed25519PrivateKey;
@@ -39,6 +40,9 @@ public class PeerImpl implements org.wisdom.common.Peer {
         return toString();
     }
 
+    // parse peer from uri like protocol://id@host:port
+    // the id may be a 64 byte encoded ed25519 private key (sk[32]+pk[32])
+    // or a 32 byte encoded ed25519 public key
     public static Optional<PeerImpl> parse(String url) {
         URI u;
         try {
@@ -71,6 +75,7 @@ public class PeerImpl implements org.wisdom.common.Peer {
     }
 
     // create self as peer from input
+    // if private key is missing, generate key automatically
     public static PeerImpl create(String url) throws Exception {
         URI u = new URI(url);
         String scheme = u.getScheme();
@@ -120,11 +125,9 @@ public class PeerImpl implements org.wisdom.common.Peer {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        PeerImpl peer = (PeerImpl) o;
-
-        return ID.equals(peer.ID);
+        if (!(o instanceof Peer)) return false;
+        Peer peer = (Peer) o;
+        return ID.equals(peer.getID());
     }
 
     @Override

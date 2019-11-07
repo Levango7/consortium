@@ -48,6 +48,7 @@ public class PeerChannel implements StreamObserver<Message>, Channel {
 
     @Override
     public void onError(Throwable throwable) {
+        listeners.forEach(l -> l.onError(throwable, this));
         close();
     }
 
@@ -61,22 +62,21 @@ public class PeerChannel implements StreamObserver<Message>, Channel {
         closed = true;
     }
 
-    public boolean write(Message message) {
+    public void write(Message message) {
         if (closed) {
             log.error("the channel is closed");
-            return false;
+            return;
         }
         try {
             out.onNext(message);
-            return true;
-        } catch (Exception e) {
+        } catch (Throwable e) {
+            listeners.forEach(l -> l.onError(e, this));
             close();
         }
-        return false;
     }
 
-    public PeerImpl getRemote() {
-        return remote;
+    public Optional<PeerImpl> getRemote() {
+        return Optional.ofNullable(remote);
     }
 
     public boolean isClosed() {

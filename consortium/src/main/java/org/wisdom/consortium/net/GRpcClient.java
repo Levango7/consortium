@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.wisdom.consortium.proto.*;
 import org.wisdom.common.Peer;
 
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -69,25 +70,14 @@ public class GRpcClient implements Channel.ChannelListener {
     }
 
     void dial(String host, int port, Message message, Channel.ChannelListener... listeners) {
-        try {
-            Channel ch = createChannel(host, port, listeners);
-            ch.write(message);
-        } catch (Exception e) {
-            log.error("cannot connect to peer " + host + ":" + port);
-        }
+            createChannel(host, port, listeners).write(message);
     }
 
     void dial(Peer peer, Message message, Channel.ChannelListener... listeners) {
         if (channels.containsKey(peer) && !channels.get(peer).isClosed()) {
-            boolean success = channels.get(peer).write(message);
+            channels.get(peer).write(message);
         }
-        try {
-            Channel ch = createChannel(peer.getHost(), peer.getPort(), listeners);
-            channels.put(peer, ch);
-            ch.write(message);
-        } catch (Exception e) {
-            log.error("cannot connect to peer " + peer);
-        }
+        createChannel(peer.getHost(), peer.getPort(), listeners).write(message);
     }
 
 
@@ -123,6 +113,13 @@ public class GRpcClient implements Channel.ChannelListener {
     public void onMessage(Message message, Channel channel) {
     }
 
+    @Override
+    public void onError(Throwable throwable, Channel channel) {
+        Optional<PeerImpl> remote = channel.getRemote();
+        if(!remote.isPresent()) return;
+        log.error("cannot connect to peer " + remote.get());
+        channels.remove(remote.get());
+    }
 
     public Message buildMessage(long ttl, Nothing msg) {
         return buildMessage(Code.NOTHING, nonce.incrementAndGet(), ttl, msg.toByteArray());
