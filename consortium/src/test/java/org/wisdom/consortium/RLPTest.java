@@ -18,7 +18,7 @@ public class RLPTest {
         stringList.add("111");
         stringList.add("222");
         stringList.add("333");
-        byte[] eee=new byte[0];
+        byte[] eee=new byte[1];
         Test1 test=new Test1(1,1L,"lalala", (byte) 0x01,eee,stringList);
 
         //encode
@@ -47,7 +47,7 @@ public class RLPTest {
         byte d=paramsList.get(3).getRLPByte();
         System.out.println("d:"+d);
         byte[] ee=paramsList.get(4).getRLPBytes();
-        System.out.println("e:"+ee);
+        System.out.println("e:"+ee.length);
         RLPList caplityList = (RLPList) paramsList.get(5);
         List<String> list=new ArrayList<>();
         for(Object l:caplityList){
