@@ -6,13 +6,13 @@ import org.wisdom.common.Peer;
 import org.wisdom.consortium.Start;
 import org.wisdom.consortium.proto.*;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
+// manage peers join/remove
 public class PeersManager implements Plugin {
     private ProtoPeerServer server;
     private PeerServerConfig config;
