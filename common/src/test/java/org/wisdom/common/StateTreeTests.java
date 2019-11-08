@@ -70,7 +70,7 @@ public class StateTreeTests {
         }
     }
 
-    private ForkAbleStatesTree<Account> getTree() throws Exception {
+    private InMemoryStateTree<Account> getTree() throws Exception {
         Map<String, Block> blocks = StateFactoryTests.getBlocks().stream()
                 .collect(Collectors.toMap(
                         b -> b.getHash().toString(),
@@ -78,7 +78,7 @@ public class StateTreeTests {
                 ));
         blocks.get("0002").getBody().add(Transaction.builder().from(ADDRESS_A).to(ADDRESS_B).amount(50).build());
         blocks.get("0102").getBody().add(Transaction.builder().from(ADDRESS_A).to(ADDRESS_B).amount(60).build());
-        ForkAbleStatesTree<Account> tree = new ForkAbleStatesTree<>(
+        InMemoryStateTree<Account> tree = new InMemoryStateTree<>(
                 blocks.get("0000"),
                 Arrays.asList(new Account(ADDRESS_A.toString(), 100),
                         new Account(ADDRESS_B.toString(), 100))
@@ -135,7 +135,7 @@ public class StateTreeTests {
 
     @Test
     public void testConfirm() throws Exception {
-        ForkAbleStatesTree<Account> tree = getTree();
+        InMemoryStateTree<Account> tree = getTree();
         tree.confirm(Hex.decodeHex("0001".toCharArray()));
         tree.confirm(Hex.decodeHex("0102".toCharArray()));
         Optional<Account> o = tree.get(ADDRESS_B.toString(), Hex.decodeHex("0002".toCharArray()));
@@ -145,7 +145,7 @@ public class StateTreeTests {
 
     @Test
     public void testImmutable() throws Exception {
-        ForkAbleStatesTree<Account> tree = getTree();
+        InMemoryStateTree<Account> tree = getTree();
         Account a = tree.getLastConfirmed(ADDRESS_A.toString());
         a.balance = 0;
         assert tree.getLastConfirmed(ADDRESS_A.toString()).balance == 100;
@@ -153,7 +153,7 @@ public class StateTreeTests {
 
     @Test
     public void testPut() throws Exception{
-        ForkAbleStatesTree<Account> tree = getTree();
+        InMemoryStateTree<Account> tree = getTree();
         tree.put(new Chained() {
             @Override
             public HexBytes getHashPrev() {

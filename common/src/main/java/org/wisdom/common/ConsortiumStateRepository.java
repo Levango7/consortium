@@ -10,7 +10,7 @@ import java.util.Optional;
 public class ConsortiumStateRepository implements StateRepository {
     private Map<String, StateFactory> factories;
 
-    private Map<String, ForkAbleStatesTree> trees;
+    private Map<String, InMemoryStateTree> trees;
 
 
     public ConsortiumStateRepository() {
@@ -28,7 +28,7 @@ public class ConsortiumStateRepository implements StateRepository {
         if (forkAbleStates.size() == 0) throw new RuntimeException("requires at least one state");
         trees.put(
                 forkAbleStates.stream().findFirst().get().getClass().toString(),
-                new ForkAbleStatesTree<>(genesis, forkAbleStates)
+                new InMemoryStateTree<>(genesis, forkAbleStates)
         );
     }
 
