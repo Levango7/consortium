@@ -167,7 +167,6 @@ public class PeersCache {
                     }
                 });
 
-
         List<PeerImpl> toRestore = new ArrayList<>();
         toRemove.forEach(this::remove);
         for (PeerImpl p : blocked.keySet()) {

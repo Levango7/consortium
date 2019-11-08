@@ -19,11 +19,13 @@ public class GRpcClient implements Channel.ChannelListener {
     private PeerImpl self;
     private AtomicLong nonce = new AtomicLong();
     private Channel.ChannelListener listener;
+    private PeerServerConfig config;
     PeersCache peersCache;
 
     public GRpcClient(PeerImpl self, PeerServerConfig config) {
         this.self = self;
         this.peersCache = new PeersCache(self, config);
+        this.config = config;
     }
 
     GRpcClient withListener(Channel.ChannelListener listener) {
@@ -35,25 +37,29 @@ public class GRpcClient implements Channel.ChannelListener {
         peersCache.getChannels().forEach(ch -> ch.write(buildMessage(code, ttl, body)));
     }
 
-    public void dial(Peer peer, Code code, long ttl, byte[] body, Channel.ChannelListener... listeners) {
-        dial(peer, buildMessage(code, ttl, body), listeners);
+    public Channel dial(Peer peer, Code code, long ttl, byte[] body, Channel.ChannelListener... listeners) {
+        return dial(peer, buildMessage(code, ttl, body), listeners);
     }
 
-    public void dial(String host, int port, Code code, long ttl, byte[] body, Channel.ChannelListener... listeners) {
-        dial(host, port, buildMessage(code, ttl, body), listeners);
+    public Channel dial(String host, int port, Code code, long ttl, byte[] body, Channel.ChannelListener... listeners) {
+        return dial(host, port, buildMessage(code, ttl, body), listeners);
     }
 
-    private void dial(String host, int port, Message message, Channel.ChannelListener... listeners) {
-        createChannel(host, port, listeners).write(message);
+    private Channel dial(String host, int port, Message message, Channel.ChannelListener... listeners) {
+        Channel ch = createChannel(host, port, listeners);
+        ch.write(message);
+        return ch;
     }
 
-    private void dial(Peer peer, Message message, Channel.ChannelListener... listeners) {
+    private Channel dial(Peer peer, Message message, Channel.ChannelListener... listeners) {
         Optional<Channel> o = peersCache.getChannel(peer.getID());
         if (o.isPresent() && !o.get().isClosed()) {
             o.get().write(message);
-            return;
+            return o.get();
         }
-        createChannel(peer.getHost(), peer.getPort(), listeners).write(message);
+        Channel ch = createChannel(peer.getHost(), peer.getPort(), listeners);
+        ch.write(message);
+        return ch;
     }
 
 
@@ -90,6 +96,9 @@ public class GRpcClient implements Channel.ChannelListener {
 
     @Override
     public void onError(Throwable throwable, Channel channel) {
+        if (config.isEnableDiscovery()) {
+            channel.getRemote().ifPresent(x -> peersCache.half(x));
+        }
         log.error(throwable.getMessage());
     }
 

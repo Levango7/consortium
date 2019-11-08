@@ -23,11 +23,11 @@ consortium:
     miner-coin-base: '1JWhUiZCWps56uZckAvzxy2ex6VGhrMXdD'
 
   p2p:
-    name: 'gRPC'
-    max-peers: '16'
+    name: 'gRPC' # choose the only p2p protocol gRPC
+    max-peers: '16' # maximum peers
     address: 'node://localhost:9999'
     enable-discovery: 'true'
-    bootstraps:
+    bootstraps: # bootstraps nodes
       - 'node://localhost:9998'
 
 
