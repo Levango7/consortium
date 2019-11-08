@@ -68,8 +68,6 @@ public class PeersManager implements Plugin {
         if(!config.isEnableDiscovery()) return;
         Start.APPLICATION_THREAD_POOL.execute(() -> {
             while (true){
-                System.out.println("peers = " + cache.size());
-                System.out.println("pending = " + pending.keySet().size());
                 if(cache.isFull()) continue;
 
                 server.broadcast(Code.LOOK_UP, 1, Lookup.newBuilder().build());
