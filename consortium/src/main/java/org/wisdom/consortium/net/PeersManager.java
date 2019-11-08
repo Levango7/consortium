@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
-// manage peers join/remove
+// plugin for peers join/remove management
 public class PeersManager implements Plugin {
     private ProtoPeerServer server;
     private PeerServerConfig config;
@@ -57,7 +57,6 @@ public class PeersManager implements Plugin {
                 } catch (InvalidProtocolBufferException e) {
                     log.error("parse peers message failed");
                 }
-                return;
         }
     }
 
