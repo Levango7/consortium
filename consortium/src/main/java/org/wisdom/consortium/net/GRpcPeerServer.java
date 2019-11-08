@@ -12,7 +12,6 @@ import org.wisdom.exception.PeerServerLoadException;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements Channel.ChannelListener, ProtoPeerServer {
@@ -60,6 +59,36 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements Channel.C
 
     @Override
     public void start() {
+        plugins.forEach(l -> l.onStart(this));
+        try {
+            this.server = ServerBuilder.forPort(self.getPort()).addService(this).build().start();
+        } catch (IOException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+        if(!self.getHost().equals("localhost") && !self.getHost().equals("127.0.0.1")){
+            return;
+        }
+        String externalIP = null;
+        try{
+            externalIP = Util.externalIp();
+        }catch (Exception ignored){
+            log.error("cannot get external ip, fall back to bind ip");
+        }
+        if (externalIP != null && Util.ping(externalIP, self.getPort())){
+            log.info("ping " + externalIP + " success, set as your host");
+            self.setHost(externalIP);
+            return;
+        }
+        String bindIP = null;
+        try{
+            bindIP = Util.bindIp();
+        }catch (Exception e){
+            log.error("get bind ip failed");
+        }
+        if (bindIP != null){
+            self.setHost(bindIP);
+        }
+
         log.info("peer server is listening on " +
                 self.encodeURI());
         log.info("your p2p secret address is " +
@@ -71,12 +100,7 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements Channel.C
                         ,
                         self.getHost(),
                         self.getPort()));
-        plugins.forEach(l -> l.onStart(this));
-        try {
-            this.server = ServerBuilder.forPort(self.getPort()).addService(this).build().start();
-        } catch (IOException e) {
-            throw new RuntimeException(e.getMessage());
-        }
+
         if (config.getBootstraps() == null) return;
         config.getBootstraps().forEach(x -> {
             client.dial(x.getHost(), x.getPort(), Code.PING, 1

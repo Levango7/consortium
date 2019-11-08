@@ -9,7 +9,6 @@ import org.wisdom.consortium.proto.Peers;
 import org.wisdom.consortium.proto.Ping;
 import org.wisdom.consortium.proto.Pong;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
