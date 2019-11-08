@@ -52,7 +52,7 @@ public class ProtoChannel implements StreamObserver<Message>, Channel {
 
     @Override
     public void onCompleted() {
-//        close();
+        close();
     }
 
     public void close() {

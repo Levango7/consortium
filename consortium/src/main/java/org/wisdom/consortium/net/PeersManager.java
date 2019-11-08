@@ -31,7 +31,7 @@ public class PeersManager implements Plugin {
             case PING:
                 context.channel.write(
                         client.buildMessage(
-                                Code.PONG, 1, Pong.newBuilder().build().toByteArray()
+                                Code.PONG, 1, context.message.getBody().toByteArray()
                         )
                 );
                 return;
