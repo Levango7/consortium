@@ -1,10 +1,12 @@
 package org.wisdom.consortium.consensus.poa;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import org.springframework.core.io.Resource;
 import org.wisdom.common.*;
+import org.wisdom.consortium.Start;
 import org.wisdom.consortium.consensus.poa.config.Genesis;
 import org.wisdom.consortium.state.Account;
 import org.wisdom.consortium.util.FileUtils;
@@ -15,7 +17,7 @@ import java.util.*;
 import static org.wisdom.consortium.consensus.poa.PoAHashPolicy.HASH_POLICY;
 
 // poa is a minimal non-trivial consensus engine
-public class PoA implements ConsensusEngine {
+public class PoA implements ConsensusEngine, PeerServerListener {
     private PoAConfig poAConfig;
 
     private Miner miner;
@@ -104,26 +106,40 @@ public class PoA implements ConsensusEngine {
 
     @Override
     public PeerServerListener handler() {
-        return new PeerServerListener() {
-            @Override
-            public void onMessage(Context context, PeerServer server) {
+        return this;
+    }
 
+    @Override
+    public void onMessage(Context context, PeerServer server) {
+
+    }
+
+    @Override
+    public void onStart(PeerServer server) {
+        miner.addListeners(new MinerListener() {
+            @Override
+            public void onBlockMined(Block block) {
+                try {
+                    server.broadcast(Start.MAPPER.writeValueAsBytes(block));
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
-            public void onStart(PeerServer server) {
+            public void onMiningFailed(Block block) {
 
             }
+        });
+    }
 
-            @Override
-            public void onNewPeer(Peer peer, PeerServer server) {
+    @Override
+    public void onNewPeer(Peer peer, PeerServer server) {
 
-            }
+    }
 
-            @Override
-            public void onDisconnect(Peer peer, PeerServer server) {
+    @Override
+    public void onDisconnect(Peer peer, PeerServer server) {
 
-            }
-        };
     }
 }

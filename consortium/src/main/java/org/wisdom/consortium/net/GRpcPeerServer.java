@@ -36,8 +36,8 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements Channel.C
     }
 
     @Override
-    public void broadcast(Serializable message) {
-        client.broadcast(Code.ANOTHER, config.getMaxTTL(), message.getBytes());
+    public void broadcast(byte[] message) {
+        client.broadcast(Code.ANOTHER, config.getMaxTTL(), message);
     }
 
     @Override
