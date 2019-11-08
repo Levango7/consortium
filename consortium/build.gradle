@@ -28,20 +28,32 @@ dependencies {
     testCompile 'org.springframework.boot:spring-boot-starter-test'
     testCompile "junit:junit"
 
-    compile project(':common')
-    compile project(':crypto')
+
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     compileOnly 'org.springframework.boot:spring-boot-configuration-processor'
-
+    compile project(':common')
+    compile project(':crypto')
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     compile "com.google.guava:guava:${guavaVersion}"
+    compile "commons-cli:commons-cli:${commonsCliVersion}"
+}
+
+task runTestCommunicationTool(type: JavaExec){
+    main = "org.wisdom.consortium.util.vm.wasm.TestCommunicationTool"
+    classpath = sourceSets.main.runtimeClasspath
+    standardInput = System.in
+    if (project.hasProperty("appArgs")) {
+        args appArgs.split(" ")
+    }
 }
 
 task copyDependencies(type: Copy) {
     from configurations.runtime
     destinationDir = file('build/libs/lib')
 }
+
+
 
 test {
     useJUnitPlatform()
