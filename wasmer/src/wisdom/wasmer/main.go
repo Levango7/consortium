@@ -1,11 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	wasm "github.com/wasmerio/go-ext-wasm/wasmer"
 	"io"
 	"os"
-	"encoding/json"
 )
 
 type WasmFormat struct {
@@ -22,9 +22,9 @@ type WasmParamType string
 
 const (
 	WasmParams_I32 WasmParamType = "I32"
-	WasmParams_I64 WasmParamType = "I64"
-	WasmParams_F32 WasmParamType = "F32"
-	WasmParams_F64 WasmParamType = "F64"
+	WasmParams_I64               = "I64"
+	WasmParams_F32               = "F32"
+	WasmParams_F64               = "F64"
 )
 
 func main() {
