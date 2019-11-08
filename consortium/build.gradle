@@ -37,6 +37,7 @@ dependencies {
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     compile "com.google.guava:guava:${guavaVersion}"
     compile "commons-cli:commons-cli:${commonsCliVersion}"
+    compile "io.grpc:grpc-all:${gRPCVersion}"
 }
 
 task runTestCommunicationTool(type: JavaExec){
@@ -52,8 +53,6 @@ task copyDependencies(type: Copy) {
     from configurations.runtime
     destinationDir = file('build/libs/lib')
 }
-
-
 
 test {
     useJUnitPlatform()

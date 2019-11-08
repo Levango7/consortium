@@ -6,4 +6,5 @@ ext {
     lombokVersion = '1.18.10'
     jacksonVersion = '2.10.0'
     commonsCliVersion = '1.4'
+    gRPCVersion = '1.25.0'
 }

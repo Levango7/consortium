@@ -8,15 +8,15 @@ import java.util.stream.Collectors;
 /**
  * State tree for account related object storage
  */
-public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
-    private ForkAbleStateSet<T> root;
-    private ChainCache<ForkAbleStateSet<T>> cache;
+public class InMemoryStateTree<T extends ForkAbleState<T>> implements StateTree<T>{
+    private StateSet<T> root;
+    private ChainCache<StateSet<T>> cache;
     private T some;
 
-    public ForkAbleStatesTree(Block genesis, Collection<? extends T> states) {
+    public InMemoryStateTree(Block genesis, Collection<? extends T> states) {
         if (states.size() == 0) throw new RuntimeException("at lease one states required");
         some = states.stream().findFirst().get();
-        root = new ForkAbleStateSet<>(genesis.getHashPrev(), genesis.getHash(), states);
+        root = new StateSet<>(genesis.getHashPrev(), genesis.getHash(), states);
         cache = new ChainCache<>();
     }
 
@@ -60,7 +60,7 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
     // provide all already updated state
     public void put(Chained node, Collection<? extends T> allStates) {
         if (cache.contains(node.getHash().getBytes())) return;
-        ForkAbleStateSet<T> forked = new ForkAbleStateSet<>(node.getHashPrev(), node.getHash(), allStates);
+        StateSet<T> forked = new StateSet<>(node.getHashPrev(), node.getHash(), allStates);
         cache.put(forked);
     }
 
@@ -69,11 +69,11 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
             // WARNING: do not use method reference here State::clone
             return Optional.ofNullable(root.get().get(id)).map(s -> s.clone());
         }
-        Optional<ForkAbleStateSet<T>> o = cache.get(where);
+        Optional<StateSet<T>> o = cache.get(where);
         if (!o.isPresent()) {
             return Optional.empty();
         }
-        ForkAbleStateSet<T> set = o.get();
+        StateSet<T> set = o.get();
         if (set.get().containsKey(id))
             return Optional.of(set.get().get(id).clone());
         return get(id, set.getHashPrev().getBytes());
@@ -87,17 +87,17 @@ public class ForkAbleStatesTree<T extends ForkAbleState<T>> {
     public void confirm(byte[] hash) {
         HexBytes h = new HexBytes(hash);
         if (root.getHash().equals(h)) return;
-        List<ForkAbleStateSet<T>> children = cache.getChildren(root.getHash().getBytes());
-        Optional<ForkAbleStateSet<T>> o = children.stream().filter(x -> x.getHash().equals(h)).findFirst();
+        List<StateSet<T>> children = cache.getChildren(root.getHash().getBytes());
+        Optional<StateSet<T>> o = children.stream().filter(x -> x.getHash().equals(h)).findFirst();
         if (!o.isPresent()) {
             throw new RuntimeException("the state to confirm not found or confirmed block is not child of current node");
         }
-        ForkAbleStateSet<T> set = o.get();
+        StateSet<T> set = o.get();
         children.stream().filter(x -> !x.getHash().equals(h))
                 .forEach(n -> cache.removeDescendants(n.getHash().getBytes()));
         cache.remove(set.getHash().getBytes());
-        cache.remove(root.getHash().getBytes());
         root.merge(set);
-        this.root = set;
+        root.hashPrev = root.hash;
+        root.hash = h;
     }
 }

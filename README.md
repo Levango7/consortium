@@ -45,3 +45,8 @@ java -jar consortium\build\libs\consortium-0.0.1-SNAPSHOT.jar -Dspring.config.lo
 set SPRING_CONFIG_LOCATION=classpath:\application.yml,some-path\custom-config.yml 
 java -jar consortium\build\libs\consortium-0.0.1-SNAPSHOT.jar
 ```  
+
+4. rest apis
+
+1. /account/{address} display account 
+2. /config display application configuration

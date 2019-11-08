@@ -1,25 +1,30 @@
 package org.wisdom.consortium.state;
 
+import com.google.common.primitives.Bytes;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.wisdom.common.*;
 import org.wisdom.consortium.account.PublicKeyHash;
 import org.wisdom.consortium.account.Utils;
+import org.wisdom.consortium.util.BytesReader;
 import org.wisdom.exception.StateUpdateException;
+import org.wisdom.util.BigEndian;
 
 import java.util.HashSet;
 import java.util.Set;
 
 @Getter
 @AllArgsConstructor
-public class Account implements ForkAbleState<Account> {
+@NoArgsConstructor
+public class Account implements ForkAbleState<Account>, Serializable, Deserializable {
     private PublicKeyHash publicKeyHash;
 
     private long balance;
 
     @Override
     public String getIdentifier() {
-        return publicKeyHash.getHex();
+        return publicKeyHash.getAddress();
     }
 
     @Override
@@ -53,5 +58,17 @@ public class Account implements ForkAbleState<Account> {
     @Override
     public Account clone() {
         return new Account(publicKeyHash, balance);
+    }
+
+    @Override
+    public void copyFrom(byte[] data) {
+        BytesReader reader = new BytesReader(data);
+        publicKeyHash = new PublicKeyHash(reader.read(32));
+        balance = BigEndian.decodeInt64(reader.readAll());
+    }
+
+    @Override
+    public byte[] getBytes() {
+        return Bytes.concat(publicKeyHash.getPublicKeyHash(),BigEndian.encodeInt64(balance));
     }
 }

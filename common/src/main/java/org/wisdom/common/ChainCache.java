@@ -17,15 +17,15 @@ public class ChainCache<T extends Chained> implements Cloneable<ChainCache<T>> {
     private Map<String, Set<String>> childrenHashes;
     private Map<String, String> parentHash;
     private int sizeLimit;
-    private Comparator<T> comparator;
+    private Comparator<? super T> comparator;
 
-    public ChainCache<T> withComparator(Comparator<T> comparator) {
+    public ChainCache withComparator(Comparator<? super T> comparator) {
         this.comparator = comparator;
         return this;
     }
 
     // lru
-    public ChainCache(int sizeLimit, Comparator<T> comparator) {
+    public ChainCache(int sizeLimit, Comparator<? super T> comparator) {
         this();
         this.sizeLimit = sizeLimit;
         this.comparator = comparator;

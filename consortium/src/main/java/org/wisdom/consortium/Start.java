@@ -12,11 +12,14 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.util.Assert;
 import org.wisdom.common.*;
-import org.wisdom.consortium.consensus.ConsensusEngineAdapter;
+import org.wisdom.consortium.consensus.None;
 import org.wisdom.consortium.consensus.poa.PoA;
+import org.wisdom.consortium.net.GRpcPeerServer;
 
-import javax.annotation.PostConstruct;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 @EnableAsync
 @EnableScheduling
@@ -27,6 +30,8 @@ import java.util.Optional;
 // for example: SPRING_CONFIG_LOCATION=classpath:\application.yml,some-path\custom-config.yml
 public class Start {
     private static final boolean ENABLE_ASSERTION = "true".equals(System.getenv("ENABLE_ASSERTION"));
+
+    public static final Executor APPLICATION_THREAD_POOL = Executors.newCachedThreadPool();
 
     public static void devAssert(boolean truth, String error){
         if (!ENABLE_ASSERTION) return;
@@ -62,14 +67,14 @@ public class Start {
 
     @Bean
     public ConsensusEngine consensusEngine(ConsensusProperties consensusProperties, ConsortiumRepository consortiumRepository) throws Exception {
-        String name = consensusProperties.getConsensus().getProperty(ConsensusProperties.CONSENSUS_NAME);
+        String name = consensusProperties.getProperty(ConsensusProperties.CONSENSUS_NAME);
         name = name == null ? "" : name;
         final ConsensusEngine engine;
         switch (name.toLowerCase()) {
             // none consensus selected, used for unit test
             case ApplicationConstants.CONSENSUS_NONE:
                 log.warn("none consensus engine selected, please ensure you are in test mode");
-                return new ConsensusEngineAdapter();
+                return new None();
             case ApplicationConstants.CONSENSUS_POA:
                 // use poa as default consensus
                 // another engine: pow, pos, pow+pos, vrf
@@ -82,15 +87,18 @@ public class Start {
                 log.error("roll back to poa consensus");
                 engine = new PoA();
         }
-        engine.load(consensusProperties.getConsensus(), consortiumRepository);
-        consortiumRepository.saveGenesis(engine.genesis());
+        engine.load(consensusProperties, consortiumRepository);
         consortiumRepository.setProvider(engine.provider());
+        // register event listeners
+        consortiumRepository.addListeners(engine.repository());
+        consortiumRepository.saveGenesis(engine.genesis());
         return engine;
     }
 
     abstract static class NewMinedBlockWriter implements MinerListener{
     }
 
+    // create a miner listener for write block
     @Bean
     public NewMinedBlockWriter newMinedBlockWriter(ConsortiumRepository repository, ConsensusEngine engine){
         return new NewMinedBlockWriter() {
@@ -105,6 +113,47 @@ public class Start {
 
             @Override
             public void onMiningFailed(Block block) {
+
+            }
+        };
+    }
+
+    // create peer server from properties
+    @Bean
+    public PeerServer peerServer(PeerServerProperties properties, ConsensusEngine engine) throws Exception{
+        PeerServer peerServer = new GRpcPeerServer();
+        peerServer.load(properties);
+        peerServer.use(engine.handler());
+        peerServer.start();
+        return peerServer;
+    }
+
+    // create leveldb/rocksdb here
+    @Bean
+    public BatchAbleStore store(){
+        return new BatchAbleStore() {
+            @Override
+            public void updateBatch(Map rows) {
+
+            }
+
+            @Override
+            public Optional get(Object o) {
+                return Optional.empty();
+            }
+
+            @Override
+            public void put(Object o, Object o2) {
+
+            }
+
+            @Override
+            public void putIfAbsent(Object o, Object o2) {
+
+            }
+
+            @Override
+            public void remove(Object o) {
 
             }
         };

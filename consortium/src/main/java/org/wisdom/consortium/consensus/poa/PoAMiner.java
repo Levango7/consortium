@@ -9,7 +9,6 @@ import org.wisdom.consortium.consensus.poa.config.Genesis;
 import org.wisdom.exception.ConsensusEngineLoadException;
 import org.wisdom.util.BigEndian;
 
-import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,7 +71,7 @@ public class PoAMiner implements Miner {
                 parent.getBody().size() == 0 ||
                 parent.getBody().get(0).getTo() == null
         ) return Optional.empty();
-        String prev = new String(parent.getBody().get(0).getTo().getBytes(), StandardCharsets.UTF_8);
+        String prev = new PublicKeyHash(parent.getBody().get(0).getTo().getBytes()).getAddress();
         int prevIndex = genesis.miners.stream().map(x -> x.address).collect(Collectors.toList()).indexOf(prev);
         if (prevIndex < 0) {
             return Optional.empty();
@@ -98,7 +97,7 @@ public class PoAMiner implements Miner {
             while (true){
                 tryMine();
                 try {
-                    TimeUnit.SECONDS.sleep(1);
+                    TimeUnit.SECONDS.sleep(poAConfig.getBlockInterval());
                 }catch (Exception ignored){}
             }
         });
