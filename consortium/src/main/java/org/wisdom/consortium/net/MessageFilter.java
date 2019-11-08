@@ -25,7 +25,13 @@ public class MessageFilter implements Plugin {
             context.exit();
             return;
         }
-        // filter from your self
+        // reject blocked peer
+        if (server.getClient().peersCache.hasBlocked(context.remote)){
+            log.error("the peer " + context.remote + " has been blocked");
+            context.disconnect();
+            return;
+        }
+        // filter message from your self
         if (context.getRemote().equals(server.getSelf())) {
             log.error("message received from yourself");
             context.exit();

@@ -203,4 +203,8 @@ public class PeersCache {
         }
         return Optional.empty();
     }
+
+    boolean hasBlocked(PeerImpl peer){
+        return blocked.containsKey(peer);
+    }
 }
