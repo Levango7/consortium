@@ -21,7 +21,7 @@ public class MessageFilter implements Plugin {
         if (!new Ed25519PublicKey(context.getRemote().getID().getBytes()).verify(
                 Util.getRawForSign(context.message), context.message.getSignature().toByteArray()
         )) {
-            log.error("invalid signature received");
+            log.error("invalid signature received from " + context.remote);
             context.exit();
             return;
         }
@@ -43,7 +43,6 @@ public class MessageFilter implements Plugin {
             context.exit();
         }
         cache.put(k, true);
-        log.info(context.message.getCode() + " message received from " + context.remote.getHost() + ":" + context.remote.getPort());
         context.keep();
     }
 
