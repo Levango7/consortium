@@ -57,8 +57,9 @@ public class EntryController {
     @GetMapping(value = "/peers", produces = MediaType.APPLICATION_JSON_VALUE)
     public Object peers() {
         return new PeersInfo(
-                peerServer.getBootStraps(),
-                peerServer.getPeers());
+                peerServer.getPeers(),
+                peerServer.getBootStraps()
+                );
     }
 
     @AllArgsConstructor

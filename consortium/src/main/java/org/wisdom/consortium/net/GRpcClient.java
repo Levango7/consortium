@@ -51,6 +51,7 @@ public class GRpcClient implements Channel.ChannelListener {
         Optional<Channel> o = peersCache.getChannel(peer.getID());
         if (o.isPresent() && !o.get().isClosed()) {
             o.get().write(message);
+            return;
         }
         createChannel(peer.getHost(), peer.getPort(), listeners).write(message);
     }
@@ -65,6 +66,7 @@ public class GRpcClient implements Channel.ChannelListener {
         if (listener != null) channel.addListener(listener);
         channel.addListener(listeners);
         channel.setOut(stub.entry(channel));
+        log.info("create channel to " + host + ":" + port);
         return channel;
     }
 

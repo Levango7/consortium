@@ -4,11 +4,9 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.extern.slf4j.Slf4j;
 import org.wisdom.common.Peer;
 import org.wisdom.consortium.Start;
-import org.wisdom.consortium.proto.Code;
-import org.wisdom.consortium.proto.Peers;
-import org.wisdom.consortium.proto.Ping;
-import org.wisdom.consortium.proto.Pong;
+import org.wisdom.consortium.proto.*;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -49,12 +47,12 @@ public class PeersManager implements Plugin {
             case PEERS:
                 if(!config.isEnableDiscovery()) return;
                 try {
-                    if (config.getMaxPeers() >= cache.size()) return;
+                    if (cache.size() >= config.getMaxPeers()) return;
                     Peers.parseFrom(context.message.getBody()).getPeersList().stream()
                             .map(PeerImpl::parse)
                             .filter(Optional::isPresent)
                             .map(Optional::get)
-                            .filter(x -> !cache.has(x))
+                            .filter(x -> !cache.has(x) && !x.equals(server.getSelf()))
                             .forEach(x -> pending.put(x, true));
                 } catch (InvalidProtocolBufferException e) {
                     log.error("parse peers message failed");
@@ -70,12 +68,15 @@ public class PeersManager implements Plugin {
         if(!config.isEnableDiscovery()) return;
         Start.APPLICATION_THREAD_POOL.execute(() -> {
             while (true){
+                System.out.println("peers = " + cache.size());
+                System.out.println("pending = " + pending.keySet().size());
                 if(cache.isFull()) continue;
-                server.broadcast(Code.PEERS, 1, Peers.newBuilder().build());
+
+                server.broadcast(Code.LOOK_UP, 1, Lookup.newBuilder().build());
                 pending.keySet().stream()
                         .filter(x -> !cache.has(x))
                         .limit(config.getMaxPeers())
-                        .forEach(x -> server.dial(x, Code.PING, 1, Ping.newBuilder().build()));
+                        .forEach(x -> server.getClient().dial(x, Code.PING, 1, Ping.newBuilder().build().toByteArray()));
 
                 pending.clear();
                 cache.half();

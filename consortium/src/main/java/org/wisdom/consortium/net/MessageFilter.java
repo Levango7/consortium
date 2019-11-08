@@ -43,6 +43,7 @@ public class MessageFilter implements Plugin {
             context.exit();
         }
         cache.put(k, true);
+        log.info(context.message.getCode() + " message received from " + context.remote.getHost() + ":" + context.remote.getPort());
         context.keep();
     }
 
