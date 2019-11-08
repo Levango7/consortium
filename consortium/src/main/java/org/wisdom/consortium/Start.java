@@ -16,6 +16,7 @@ import org.wisdom.consortium.consensus.None;
 import org.wisdom.consortium.consensus.poa.PoA;
 import org.wisdom.consortium.net.GRpcPeerServer;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -125,5 +126,36 @@ public class Start {
         peerServer.use(engine.handler());
         peerServer.start();
         return peerServer;
+    }
+
+    // create leveldb/rocksdb here
+    @Bean
+    public BatchAbleStore store(){
+        return new BatchAbleStore() {
+            @Override
+            public void updateBatch(Map rows) {
+
+            }
+
+            @Override
+            public Optional get(Object o) {
+                return Optional.empty();
+            }
+
+            @Override
+            public void put(Object o, Object o2) {
+
+            }
+
+            @Override
+            public void putIfAbsent(Object o, Object o2) {
+
+            }
+
+            @Override
+            public void remove(Object o) {
+
+            }
+        }
     }
 }
