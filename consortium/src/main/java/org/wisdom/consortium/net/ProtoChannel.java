@@ -49,7 +49,6 @@ public class ProtoChannel implements StreamObserver<Message>, Channel {
     @Override
     public void onError(Throwable throwable) {
         listeners.forEach(l -> l.onError(throwable, this));
-        close();
     }
 
     @Override
@@ -73,7 +72,6 @@ public class ProtoChannel implements StreamObserver<Message>, Channel {
             out.onNext(message);
         } catch (Throwable e) {
             listeners.forEach(l -> l.onError(e, this));
-            close();
         }
     }
 

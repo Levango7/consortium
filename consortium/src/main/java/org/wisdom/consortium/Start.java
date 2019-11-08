@@ -30,7 +30,7 @@ import java.util.concurrent.Executors;
 public class Start {
     private static final boolean ENABLE_ASSERTION = "true".equals(System.getenv("ENABLE_ASSERTION"));
 
-    public static final Executor APPLICATION_THREAD_POOL = Executors.newWorkStealingPool();
+    public static final Executor APPLICATION_THREAD_POOL = Executors.newCachedThreadPool();
 
     public static void devAssert(boolean truth, String error){
         if (!ENABLE_ASSERTION) return;

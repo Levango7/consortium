@@ -22,6 +22,8 @@ public class PeerServerConfig {
     private int maxPeers;
     @JsonProperty("max-ttl")
     private long maxTTL;
+    @JsonProperty("enable-discovery")
+    private boolean enableDiscovery;
     private String address;
     private List<URI> bootstraps;
 }

@@ -1,5 +1,8 @@
 package org.wisdom.consortium.net;
 
+import org.wisdom.common.HexBytes;
+import org.wisdom.common.Peer;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -9,7 +12,7 @@ import java.util.stream.Stream;
 public class PeersCache {
     private static final int PEER_SCORE = 32;
     private static final int EVIL_SCORE = -(1 << 10);
-    private int maximumPeers;
+    private PeerServerConfig config;
 
     static class Bucket {
         Map<PeerImpl, Channel> channels = new ConcurrentHashMap<>();
@@ -17,25 +20,18 @@ public class PeersCache {
 
     private Bucket[] peers = new Bucket[256];
 
-    private Set<PeerImpl> bootstraps;
+    ConcurrentHashMap<PeerImpl, Boolean> bootstraps = new ConcurrentHashMap<>();
 
-    private Set<PeerImpl> blocked = new HashSet<>();
+    ConcurrentHashMap<PeerImpl, Boolean> blocked = new ConcurrentHashMap<>();
 
     private PeerImpl self;
 
-
-    private boolean enableDiscovery;
-
     public PeersCache(
             PeerImpl self,
-            Collection<? extends PeerImpl> bootstraps,
-            boolean enableDiscovery,
-            int maximumPeers
+            PeerServerConfig config
     ) {
         this.self = self;
-        this.bootstraps = new HashSet<>(bootstraps);
-        this.enableDiscovery = enableDiscovery;
-        this.maximumPeers = maximumPeers;
+        this.config = config;
     }
 
     public int size() {
@@ -51,34 +47,29 @@ public class PeersCache {
         return peers[idx] != null && peers[idx].channels.containsKey(peer);
     }
 
-    public void keep(PeerImpl peer, Channel channel) {
+    void keep(PeerImpl peer, Channel channel) {
         if (peer.equals(self)) {
             return;
         }
-        // if discovery is disabled, the peers is always bootstraps
-        if (!enableDiscovery) {
-            return;
-        }
-        // blocked peer
-        if (blocked.contains(peer)) {
-            channel.close();
-            return;
-        }
+
         peer.score = PEER_SCORE;
         int idx = self.subTree(peer);
         if (peers[idx] == null) {
             peers[idx] = new Bucket();
         }
 
-        Optional<PeerImpl> p = peers[idx].channels.keySet().stream()
+        // if the peer already had been put
+        Optional<PeerImpl> o = peers[idx].channels.keySet().stream()
                 .filter(k -> k.equals(peer)).findFirst();
+
         // increase its score
-        if (p.isPresent()) {
-            p.get().score += PEER_SCORE;
+        if (o.isPresent()) {
+            PeerImpl p = o.get();
+            p.score += PEER_SCORE;
             return;
         }
 
-        if (size() < maximumPeers) {
+        if (size() < config.getMaxPeers()) {
             peers[idx].channels.put(peer, channel);
             return;
         }
@@ -110,8 +101,8 @@ public class PeersCache {
     }
 
     // remove the peer and close the channel
-    public void remove(PeerImpl peer) {
-        if (!enableDiscovery || blocked.contains(peer)) {
+    void remove(PeerImpl peer) {
+        if (blocked.containsKey(peer)) {
             return;
         }
         int idx = self.subTree(peer);
@@ -124,19 +115,9 @@ public class PeersCache {
         ch.close();
     }
 
-
-    public List<PeerImpl> getBootstraps() {
-        return new ArrayList<>(bootstraps);
-    }
-
-    public List<PeerImpl> getBlocked() {
-        return new ArrayList<>(blocked);
-    }
-
-
     // get limit peers randomly
-    public List<PeerImpl> getPeers(int limit) {
-        List<PeerImpl> res = getPeers();
+    public List<Peer> getPeers(int limit) {
+        List<Peer> res = getPeers();
         Random rand = new Random();
         while (res.size() > 0 && res.size() > limit) {
             int idx = Math.abs(rand.nextInt()) % res.size();
@@ -145,12 +126,8 @@ public class PeersCache {
         return res;
     }
 
-    public List<PeerImpl> getPeers() {
-        if (!enableDiscovery) {
-            Set<PeerImpl> tmp = new HashSet<>(bootstraps);
-            return new ArrayList<>(tmp);
-        }
-        List<PeerImpl> res = new ArrayList<>();
+    public List<Peer> getPeers() {
+        List<Peer> res = new ArrayList<>();
         Stream.of(peers)
                 .filter(Objects::nonNull)
                 .map(x -> x.channels.keySet())
@@ -158,13 +135,15 @@ public class PeersCache {
         if (res.size() > 0) {
             return res;
         }
-        return bootstraps.stream().filter(p -> !blocked.contains(p)).collect(Collectors.toList());
+        return bootstraps.keySet()
+                .stream().filter(p -> !blocked.containsKey(p))
+                .collect(Collectors.toList());
     }
 
     public void block(PeerImpl peer) {
         remove(peer);
         peer.score = EVIL_SCORE;
-        blocked.add(peer);
+        blocked.put(peer, true);
     }
 
     // decrease score of peer
@@ -179,17 +158,19 @@ public class PeersCache {
     // decrease score of all peer
     public void half() {
         List<PeerImpl> toRemove = new ArrayList<>();
-        for (Bucket bucket : peers) {
-            for (PeerImpl peer : bucket.channels.keySet()) {
-                peer.score /= 2;
-                if (peer.score == 0) {
-                    toRemove.add(peer);
-                }
-            }
-        }
+        Stream.of(peers).filter(Objects::nonNull)
+                .flatMap(x -> x.channels.keySet().stream())
+                .forEach(p -> {
+                    p.score /= 2;
+                    if (p.score == 0){
+                        toRemove.add(p);
+                    }
+                });
+
+
         List<PeerImpl> toRestore = new ArrayList<>();
         toRemove.forEach(this::remove);
-        for (PeerImpl p : blocked) {
+        for (PeerImpl p : blocked.keySet()) {
             p.score /= 2;
             if (p.score == 0) {
                 toRestore.add(p);
@@ -199,6 +180,28 @@ public class PeersCache {
     }
 
     public boolean isFull() {
-        return size() == maximumPeers;
+        return size() >= config.getMaxPeers();
+    }
+
+    Stream<Channel> getChannels(){
+        return Arrays.stream(peers).filter(Objects::nonNull)
+                .flatMap(x -> x.channels.values().stream());
+    }
+
+    Optional<Channel> getChannel(PeerImpl peer){
+        int idx = self.subTree(peer);
+        if (peers[idx] == null) return Optional.empty();
+        return Optional.ofNullable(peers[idx].channels.get(peer));
+    }
+
+    Optional<Channel> getChannel(HexBytes id){
+        int idx = self.subTree(id.getBytes());
+        if (peers[idx] == null) return Optional.empty();
+        for(PeerImpl p: peers[idx].channels.keySet()){
+            if (p.getID().equals(id)){
+                return Optional.ofNullable(peers[idx].channels.get(p));
+            }
+        }
+        return Optional.empty();
     }
 }

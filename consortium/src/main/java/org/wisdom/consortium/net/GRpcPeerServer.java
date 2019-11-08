@@ -12,6 +12,7 @@ import org.wisdom.exception.PeerServerLoadException;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements Channel.ChannelListener, ProtoPeerServer {
@@ -37,14 +38,17 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements Channel.C
 
     @Override
     public void broadcast(Serializable message) {
-        for(Channel ch: client.channels.values()){
-            ch.write(client.buildMessage(Code.ANOTHER, config.getMaxTTL(), message.getBytes()));
-        }
+        client.broadcast(Code.ANOTHER, config.getMaxTTL(), message.getBytes());
+    }
+
+    @Override
+    public List<Peer> getBootStraps() {
+        return new ArrayList<>(client.peersCache.bootstraps.keySet());
     }
 
     @Override
     public List<Peer> getPeers() {
-        return Arrays.asList(client.channels.keySet().toArray(new Peer[]{}));
+        return client.peersCache.getPeers();
     }
 
     @Override
@@ -75,8 +79,31 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements Channel.C
         }
         if (config.getBootstraps() == null) return;
         config.getBootstraps().forEach(x -> {
-            client.dial(x.getHost(), x.getPort(), Code.PING,1
-                    , Ping.newBuilder().build().toByteArray());
+            client.dial(x.getHost(), x.getPort(), Code.PING, 1
+                    , Ping.newBuilder().build().toByteArray()
+                    , new Channel.ChannelListener() {
+                        @Override
+                        public void onConnect(PeerImpl remote, Channel channel) {
+                            log.info("successfully connected to bootstrap node " + remote);
+                            client.peersCache.bootstraps.put(remote, true);
+                        }
+
+                        @Override
+                        public void onMessage(Message message, Channel channel) {
+
+                        }
+
+                        @Override
+                        public void onError(Throwable throwable, Channel channel) {
+
+                        }
+
+                        @Override
+                        public void onClose(Channel channel) {
+
+                        }
+                    }
+            );
         });
     }
 
@@ -101,7 +128,7 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements Channel.C
         } catch (Exception e) {
             throw new PeerServerLoadException("failed to load peer server invalid address " + config.getAddress());
         }
-        client = new GRpcClient(self).withListener(this);
+        client = new GRpcClient(self, config).withListener(this);
 
         // loading plugins
         plugins.add(new MessageFilter(config));
@@ -125,17 +152,40 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements Channel.C
 
     @Override
     public void onMessage(Message message, Channel channel) {
-        Optional<PeerImpl> peer = PeerImpl.parse(message.getRemotePeer());
+        Optional<PeerImpl> peer = channel.getRemote();
         if (!peer.isPresent()) {
             channel.close();
             throw new RuntimeException("failed to parse peer");
         }
         ContextImpl context = ContextImpl.builder()
+                .channel(channel)
                 .message(message)
                 .remote(peer.get()).build();
 
         for (Plugin plugin : plugins) {
             plugin.onMessage(context, this);
+            if(context.block){
+                client.peersCache.block(peer.get());
+                return;
+            }
+            if(context.disconnect){
+                channel.close();
+                client.peersCache.remove(peer.get());
+                return;
+            }
+            if(context.exit){
+                return;
+            }
+            if(context.keep){
+                client.peersCache.keep(peer.get(), channel);
+            }
+            if(context.relay){
+                client.relay(context.message, peer.get());
+            }
+            if(context.response != null){
+                channel.write(client.buildMessage(Code.ANOTHER, 1, context.response.getBytes()));
+                context.response = null;
+            }
         }
     }
 
@@ -164,7 +214,7 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements Channel.C
     }
 
     @Override
-    public Set<Peer> getPeerSet() {
-        return client.channels.keySet();
+    public GRpcClient getClient() {
+        return client;
     }
 }

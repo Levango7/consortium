@@ -14,12 +14,9 @@ public class ContextImpl implements org.wisdom.common.Context {
     boolean block;
     PeerImpl remote;
     Message message;
-    private Serializable response;
-    private Nothing nothing;
-    private Ping ping;
-    private Pong pong;
-    private Peers peers;
-    private Lookup lookup;
+    Serializable response;
+    Channel channel;
+
 
     public void exit() {
         exit = true;
@@ -43,22 +40,6 @@ public class ContextImpl implements org.wisdom.common.Context {
     @Override
     public void response(Serializable message) {
         response = message;
-    }
-
-    void response(Ping ping) {
-        this.ping = ping;
-    }
-
-    void response(Pong pong) {
-        this.pong = pong;
-    }
-
-    void response(Peers peers) {
-        this.peers = peers;
-    }
-
-    void response(Lookup lookup) {
-        this.lookup = lookup;
     }
 
     @Override

@@ -26,6 +26,7 @@ consortium:
     name: 'gRPC'
     max-peers: '16'
     max-ttl: '8' # maximum time to live
+    enable-discovery: 'true'
     address: 'node://localhost'
     bootstraps:
       - 'node://localhost:9999'

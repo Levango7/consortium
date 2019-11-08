@@ -10,77 +10,76 @@ import org.wisdom.consortium.proto.*;
 import org.wisdom.common.Peer;
 
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.wisdom.consortium.net.Util.getRawForSign;
 
 @Slf4j
 public class GRpcClient implements Channel.ChannelListener {
-    ConcurrentHashMap<Peer, Channel> channels = new ConcurrentHashMap<>();
     private PeerImpl self;
     private AtomicLong nonce = new AtomicLong();
     private Channel.ChannelListener listener;
+    PeersCache peersCache;
 
-    public GRpcClient(PeerImpl self) {
+    public GRpcClient(PeerImpl self, PeerServerConfig config) {
         this.self = self;
+        this.peersCache = new PeersCache(self, config);
     }
 
-    GRpcClient withListener(Channel.ChannelListener listener){
+    GRpcClient withListener(Channel.ChannelListener listener) {
         this.listener = listener;
         return this;
     }
 
-    void broadcast(Code code, long ttl, byte[] body){
-        channels.values().forEach(ch -> ch.write(buildMessage(code, ttl, body)));
+    void broadcast(Code code, long ttl, byte[] body) {
+        peersCache.getChannels().forEach(ch -> ch.write(buildMessage(code, ttl, body)));
     }
 
-    public void dial(Peer peer, Code code, long ttl, byte[] body) {
-        dial(peer, buildMessage(code, ttl, body));
+    public void dial(Peer peer, Code code, long ttl, byte[] body, Channel.ChannelListener... listeners) {
+        dial(peer, buildMessage(code, ttl, body), listeners);
     }
 
-    public void dial(String host, int port, Code code, long ttl, byte[] body) {
-        dial(host, port, buildMessage(code, ttl, body));
+    public void dial(String host, int port, Code code, long ttl, byte[] body, Channel.ChannelListener... listeners) {
+        dial(host, port, buildMessage(code, ttl, body), listeners);
     }
 
-    private void dial(String host, int port, Message message) {
-        createChannel(host, port).write(message);
+    private void dial(String host, int port, Message message, Channel.ChannelListener... listeners) {
+        createChannel(host, port, listeners).write(message);
     }
 
-    private void dial(Peer peer, Message message) {
-        if (channels.containsKey(peer) && !channels.get(peer).isClosed()) {
-            channels.get(peer).write(message);
+    private void dial(Peer peer, Message message, Channel.ChannelListener... listeners) {
+        Optional<Channel> o = peersCache.getChannel(peer.getID());
+        if (o.isPresent() && !o.get().isClosed()) {
+            o.get().write(message);
         }
-        createChannel(peer.getHost(), peer.getPort()).write(message);
+        createChannel(peer.getHost(), peer.getPort(), listeners).write(message);
     }
 
 
-    Channel createChannel(String host, int port) {
+    Channel createChannel(String host, int port, Channel.ChannelListener... listeners) {
         ManagedChannel ch = ManagedChannelBuilder
                 .forAddress(host, port).usePlaintext().build();
         EntryGrpc.EntryStub stub = EntryGrpc.newStub(ch);
         ProtoChannel channel = new ProtoChannel();
         channel.addListener(this);
         if (listener != null) channel.addListener(listener);
+        channel.addListener(listeners);
         channel.setOut(stub.entry(channel));
         return channel;
     }
 
-    StreamObserver<Message> createObserver(StreamObserver<Message> out) {
+    StreamObserver<Message> createObserver(StreamObserver<Message> out, Channel.ChannelListener... listeners) {
         ProtoChannel channel = new ProtoChannel();
         channel.addListener(this);
-
+        if (listener != null) channel.addListener(listener);
+        channel.addListener(listeners);
         channel.setOut(out);
         return channel;
     }
 
     @Override
     public void onConnect(PeerImpl remote, Channel channel) {
-        if (!channels.containsKey(remote) || channels.get(remote).isClosed()) {
-            channels.put(remote, channel);
-            return;
-        }
-        channel.close();
+        peersCache.keep(remote, channel);
     }
 
     @Override
@@ -95,9 +94,9 @@ public class GRpcClient implements Channel.ChannelListener {
     @Override
     public void onClose(Channel channel) {
         Optional<PeerImpl> remote = channel.getRemote();
-        if(!remote.isPresent()) return;
+        if (!remote.isPresent()) return;
         log.error("close channel to " + remote.get());
-        channels.remove(remote.get());
+        peersCache.remove(remote.get());
     }
 
     public Message buildMessage(Code code, long ttl, byte[] msg) {
@@ -112,17 +111,19 @@ public class GRpcClient implements Channel.ChannelListener {
         return builder.setSignature(ByteString.copyFrom(sig)).build();
     }
 
-    void relay(Message message, Peer receivedFrom){
+    void relay(Message message, Peer receivedFrom) {
         Message.Builder builder = Message.newBuilder().mergeFrom(message)
                 .setCreatedAt(
-                        Timestamp.newBuilder().setSeconds(System.currentTimeMillis() / 1000 ).build()
+                        Timestamp.newBuilder().setSeconds(System.currentTimeMillis() / 1000).build()
                 )
                 .setNonce(nonce.incrementAndGet())
                 .setTtl(message.getTtl() - 1);
         byte[] sig = self.getPrivateKey().sign(getRawForSign(builder.build()));
         message = builder.setSignature(ByteString.copyFrom(sig)).build();
-        for(Peer p: channels.keySet()){
-            if(!p.equals(receivedFrom)) channels.get(p).write(message);
-        }
+        Message finalMessage = message;
+        peersCache.getChannels().forEach(c ->{
+            if(c.getRemote().map(r -> r.equals(receivedFrom)).orElse(true)) return;
+            c.write(finalMessage);
+        });
     }
 }

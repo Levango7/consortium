@@ -108,12 +108,11 @@ public class PeerImpl implements org.wisdom.common.Peer {
         return res;
     }
 
-    // subtree is less than 256
-    public int subTree(PeerImpl that) {
+    int subTree(byte[] thatID){
         byte[] bits = new byte[32];
         byte mask = (byte) (1 << 7);
         for (int i = 0; i < bits.length; i++) {
-            bits[i] = (byte) (ID.getBytes()[i] ^ that.ID.getBytes()[i]);
+            bits[i] = (byte) (ID.getBytes()[i] ^ thatID[i]);
         }
         for (int i = 0; i < 256; i++) {
             if ((bits[i / 8] & (mask >>> (i % 8))) != 0) {
@@ -121,6 +120,11 @@ public class PeerImpl implements org.wisdom.common.Peer {
             }
         }
         return 0;
+    }
+
+    // subtree is less than 256
+    int subTree(Peer that) {
+        return subTree(that.getID().getBytes());
     }
 
     @Override

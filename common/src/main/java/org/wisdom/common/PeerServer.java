@@ -12,6 +12,8 @@ public interface PeerServer {
 
     List<Peer> getPeers();
 
+    List<Peer> getBootStraps();
+
     void use(PeerServerListener... peerServerListeners);
 
     void start();
