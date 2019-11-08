@@ -156,6 +156,6 @@ public class Start {
             public void remove(Object o) {
 
             }
-        }
+        };
     }
 }
