@@ -59,7 +59,9 @@ public class ProtoChannel implements StreamObserver<Message>, Channel {
         if(closed) return;
         closed = true;
         listeners.forEach(l -> l.onClose(this));
-        out.onCompleted();
+        try{
+            out.onCompleted();
+        }catch (Exception ignore){}
     }
 
     public void write(Message message) {
