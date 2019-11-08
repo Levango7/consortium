@@ -5,14 +5,14 @@ import org.wisdom.consortium.proto.Code;
 import org.wisdom.consortium.proto.Message;
 
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.TimeUnit;
+import java.util.Scanner;
 
 @Slf4j
 public class TestClient {
 
     public static void main(String... args) throws Exception{
         PeerImpl self = PeerImpl.create("node://localhost:1789");
-        GRpcClient client = new GRpcClient(self, new PeerServerConfig())
+        GRpcClient client = new GRpcClient(self, PeerServerConfig.builder().maxPeers(16).build())
                 .withListener(new Channel.ChannelListener() {
                     @Override
                     public void onConnect(PeerImpl remote, Channel channel) {
@@ -35,6 +35,10 @@ public class TestClient {
                     }
                 });
         Channel ch = client.dial("localhost", 9998, Code.ANOTHER, 1, "".getBytes(StandardCharsets.UTF_8));;
-        TimeUnit.SECONDS.sleep(20);
+        Scanner scanner = new Scanner(System.in);
+        while(true){
+            String line = scanner.nextLine();
+            ch.write(client.buildMessage(Code.PING, 1, line.getBytes(StandardCharsets.UTF_8)));
+        }
     }
 }

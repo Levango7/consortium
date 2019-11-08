@@ -37,7 +37,6 @@ public class ProtoChannel implements StreamObserver<Message>, Channel {
         if (pinged) return;
         Optional<PeerImpl> o = PeerImpl.parse(message.getRemotePeer());
         if (!o.isPresent()) {
-            log.error("cannot parse remote peer");
             close();
             return;
         }
@@ -53,7 +52,7 @@ public class ProtoChannel implements StreamObserver<Message>, Channel {
 
     @Override
     public void onCompleted() {
-        close();
+//        close();
     }
 
     public void close() {
@@ -71,6 +70,7 @@ public class ProtoChannel implements StreamObserver<Message>, Channel {
         try {
             out.onNext(message);
         } catch (Throwable e) {
+            log.error(e.getMessage());
             listeners.forEach(l -> l.onError(e, this));
         }
     }

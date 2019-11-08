@@ -6,7 +6,7 @@ import java.io.Closeable;
 import java.util.Optional;
 
 // channel for message transports
-public interface Channel extends Closeable {
+public interface Channel {
     // write message to channel
     void write(Message message);
 
