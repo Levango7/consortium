@@ -1,5 +1,7 @@
 package org.wisdom.common;
 
+import java.util.Map;
+
 public interface BatchAbleStore<K, V> extends Store<K, V>{
-    Batch<K, V> batch();
+    void updateBatch(Map<K, V> rows);
 }
