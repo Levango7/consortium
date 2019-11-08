@@ -3,14 +3,15 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	wasm "github.com/wasmerio/go-ext-wasm/wasmer"
 	"io"
 	"os"
+
+	wasm "github.com/wasmerio/go-ext-wasm/wasmer"
 )
 
 type WasmFormat struct {
-	Bytes  [] byte      `json:"bytes"`
-	Params [] WasmParam `json:"params"`
+	Bytes  []byte      `json:"bytes"`
+	Params []WasmParam `json:"params"`
 }
 
 type WasmParam struct {
