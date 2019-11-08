@@ -30,6 +30,7 @@ public class ProtoChannel implements StreamObserver<Message>, Channel {
     public void onNext(Message message) {
         if(closed) return;
         handlePing(message);
+        if(listeners == null) return;
         listeners.forEach(l -> l.onMessage(message, this));
     }
 
@@ -42,6 +43,7 @@ public class ProtoChannel implements StreamObserver<Message>, Channel {
         }
         pinged = true;
         remote = o.get();
+        if(listeners == null) return;
         listeners.forEach(l -> l.onConnect(remote, this));
     }
 
@@ -59,6 +61,7 @@ public class ProtoChannel implements StreamObserver<Message>, Channel {
         if(closed) return;
         closed = true;
         listeners.forEach(l -> l.onClose(this));
+        listeners = null;
         try{
             out.onCompleted();
         }catch (Exception ignore){}
@@ -73,6 +76,7 @@ public class ProtoChannel implements StreamObserver<Message>, Channel {
             out.onNext(message);
         } catch (Throwable e) {
             log.error(e.getMessage());
+            if(listeners == null) return;
             listeners.forEach(l -> l.onError(e, this));
         }
     }
@@ -87,6 +91,7 @@ public class ProtoChannel implements StreamObserver<Message>, Channel {
 
     @Override
     public void addListener(ChannelListener... listeners) {
+        if(listeners == null) return;
         this.listeners.addAll(Arrays.asList(listeners));
     }
 }
