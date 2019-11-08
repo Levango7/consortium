@@ -81,12 +81,13 @@ public class PeerImpl implements org.wisdom.common.Peer {
         String scheme = u.getScheme();
         scheme = (scheme == null || scheme.equals("")) ? PeerServerConfig.DEFAULT_PROTOCOL : scheme;
         int port = u.getPort();
+        String host = (u.getHost() == null || u.getHost().trim().equals("")) ? "localhost" : u.getHost();
         port = port <= 0 ? PeerServerConfig.DEFAULT_PORT : port;
         if (u.getRawUserInfo() == null || u.getRawUserInfo().equals("")) {
             KeyPair kp = Ed25519.generateKeyPair();
             url = String.format("%s://%s@%s:%d", scheme,
                     Hex.encodeHexString(kp.getPrivateKey().getEncoded()) + Hex.encodeHexString(kp.getPublicKey().getEncoded()),
-                    u.getHost(), port
+                    host, port
             );
         }
 

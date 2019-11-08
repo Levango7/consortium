@@ -11,6 +11,7 @@ import org.wisdom.consortium.proto.*;
 import org.wisdom.exception.PeerServerLoadException;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.*;
 
 @Slf4j
@@ -113,13 +114,18 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements Channel.C
         try {
             config = mapper.readPropertiesAs(properties, PeerServerConfig.class);
             if(config.getMaxTTL() <= 0) config.setMaxTTL(PeerServerConfig.DEFAULT_MAX_TTL);
+            if(config.getMaxPeers() <= 0) config.setMaxPeers(PeerServerConfig.DEFAULT_MAX_PEERS);
         } catch (Exception e) {
             String schema = "";
             try {
-                schema = mapper.writeValueAsProperties(new PeerServerConfig()).toString();
+                schema = mapper.writeValueAsProperties(
+                        PeerServerConfig.builder()
+                        .bootstraps(Collections.singletonList(new URI("node://localhost:9955")))
+                        .build()
+                ).toString();
             } catch (Exception ignored) {
             }
-            throw new RuntimeException(
+            throw new PeerServerLoadException(
                     "load properties failed :" + properties.toString() + " expecting " + schema
             );
         }
@@ -204,7 +210,7 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements Channel.C
             if(context.keep){
                 client.peersCache.keep(peer.get(), channel);
             }
-            if(context.relay){
+            if(context.relay && context.message.getTtl() > 0){
                 client.relay(context.message, peer.get());
             }
             if(context.response != null){
