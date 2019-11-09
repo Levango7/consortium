@@ -68,17 +68,18 @@ public class GRpcClient implements Channel.ChannelListener {
         try{
             ch = ManagedChannelBuilder
                     .forAddress(host, port).usePlaintext().build();
+            EntryGrpc.EntryStub stub = EntryGrpc.newStub(ch);
+            ProtoChannel channel = new ProtoChannel();
+            channel.addListener(this);
+            if (listener != null) channel.addListener(listener);
+            channel.addListener(listeners);
+            channel.setOut(stub.entry(channel));
+            channel.write(buildMessage(Code.PING, 1, Ping.newBuilder().build().toByteArray()));
+            log.info("create channel to " + host + ":" + port);
+            return Optional.of(channel);
         }catch (Throwable ignored){
             return Optional.empty();
         }
-        EntryGrpc.EntryStub stub = EntryGrpc.newStub(ch);
-        ProtoChannel channel = new ProtoChannel();
-        channel.addListener(this);
-        if (listener != null) channel.addListener(listener);
-        channel.addListener(listeners);
-        channel.setOut(stub.entry(channel));
-        log.info("create channel to " + host + ":" + port);
-        return Optional.of(channel);
     }
 
     StreamObserver<Message> createObserver(StreamObserver<Message> out, Channel.ChannelListener... listeners) {

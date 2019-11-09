@@ -132,12 +132,7 @@ public class PeersCache {
                 .filter(Objects::nonNull)
                 .map(x -> x.channels.keySet())
                 .forEach(res::addAll);
-        if (res.size() > 0) {
             return res;
-        }
-        return bootstraps.keySet()
-                .stream().filter(p -> !blocked.containsKey(p))
-                .collect(Collectors.toList());
     }
 
     public void block(PeerImpl peer) {

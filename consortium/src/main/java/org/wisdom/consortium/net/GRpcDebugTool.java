@@ -98,6 +98,10 @@ public class GRpcDebugTool {
                 for(int i = 0; i < 2000; i++) System.out.println();
                 continue;
             }
+            if(line.equals("self")){
+                System.out.println(server.getSelf());
+                continue;
+            }
             if(line.startsWith("connect")){
                 String[] hostPort = line.substring("connect".length()).trim()
                         .split("\\s|:");

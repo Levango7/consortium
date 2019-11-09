@@ -79,33 +79,29 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements Channel.C
                         self.getPort()));
 
         if (config.getBootstraps() == null) return;
-        config.getBootstraps().forEach(x -> {
-            client.dial(x.getHost(), x.getPort(), Code.PING, 1
-                    , Ping.newBuilder().build().toByteArray()
-                    , new Channel.ChannelListener() {
-                        @Override
-                        public void onConnect(PeerImpl remote, Channel channel) {
-                            log.info("successfully connected to bootstrap node " + remote);
-                            client.peersCache.bootstraps.put(remote, true);
-                        }
-
-                        @Override
-                        public void onMessage(Message message, Channel channel) {
-
-                        }
-
-                        @Override
-                        public void onError(Throwable throwable, Channel channel) {
-
-                        }
-
-                        @Override
-                        public void onClose(Channel channel) {
-
-                        }
+        config.getBootstraps().forEach(x -> client.createChannel(x.getHost(), x.getPort(), new Channel.ChannelListener() {
+                    @Override
+                    public void onConnect(PeerImpl remote, Channel channel) {
+                        log.info("successfully connected to bootstrap node " + remote);
+                        client.peersCache.bootstraps.put(remote, true);
                     }
-            );
-        });
+
+                    @Override
+                    public void onMessage(Message message, Channel channel) {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable throwable, Channel channel) {
+
+                    }
+
+                    @Override
+                    public void onClose(Channel channel) {
+
+                    }
+                }
+        ));
     }
 
     @Override

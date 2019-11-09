@@ -6,6 +6,7 @@ import org.wisdom.common.Peer;
 import org.wisdom.consortium.Start;
 import org.wisdom.consortium.proto.*;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -68,12 +69,27 @@ public class PeersManager implements Plugin {
         Start.APPLICATION_THREAD_POOL.execute(() -> {
             while (true){
                 if(cache.isFull()) continue;
-
-                server.broadcast(Code.LOOK_UP, 1, Lookup.newBuilder().build());
+                List<Channel> channels = server.getClient().peersCache.getChannels().collect(Collectors.toList());
+                if(channels.size() == 0){
+                    channels = cache.bootstraps.keySet()
+                            .stream().map(p -> server.getClient().createChannel(p.getHost(), p.getPort()))
+                            .filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList());
+                }
+                channels.forEach(
+                        c -> c.write(
+                                server.getClient().buildMessage(
+                                        Code.LOOK_UP, 1, Lookup.newBuilder().build().toByteArray()
+                                )
+                        )
+                );
                 pending.keySet().stream()
                         .filter(x -> !cache.has(x))
                         .limit(config.getMaxPeers())
-                        .forEach(x -> server.getClient().dial(x, Code.PING, 1, Ping.newBuilder().build().toByteArray()));
+                        .forEach(
+                                x -> server.getClient().dial(
+                                        x, Code.PING, 1, Ping.newBuilder().build().toByteArray()
+                                )
+                        );
 
                 pending.clear();
                 cache.half();
