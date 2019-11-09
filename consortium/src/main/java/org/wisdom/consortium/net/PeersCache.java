@@ -38,8 +38,7 @@ public class PeersCache {
     public int size() {
         return Stream.of(peers)
                 .filter(Objects::nonNull)
-                .map(x -> x.channels)
-                .map(Map::size)
+                .map(x -> x.channels.size())
                 .reduce(0, Integer::sum);
     }
 

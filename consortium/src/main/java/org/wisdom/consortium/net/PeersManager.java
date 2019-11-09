@@ -49,7 +49,7 @@ public class PeersManager implements Plugin {
             case PEERS:
                 if(!config.isEnableDiscovery()) return;
                 try {
-                    if (cache.size() >= config.getMaxPeers()) return;
+                    if (cache.isFull()) return;
                     Peers.parseFrom(context.message.getBody()).getPeersList().stream()
                             .map(PeerImpl::parse)
                             .filter(Optional::isPresent)
