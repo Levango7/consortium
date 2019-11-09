@@ -49,6 +49,7 @@ public class ProtoChannel implements StreamObserver<Message>, Channel {
 
     @Override
     public void onError(Throwable throwable) {
+        if(closed || listeners == null) return;
         listeners.forEach(l -> l.onError(throwable, this));
     }
 
@@ -60,6 +61,7 @@ public class ProtoChannel implements StreamObserver<Message>, Channel {
     public void close() {
         if(closed) return;
         closed = true;
+        if(listeners == null) return;
         listeners.forEach(l -> l.onClose(this));
         listeners = null;
         try{
