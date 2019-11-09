@@ -51,7 +51,7 @@ public class PeersCache {
         if (peer.equals(self)) {
             return;
         }
-
+        if(blocked.containsKey(peer)) return;
         peer.score = PEER_SCORE;
         int idx = self.subTree(peer);
         if (peers[idx] == null) {
