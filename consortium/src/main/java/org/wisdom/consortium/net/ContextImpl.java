@@ -2,7 +2,6 @@ package org.wisdom.consortium.net;
 
 import lombok.Builder;
 import org.wisdom.common.Peer;
-import org.wisdom.common.Serializable;
 import org.wisdom.consortium.proto.*;
 
 @Builder
@@ -14,7 +13,7 @@ public class ContextImpl implements org.wisdom.common.Context {
     boolean block;
     PeerImpl remote;
     Message message;
-    Serializable response;
+    byte[] response;
     Channel channel;
 
 
@@ -38,7 +37,7 @@ public class ContextImpl implements org.wisdom.common.Context {
     }
 
     @Override
-    public void response(Serializable message) {
+    public void response(byte[] message) {
         response = message;
     }
 

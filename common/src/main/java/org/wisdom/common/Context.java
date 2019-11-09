@@ -12,7 +12,7 @@ public interface Context {
     void keep();
 
     // response to the remote peer
-    void response(Serializable message);
+    void response(byte[] message);
 
     // relay the received message
     void relay();

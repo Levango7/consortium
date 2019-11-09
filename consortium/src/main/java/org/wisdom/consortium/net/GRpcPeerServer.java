@@ -32,8 +32,8 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements Channel.C
     }
 
     @Override
-    public void dial(Peer peer, Serializable message) {
-        client.dial(peer, Code.ANOTHER, 1, message.getBytes());
+    public void dial(Peer peer, byte[] message) {
+        client.dial(peer, Code.ANOTHER, 1, message);
     }
 
     @Override
@@ -196,6 +196,7 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements Channel.C
         for (Plugin plugin : plugins) {
             plugin.onMessage(context, this);
             if(context.block){
+                channel.close();
                 client.peersCache.block(peer.get());
                 return;
             }
@@ -214,7 +215,7 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements Channel.C
                 client.relay(context.message, peer.get());
             }
             if(context.response != null){
-                channel.write(client.buildMessage(Code.ANOTHER, 1, context.response.getBytes()));
+                channel.write(client.buildMessage(Code.ANOTHER, 1, context.response));
                 context.response = null;
             }
         }

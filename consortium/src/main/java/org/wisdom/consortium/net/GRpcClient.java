@@ -37,35 +37,40 @@ public class GRpcClient implements Channel.ChannelListener {
         peersCache.getChannels().forEach(ch -> ch.write(buildMessage(code, ttl, body)));
     }
 
-    public Channel dial(Peer peer, Code code, long ttl, byte[] body, Channel.ChannelListener... listeners) {
+    public Optional<Channel> dial(Peer peer, Code code, long ttl, byte[] body, Channel.ChannelListener... listeners) {
         return dial(peer, buildMessage(code, ttl, body), listeners);
     }
 
-    public Channel dial(String host, int port, Code code, long ttl, byte[] body, Channel.ChannelListener... listeners) {
+    public Optional<Channel> dial(String host, int port, Code code, long ttl, byte[] body, Channel.ChannelListener... listeners) {
         return dial(host, port, buildMessage(code, ttl, body), listeners);
     }
 
-    private Channel dial(String host, int port, Message message, Channel.ChannelListener... listeners) {
-        Channel ch = createChannel(host, port, listeners);
-        ch.write(message);
+    private Optional<Channel> dial(String host, int port, Message message, Channel.ChannelListener... listeners) {
+        Optional<Channel> ch = createChannel(host, port, listeners);
+        ch.ifPresent(x -> x.write(message));
         return ch;
     }
 
-    private Channel dial(Peer peer, Message message, Channel.ChannelListener... listeners) {
+    private Optional<Channel> dial(Peer peer, Message message, Channel.ChannelListener... listeners) {
         Optional<Channel> o = peersCache.getChannel(peer.getID());
         if (o.isPresent() && !o.get().isClosed()) {
             o.get().write(message);
-            return o.get();
+            return o;
         }
-        Channel ch = createChannel(peer.getHost(), peer.getPort(), listeners);
-        ch.write(message);
+        Optional<Channel> ch = createChannel(peer.getHost(), peer.getPort(), listeners);
+        ch.ifPresent(x -> x.write(message));
         return ch;
     }
 
 
-    Channel createChannel(String host, int port, Channel.ChannelListener... listeners) {
-        ManagedChannel ch = ManagedChannelBuilder
-                .forAddress(host, port).usePlaintext().build();
+    Optional<Channel> createChannel(String host, int port, Channel.ChannelListener... listeners) {
+        ManagedChannel ch;
+        try{
+            ch = ManagedChannelBuilder
+                    .forAddress(host, port).usePlaintext().build();
+        }catch (Throwable ignored){
+            return Optional.empty();
+        }
         EntryGrpc.EntryStub stub = EntryGrpc.newStub(ch);
         ProtoChannel channel = new ProtoChannel();
         channel.addListener(this);
@@ -73,7 +78,7 @@ public class GRpcClient implements Channel.ChannelListener {
         channel.addListener(listeners);
         channel.setOut(stub.entry(channel));
         log.info("create channel to " + host + ":" + port);
-        return channel;
+        return Optional.of(channel);
     }
 
     StreamObserver<Message> createObserver(StreamObserver<Message> out, Channel.ChannelListener... listeners) {
@@ -97,9 +102,11 @@ public class GRpcClient implements Channel.ChannelListener {
     @Override
     public void onError(Throwable throwable, Channel channel) {
         if (config.isEnableDiscovery()) {
-            channel.getRemote().ifPresent(x -> peersCache.half(x));
+            channel.getRemote()
+                    .filter(x -> !peersCache.hasBlocked(x))
+                    .ifPresent(x -> peersCache.half(x));
         }
-        log.error(throwable.getMessage());
+        log.error("error found" + throwable.getMessage());
     }
 
     @Override
@@ -123,6 +130,7 @@ public class GRpcClient implements Channel.ChannelListener {
     }
 
     void relay(Message message, Peer receivedFrom) {
+        System.nanoTime();
         Message.Builder builder = Message.newBuilder().mergeFrom(message)
                 .setCreatedAt(
                         Timestamp.newBuilder().setSeconds(System.currentTimeMillis() / 1000).build()

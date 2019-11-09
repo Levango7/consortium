@@ -7,7 +7,7 @@ import java.util.Properties;
 
 public interface PeerServer {
     // dial a peer with a message
-    void dial(Peer peer, Serializable message);
+    void dial(Peer peer, byte[] message);
 
     // broadcast a message to all the peers
     void broadcast(byte[] message);

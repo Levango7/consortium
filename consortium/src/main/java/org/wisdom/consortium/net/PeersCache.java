@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 // peers cache for peer searching/discovery
 public class PeersCache {
     private static final int PEER_SCORE = 32;
-    private static final int EVIL_SCORE = -(1 << 10);
+    private static final int EVIL_SCORE = -(1 << 31);
     private PeerServerConfig config;
 
     static class Bucket {
