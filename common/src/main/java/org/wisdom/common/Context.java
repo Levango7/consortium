@@ -1,5 +1,7 @@
 package org.wisdom.common;
 
+import java.util.Collection;
+
 // context for communicating with peer server and plugin
 public interface Context {
     // disconnect to the peer
@@ -13,6 +15,9 @@ public interface Context {
 
     // response to the remote peer
     void response(byte[] message);
+
+    // batch response
+    void response(Collection<byte[]> messages);
 
     // relay the received message
     void relay();

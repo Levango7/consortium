@@ -109,7 +109,10 @@ public class GRpcDebugTool {
                         .ifPresent(ch ->
                                 ch.write(
                                         server.getClient()
-                                                .buildMessage(Code.PING, 1, Ping.newBuilder().build().toByteArray())
+                                                .messageBuilder
+                                                .buildMessage(
+                                                        Code.PING, 1, Ping.newBuilder().build().toByteArray()
+                                                )
                                 ));
                 continue;
             }

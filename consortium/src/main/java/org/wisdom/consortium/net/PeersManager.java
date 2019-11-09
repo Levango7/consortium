@@ -31,7 +31,7 @@ public class PeersManager implements Plugin {
         switch (context.message.getCode()) {
             case PING:
                 context.channel.write(
-                        client.buildMessage(
+                        client.messageBuilder.buildMessage(
                                 Code.PONG, 1, context.message.getBody().toByteArray()
                         )
                 );
@@ -42,7 +42,7 @@ public class PeersManager implements Plugin {
                                 .collect(Collectors.toSet())
                 ).build();
                 context.channel.write(
-                    client.buildMessage(Code.PEERS, 1, peers.toByteArray())
+                    client.messageBuilder.buildMessage(Code.PEERS, 1, peers.toByteArray())
                 );
                 return;
             case PEERS:
@@ -66,6 +66,7 @@ public class PeersManager implements Plugin {
         this.server = server;
         PeersCache cache = server.getClient().peersCache;
         if(!config.isEnableDiscovery()) return;
+        GRpcClient client = server.getClient();
         Start.APPLICATION_THREAD_POOL.execute(() -> {
             while (true){
                 if(cache.isFull()) continue;
@@ -77,7 +78,7 @@ public class PeersManager implements Plugin {
                 }
                 channels.forEach(
                         c -> c.write(
-                                server.getClient().buildMessage(
+                                server.getClient().messageBuilder.buildMessage(
                                         Code.LOOK_UP, 1, Lookup.newBuilder().build().toByteArray()
                                 )
                         )
@@ -86,9 +87,10 @@ public class PeersManager implements Plugin {
                         .filter(x -> !cache.has(x))
                         .limit(config.getMaxPeers())
                         .forEach(
-                                x -> server.getClient().dial(
-                                        x, Code.PING, 1, Ping.newBuilder().build().toByteArray()
-                                )
+                                x -> client.dial(
+                                        x,  client.messageBuilder.buildMessage(
+                                                Code.PING, 1, Ping.newBuilder().build().toByteArray()
+                                ))
                         );
 
                 pending.clear();

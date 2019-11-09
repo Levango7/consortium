@@ -4,6 +4,9 @@ import lombok.Builder;
 import org.wisdom.common.Peer;
 import org.wisdom.consortium.proto.*;
 
+import java.util.Collection;
+import java.util.Collections;
+
 @Builder
 public class ContextImpl implements org.wisdom.common.Context {
     boolean keep;
@@ -15,6 +18,7 @@ public class ContextImpl implements org.wisdom.common.Context {
     Message message;
     byte[] response;
     Channel channel;
+    MessageBuilder builder;
 
 
     public void exit() {
@@ -38,7 +42,15 @@ public class ContextImpl implements org.wisdom.common.Context {
 
     @Override
     public void response(byte[] message) {
-        response = message;
+        response(Collections.singleton(message));
+    }
+
+    @Override
+    public void response(Collection<byte[]> messages) {
+        if (block || disconnect || exit) return;
+        for(byte[] msg: messages){
+            channel.write(builder.buildMessage(Code.ANOTHER, 1, msg));
+        }
     }
 
     @Override

@@ -31,7 +31,10 @@ public class ProtoChannel implements StreamObserver<Message>, Channel {
         if(closed) return;
         handlePing(message);
         if(listeners == null) return;
-        listeners.forEach(l -> l.onMessage(message, this));
+        for(ChannelListener listener: listeners){
+            if(closed) return;
+            listener.onMessage(message, this);
+        }
     }
 
     private void handlePing(Message message) {
@@ -44,13 +47,19 @@ public class ProtoChannel implements StreamObserver<Message>, Channel {
         pinged = true;
         remote = o.get();
         if(listeners == null) return;
-        listeners.forEach(l -> l.onConnect(remote, this));
+        for(ChannelListener listener: listeners){
+            if(closed) return;
+            listener.onConnect(remote, this);
+        }
     }
 
     @Override
     public void onError(Throwable throwable) {
         if(closed || listeners == null) return;
-        listeners.forEach(l -> l.onError(throwable, this));
+        for(ChannelListener listener: listeners){
+            if(closed) return;
+            listener.onError(throwable, this);
+        }
     }
 
     @Override
@@ -79,7 +88,7 @@ public class ProtoChannel implements StreamObserver<Message>, Channel {
         } catch (Throwable e) {
             log.error(e.getMessage());
             if(listeners == null) return;
-            listeners.forEach(l -> l.onError(e, this));
+            onError(e);
         }
     }
 

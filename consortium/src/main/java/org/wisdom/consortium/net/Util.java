@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
-import java.util.Optional;
 
 public class Util {
     public static byte[] getRawForSign(Message msg) {

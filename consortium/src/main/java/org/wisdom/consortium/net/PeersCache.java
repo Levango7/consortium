@@ -5,6 +5,7 @@ import org.wisdom.common.Peer;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -102,9 +103,6 @@ public class PeersCache {
 
     // remove the peer and close the channel
     void remove(PeerImpl peer) {
-        if (blocked.containsKey(peer)) {
-            return;
-        }
         int idx = self.subTree(peer);
         if (peers[idx] == null) {
             return;
