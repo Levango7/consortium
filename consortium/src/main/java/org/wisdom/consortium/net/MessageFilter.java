@@ -49,7 +49,6 @@ public class MessageFilter implements Plugin {
             context.exit();
         }
         cache.put(k, true);
-        context.keep();
     }
 
     @Override

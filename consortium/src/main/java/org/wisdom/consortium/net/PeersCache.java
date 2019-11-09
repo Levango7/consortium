@@ -67,6 +67,7 @@ public class PeersCache {
         if (o.isPresent()) {
             PeerImpl p = o.get();
             p.score += PEER_SCORE;
+            peers[idx].channels.put(p, channel);
             return;
         }
 

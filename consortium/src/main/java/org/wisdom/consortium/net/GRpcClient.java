@@ -3,10 +3,15 @@ package org.wisdom.consortium.net;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.wisdom.consortium.proto.*;
 import org.wisdom.common.Peer;
 
+import java.net.URI;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -15,6 +20,40 @@ public class GRpcClient implements Channel.ChannelListener {
     private PeerServerConfig config;
     MessageBuilder messageBuilder;
     PeersCache peersCache;
+
+    @AllArgsConstructor
+    private static class BootstrapChannelListener implements Channel.ChannelListener {
+        private GRpcClient client;
+        private Channel.ChannelListener listener;
+        @Override
+        public void onConnect(PeerImpl remote, Channel channel) {
+            client.peersCache.bootstraps.put(remote, true);
+            client.peersCache.keep(remote, channel);
+            if(listener == null)return;
+            listener.onConnect(remote, channel);
+        }
+
+        @Override
+        public void onMessage(Message message, Channel channel) {
+            client.onMessage(message, channel);
+            if(listener == null) return;
+            listener.onMessage(message, channel);
+        }
+
+        @Override
+        public void onError(Throwable throwable, Channel channel) {
+            client.onError(throwable, channel);
+            if(listener == null) return;
+            listener.onError(throwable, channel);
+        }
+
+        @Override
+        public void onClose(Channel channel) {
+            client.onClose(channel);
+            if(listener == null) return;
+            listener.onClose(channel);
+        }
+    }
 
     public GRpcClient(PeerImpl self, PeerServerConfig config) {
         this.peersCache = new PeersCache(self, config);
@@ -31,30 +70,38 @@ public class GRpcClient implements Channel.ChannelListener {
         peersCache.getChannels().forEach(ch -> ch.write(message));
     }
 
-    void dial(String host, int port, Message message) {
-        Optional<Channel> ch = createChannel(host, port);
-        ch.ifPresent(x -> x.write(message));
-    }
-
     void dial(Peer peer, Message message) {
         Optional<Channel> o = peersCache.getChannel(peer.getID());
         if (o.isPresent() && !o.get().isClosed()) {
             o.get().write(message);
             return;
         }
-        Optional<Channel> ch = createChannel(peer.getHost(), peer.getPort());
+        Optional<Channel> ch = createChannel(peer.getHost(), peer.getPort(), this, listener);
         ch.ifPresent(x -> x.write(message));
     }
 
+    void dial(String host, int port, Message message) {
+        createChannel(host, port, this, listener).ifPresent(ch -> ch.write(message));
+    }
 
-    Optional<Channel> createChannel(String host, int port) {
+    void bootstrap(Collection<URI> uris) {
+        for (URI uri : uris) {
+            createChannel(uri.getHost(), uri.getPort(), new BootstrapChannelListener(this, listener));
+        }
+    }
+
+    private Optional<Channel> createChannel(String host, int port, Channel.ChannelListener... listeners) {
         try {
             ManagedChannel ch = ManagedChannelBuilder
                     .forAddress(host, port).usePlaintext().build();
             EntryGrpc.EntryStub stub = EntryGrpc.newStub(ch);
             ProtoChannel channel = new ProtoChannel();
-            channel.addListener(this);
-            if (listener != null) channel.addListener(listener);
+            channel.addListener(
+                    Arrays.stream(listeners)
+                            .filter(Objects::nonNull)
+                            .toArray(Channel.ChannelListener[]::new
+                            )
+            );
             channel.setOut(stub.entry(channel));
             channel.write(messageBuilder.buildMessage(Code.PING, 1, Ping.newBuilder().build().toByteArray()));
             return Optional.of(channel);
@@ -73,16 +120,14 @@ public class GRpcClient implements Channel.ChannelListener {
 
     @Override
     public void onConnect(PeerImpl remote, Channel channel) {
-        boolean isBootstrap = config.getBootstraps() != null &&
-                config.getBootstraps().stream().anyMatch(
-                        x -> x.getHost().equals(remote.getHost()) && x.getPort() == remote.getPort()
-                );
-        if (!config.isEnableDiscovery() && !isBootstrap) {
+        if (!config.isEnableDiscovery() && !peersCache.bootstraps.containsKey(remote)) {
             channel.close();
             return;
         }
-        if(isBootstrap){
-            peersCache.bootstraps.put(remote, true);
+        if (peersCache.getChannel(remote).map(c -> !c.isClosed()).orElse(false)) {
+            // the channel had already exists
+            channel.close();
+            return;
         }
         peersCache.keep(remote, channel);
     }
@@ -109,7 +154,7 @@ public class GRpcClient implements Channel.ChannelListener {
         peersCache.remove(remote.get());
     }
 
-    void relay(Message message, PeerImpl receivedFrom){
+    void relay(Message message, PeerImpl receivedFrom) {
         peersCache.getChannels()
                 .filter(x -> !x.getRemote().map(p -> p.equals(receivedFrom)).orElse(false))
                 .forEach(c -> c.write(messageBuilder.buildRelay(message)));

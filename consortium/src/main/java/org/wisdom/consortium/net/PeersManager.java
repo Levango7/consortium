@@ -28,6 +28,7 @@ public class PeersManager implements Plugin {
     public void onMessage(ContextImpl context, ProtoPeerServer server) {
         PeersCache cache = server.getClient().peersCache;
         GRpcClient client = server.getClient();
+        context.keep();
         switch (context.message.getCode()) {
             case PING:
                 context.channel.write(
@@ -70,19 +71,7 @@ public class PeersManager implements Plugin {
         Start.APPLICATION_THREAD_POOL.execute(() -> {
             while (true){
                 if(cache.isFull()) continue;
-                List<Channel> channels = server.getClient().peersCache.getChannels().collect(Collectors.toList());
-                if(channels.size() == 0){
-                    channels = cache.bootstraps.keySet()
-                            .stream().map(p -> server.getClient().createChannel(p.getHost(), p.getPort()))
-                            .filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList());
-                }
-                channels.forEach(
-                        c -> c.write(
-                                server.getClient().messageBuilder.buildMessage(
-                                        Code.LOOK_UP, 1, Lookup.newBuilder().build().toByteArray()
-                                )
-                        )
-                );
+                lookup();
                 pending.keySet().stream()
                         .filter(x -> !cache.has(x))
                         .limit(config.getMaxPeers())
@@ -100,6 +89,20 @@ public class PeersManager implements Plugin {
                 }catch (Exception ignored){}
             }
         });
+    }
+
+    private void lookup(){
+        Message lookup = server.getClient().messageBuilder.buildMessage(
+                Code.LOOK_UP, 1, Lookup.newBuilder().build().toByteArray()
+        );
+        if(server.getClient().peersCache.size() > 0){
+            server.getClient().broadcast(lookup);
+            return;
+        }
+        server.getClient().peersCache.bootstraps.keySet().forEach(p
+                        ->
+            server.getClient().dial(p, lookup)
+        );
     }
 
     @Override

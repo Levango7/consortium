@@ -83,7 +83,7 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements Channel.C
                         self.getPort()));
 
         if (config.getBootstraps() == null) return;
-        config.getBootstraps().forEach(x -> client.createChannel(x.getHost(), x.getPort()));
+        client.bootstrap(config.getBootstraps());
     }
 
     @Override
@@ -106,6 +106,10 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements Channel.C
             throw new PeerServerLoadException(
                     "load properties failed :" + properties.toString() + " expecting " + schema
             );
+        }
+        if(!config.isEnableDiscovery() && (config.getBootstraps() == null || config.getBootstraps().size() == 0)){
+            throw new PeerServerLoadException("cannot connect to any peer fot the discovery " +
+                    "is disabled and none bootstraps provided");
         }
         try {
             self = PeerImpl.create(config.getAddress());

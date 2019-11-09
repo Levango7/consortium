@@ -15,10 +15,7 @@ import org.wisdom.consortium.proto.Code;
 import org.wisdom.consortium.proto.Ping;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
-import java.util.Scanner;
+import java.util.*;
 
 
 @Slf4j
@@ -44,7 +41,10 @@ public class GRpcDebugTool {
             }
         }
         properties.setProperty("max-peers", "32");
-        properties.setProperty("enable-discovery", "true");
+        properties.setProperty(
+                "enable-discovery",
+                Optional.ofNullable(System.getenv("X_ENABLE_DISCOVERY")).orElse("false")
+        );
         server.load(properties);
         server.use(new PeerServerListener() {
             @Override
@@ -105,15 +105,12 @@ public class GRpcDebugTool {
             if(line.startsWith("connect")){
                 String[] hostPort = line.substring("connect".length()).trim()
                         .split("\\s|:");
-                server.getClient().createChannel(hostPort[0], Integer.parseInt(hostPort[1]))
-                        .ifPresent(ch ->
-                                ch.write(
-                                        server.getClient()
-                                                .messageBuilder
-                                                .buildMessage(
-                                                        Code.PING, 1, Ping.newBuilder().build().toByteArray()
-                                                )
-                                ));
+                server.getClient().dial(hostPort[0], Integer.parseInt(hostPort[1]),
+                        server.getClient()
+                        .messageBuilder
+                        .buildMessage(
+                                Code.PING, 1, Ping.newBuilder().build().toByteArray()
+                        ));
                 continue;
             }
             if(line.equals("bootstraps")){
