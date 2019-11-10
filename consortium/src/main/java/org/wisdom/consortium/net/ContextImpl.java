@@ -49,7 +49,7 @@ public class ContextImpl implements org.wisdom.common.Context {
     public void response(Collection<byte[]> messages) {
         if (block || disconnect || exit) return;
         for(byte[] msg: messages){
-            channel.write(builder.buildMessage(Code.ANOTHER, 1, msg));
+            channel.write(builder.buildAnother(msg));
         }
     }
 

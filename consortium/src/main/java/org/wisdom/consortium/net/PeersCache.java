@@ -5,8 +5,6 @@ import org.wisdom.common.Peer;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 // peers cache for peer searching/discovery
@@ -21,9 +19,11 @@ public class PeersCache {
 
     private Bucket[] peers = new Bucket[256];
 
-    ConcurrentHashMap<PeerImpl, Boolean> bootstraps = new ConcurrentHashMap<>();
+    Map<PeerImpl, Boolean> bootstraps = new ConcurrentHashMap<>();
 
-    ConcurrentHashMap<PeerImpl, Boolean> blocked = new ConcurrentHashMap<>();
+    Map<PeerImpl, Boolean> blocked = new ConcurrentHashMap<>();
+
+    Map<PeerImpl, Boolean> trusted = new ConcurrentHashMap<>();
 
     private PeerImpl self;
 
@@ -52,7 +52,6 @@ public class PeersCache {
             return;
         }
         if(blocked.containsKey(peer)) return;
-        peer.score = PEER_SCORE;
         int idx = self.subTree(peer);
         if (peers[idx] == null) {
             peers[idx] = new Bucket();
@@ -65,10 +64,12 @@ public class PeersCache {
         // increase its score
         if (o.isPresent()) {
             PeerImpl p = o.get();
-            p.score += PEER_SCORE;
+            p.setScore(p.getScore() + PEER_SCORE);
             peers[idx].channels.put(p, channel);
             return;
         }
+
+        peer.setScore(PEER_SCORE);
 
         if (size() < config.getMaxPeers()) {
             peers[idx].channels.put(peer, channel);
@@ -134,6 +135,7 @@ public class PeersCache {
     }
 
     public void block(PeerImpl peer) {
+        if(trusted.containsKey(peer)) return;
         remove(peer);
         peer.score = EVIL_SCORE;
         blocked.put(peer, true);

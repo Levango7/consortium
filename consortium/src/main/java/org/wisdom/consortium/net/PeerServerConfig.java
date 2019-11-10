@@ -27,6 +27,7 @@ public class PeerServerConfig {
     private boolean enableDiscovery;
     private String address;
     private List<URI> bootstraps;
+    private List<URI> trusted;
 
     public static PeerServerConfig createDefault(){
         return PeerServerConfig.builder()

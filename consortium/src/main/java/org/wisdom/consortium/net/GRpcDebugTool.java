@@ -40,6 +40,12 @@ public class GRpcDebugTool {
                 properties.setProperty("bootstraps." + i, bootstraps[i-1]);
             }
         }
+        if(System.getenv("X_TRUSTED") != null){
+            String[] trusted = System.getenv("X_TRUSTED").split(",");
+            for(int i = 1; i < trusted.length + 1; i++){
+                properties.setProperty("trusted." + i, trusted[i-1]);
+            }
+        }
         properties.setProperty("max-peers", "32");
         properties.setProperty(
                 "enable-discovery",
@@ -102,19 +108,22 @@ public class GRpcDebugTool {
                 System.out.println(server.getSelf());
                 continue;
             }
+            if(line.equals("trusted")){
+                server.getClient().peersCache.trusted.keySet().forEach(System.out::println);
+                continue;
+            }
             if(line.startsWith("connect")){
                 String[] hostPort = line.substring("connect".length()).trim()
                         .split("\\s|:");
                 server.getClient().dial(hostPort[0], Integer.parseInt(hostPort[1]),
                         server.getClient()
                         .messageBuilder
-                        .buildMessage(
-                                Code.PING, 1, Ping.newBuilder().build().toByteArray()
-                        ));
+                        .buildPing());
                 continue;
             }
             if(line.equals("bootstraps")){
                 server.getBootStraps().forEach(System.out::println);
+                continue;
             }
             if(line.startsWith("broadcast")){
                 server.broadcast(line.substring("broadcast".length())

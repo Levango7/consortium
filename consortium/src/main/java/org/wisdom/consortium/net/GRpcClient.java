@@ -22,16 +22,9 @@ public class GRpcClient implements Channel.ChannelListener {
     PeersCache peersCache;
 
     @AllArgsConstructor
-    private static class BootstrapChannelListener implements Channel.ChannelListener {
-        private GRpcClient client;
-        private Channel.ChannelListener listener;
-        @Override
-        public void onConnect(PeerImpl remote, Channel channel) {
-            client.peersCache.bootstraps.put(remote, true);
-            client.peersCache.keep(remote, channel);
-            if(listener == null)return;
-            listener.onConnect(remote, channel);
-        }
+    private abstract static class AbstractChannelListener implements Channel.ChannelListener{
+        protected GRpcClient client;
+        protected Channel.ChannelListener listener;
 
         @Override
         public void onMessage(Message message, Channel channel) {
@@ -52,6 +45,41 @@ public class GRpcClient implements Channel.ChannelListener {
             client.onClose(channel);
             if(listener == null) return;
             listener.onClose(channel);
+        }
+    }
+
+    private static class BootstrapChannelListener extends AbstractChannelListener {
+        private BootstrapChannelListener(GRpcClient client, Channel.ChannelListener listener) {
+            super(client, listener);
+        }
+
+        @Override
+        public void onConnect(PeerImpl remote, Channel channel) {
+            client.peersCache.bootstraps.put(remote, true);
+            if(client.peersCache.has(remote)){
+                channel.close();
+                return;
+            }
+            client.peersCache.keep(remote, channel);
+            if(listener == null)return;
+            listener.onConnect(remote, channel);
+        }
+    }
+
+    private static class TrustedChannelListener extends AbstractChannelListener {
+        public TrustedChannelListener(GRpcClient client, Channel.ChannelListener listener) {
+            super(client, listener);
+        }
+        @Override
+        public void onConnect(PeerImpl remote, Channel channel) {
+            client.peersCache.trusted.put(remote, true);
+            if(client.peersCache.has(remote)){
+                channel.close();
+                return;
+            }
+            client.peersCache.keep(remote, channel);
+            if(listener == null)return;
+            listener.onConnect(remote, channel);
         }
     }
 
@@ -90,6 +118,12 @@ public class GRpcClient implements Channel.ChannelListener {
         }
     }
 
+    void trust(Collection<URI> trusted){
+        for (URI uri : trusted) {
+            createChannel(uri.getHost(), uri.getPort(), new TrustedChannelListener(this, listener));
+        }
+    }
+
     private Optional<Channel> createChannel(String host, int port, Channel.ChannelListener... listeners) {
         try {
             ManagedChannel ch = ManagedChannelBuilder
@@ -103,7 +137,7 @@ public class GRpcClient implements Channel.ChannelListener {
                             )
             );
             channel.setOut(stub.entry(channel));
-            channel.write(messageBuilder.buildMessage(Code.PING, 1, Ping.newBuilder().build().toByteArray()));
+            channel.write(messageBuilder.buildPing());
             return Optional.of(channel);
         } catch (Throwable ignored) {
             return Optional.empty();
