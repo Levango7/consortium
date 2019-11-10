@@ -16,7 +16,6 @@ public class ContextImpl implements org.wisdom.common.Context {
     boolean block;
     PeerImpl remote;
     Message message;
-    byte[] response;
     Channel channel;
     MessageBuilder builder;
 
