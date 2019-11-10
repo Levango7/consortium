@@ -60,7 +60,7 @@ public class PeersCache {
 
         // if the peer already had been put
         Optional<PeerImpl> o = peers[idx].channels.keySet().stream()
-                .filter(k -> k.equals(peer)).findFirst();
+                .filter(k -> k.equals(peer)).findAny();
 
         // increase its score
         if (o.isPresent()) {
@@ -97,7 +97,7 @@ public class PeersCache {
 
         // the conditions above are both filled
         bucket.get().keySet()
-                .stream().findFirst()
+                .stream().findAny()
                 .ifPresent(this::remove);
 
         peers[idx].channels.put(peer, channel);
@@ -135,6 +135,12 @@ public class PeersCache {
     public void block(PeerImpl peer) {
         if(trusted.containsKey(peer)) return;
         if(!config.isEnableDiscovery() && bootstraps.containsKey(peer)) return;
+        if(blocked.containsKey(peer)){
+            blocked.keySet().stream()
+                    .filter(p -> p.equals(peer))
+                    .forEach(x -> x.setScore(EVIL_SCORE));
+            return;
+        }
         remove(peer);
         peer.score = EVIL_SCORE;
         blocked.put(peer, true);
@@ -145,8 +151,9 @@ public class PeersCache {
         int idx = self.subTree(peer);
         if (peers[idx] == null) return;
         peers[idx].channels.keySet()
-                .stream().filter(p -> p.equals(peer))
-                .findFirst()
+                .stream()
+                .filter(p -> p.equals(peer))
+                .findAny()
                 .filter(p -> {
                     p.score /= 2;
                     return p.score == 0;
