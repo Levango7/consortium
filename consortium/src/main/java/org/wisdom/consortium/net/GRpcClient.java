@@ -154,7 +154,10 @@ public class GRpcClient implements Channel.ChannelListener {
 
     @Override
     public void onConnect(PeerImpl remote, Channel channel) {
-        if (!config.isEnableDiscovery() && !peersCache.bootstraps.containsKey(remote)) {
+        if (!config.isEnableDiscovery() &&
+                !peersCache.bootstraps.containsKey(remote) &&
+                !peersCache.trusted.containsKey(remote)
+        ) {
             channel.close();
             return;
         }
@@ -172,12 +175,10 @@ public class GRpcClient implements Channel.ChannelListener {
 
     @Override
     public void onError(Throwable throwable, Channel channel) {
-        if (config.isEnableDiscovery()) {
-            channel.getRemote()
+        channel.getRemote()
                     .filter(x -> !peersCache.hasBlocked(x))
                     .ifPresent(x -> peersCache.half(x));
-        }
-        log.error("error found" + throwable.getMessage());
+        log.error("error found " + throwable.getMessage());
     }
 
     @Override

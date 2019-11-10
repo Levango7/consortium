@@ -82,13 +82,6 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements Channel.C
                         ,
                         self.getHost(),
                         self.getPort()));
-        if(!config.isEnableDiscovery()){
-            List<URI> all = Stream.of(config.getBootstraps(), config.getTrusted())
-                    .filter(Objects::nonNull).flatMap(Collection::stream)
-                    .collect(Collectors.toList());
-            client.trust(all);
-            return;
-        }
         if(config.getBootstraps() != null){
             client.bootstrap(config.getBootstraps());
         }

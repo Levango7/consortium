@@ -29,11 +29,10 @@ public class GRpcDebugTool {
             }
         });
         // port listening on
-        int port = Integer.parseInt(System.getenv("X_PORT"));
         Cache<String, Boolean> cache = CacheBuilder.newBuilder().maximumSize(16).build();
         GRpcPeerServer server = new GRpcPeerServer();
         Properties properties = new PeerServerProperties();
-        properties.setProperty("address", "node://localhost:" + port);
+        properties.setProperty("address", System.getenv("X_ADDRESS"));
         if(System.getenv("X_BOOTSTRAPS") != null){
             String[] bootstraps = System.getenv("X_BOOTSTRAPS").split(",");
             for(int i = 1; i < bootstraps.length + 1; i++){

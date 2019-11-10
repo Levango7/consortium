@@ -106,6 +106,7 @@ public class PeersManager implements Plugin {
         }
         if(cache.size() > 0){
             client.broadcast(builder.buildLookup());
+            cache.trusted.keySet().forEach(p -> client.dial(p, builder.buildPing()));
             return;
         }
         Stream.of(cache.bootstraps, cache.trusted)

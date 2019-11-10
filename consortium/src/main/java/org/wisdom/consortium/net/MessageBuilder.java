@@ -36,8 +36,10 @@ public class MessageBuilder {
     }
 
     public Message buildPeers(Collection<? extends Peer> peers){
-        return buildMessage(Code.PEERS, 1, Peers.newBuilder().addAllPeers(
-                peers.stream().map(Peer::encodeURI).collect(Collectors.toList()))
+        return buildMessage(Code.PEERS, 1, Peers
+                .newBuilder().addAllPeers(
+                    peers.stream().map(Peer::encodeURI).collect(Collectors.toList())
+                )
                 .build().toByteArray()
         );
     }

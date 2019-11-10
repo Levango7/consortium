@@ -136,6 +136,7 @@ public class PeersCache {
 
     public void block(PeerImpl peer) {
         if(trusted.containsKey(peer)) return;
+        if(!config.isEnableDiscovery() && bootstraps.containsKey(peer)) return;
         remove(peer);
         peer.score = EVIL_SCORE;
         blocked.put(peer, true);
