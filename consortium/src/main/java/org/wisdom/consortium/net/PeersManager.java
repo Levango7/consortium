@@ -63,12 +63,11 @@ public class PeersManager implements Plugin {
 
         // keep self alive
         Executors.newSingleThreadScheduledExecutor()
-                .schedule(() -> client.broadcast(
+                .scheduleAtFixedRate(() -> client.broadcast(
                         builder.buildPing()
-                ), DISCOVERY_RATE, TimeUnit.SECONDS);
-
+                ), 0, DISCOVERY_RATE, TimeUnit.SECONDS);
         Executors.newSingleThreadScheduledExecutor()
-                .schedule(() -> {
+                .scheduleAtFixedRate(() -> {
                     lookup();
                     cache.half();
                     if(!config.isEnableDiscovery()) return;
@@ -80,7 +79,7 @@ public class PeersManager implements Plugin {
                                     p -> client.dial(p, builder.buildPing())
                             );
                     pending.clear();
-                }, DISCOVERY_RATE, TimeUnit.SECONDS);
+                }, 0, DISCOVERY_RATE, TimeUnit.SECONDS);
     }
 
     private void lookup(){
