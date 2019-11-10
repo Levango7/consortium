@@ -5,6 +5,7 @@ import org.wisdom.common.Peer;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 // peers cache for peer searching/discovery
@@ -115,8 +116,8 @@ public class PeersCache {
     }
 
     // get limit peers randomly
-    public List<Peer> getPeers(int limit) {
-        List<Peer> res = getPeers();
+    public List<PeerImpl> getPeers(int limit) {
+        List<PeerImpl> res = getPeers().collect(Collectors.toList());
         Random rand = new Random();
         while (res.size() > 0 && res.size() > limit) {
             int idx = Math.abs(rand.nextInt()) % res.size();
@@ -125,13 +126,10 @@ public class PeersCache {
         return res;
     }
 
-    public List<Peer> getPeers() {
-        List<Peer> res = new ArrayList<>();
-        Stream.of(peers)
+    Stream<PeerImpl> getPeers() {
+        return Stream.of(peers)
                 .filter(Objects::nonNull)
-                .map(x -> x.channels.keySet())
-                .forEach(res::addAll);
-            return res;
+                .flatMap(x -> x.channels.keySet().stream());
     }
 
     public void block(PeerImpl peer) {

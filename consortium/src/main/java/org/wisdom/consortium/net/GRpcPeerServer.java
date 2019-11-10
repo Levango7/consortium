@@ -52,7 +52,7 @@ public class GRpcPeerServer extends EntryGrpc.EntryImplBase implements Channel.C
 
     @Override
     public List<Peer> getPeers() {
-        return client.peersCache.getPeers();
+        return client.peersCache.getPeers().collect(Collectors.toList());
     }
 
     @Override

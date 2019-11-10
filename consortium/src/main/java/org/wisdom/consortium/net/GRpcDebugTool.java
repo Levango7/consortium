@@ -1,7 +1,5 @@
 package org.wisdom.consortium.net;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import io.netty.util.internal.logging.InternalLogLevel;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
@@ -34,7 +32,6 @@ public class GRpcDebugTool {
             }
         });
         // port listening on
-        Cache<String, Boolean> cache = CacheBuilder.newBuilder().maximumSize(16).build();
         GRpcPeerServer server = new GRpcPeerServer();
         Properties properties = new PeerServerProperties();
         properties.setProperty("address", System.getenv("X_ADDRESS"));
@@ -92,14 +89,13 @@ public class GRpcDebugTool {
             }
         });
         server.start();
+        PeersCache cache = server.getClient().peersCache;
         Scanner scanner = new Scanner(System.in);
         while(true){
             String line = scanner.nextLine().trim();
             if(line.equals("peers")){
-                server.getPeers().forEach(x -> {
-                    System.out.println(x.encodeURI() + " " + ((PeerImpl) x).score);
-                });
-                server.getClient().peersCache.blocked.keySet().forEach(x -> {
+                cache.getPeers().forEach(x -> System.out.println(x.encodeURI() + " " + x.score));
+                cache.blocked.keySet().forEach(x -> {
                     System.out.println(x.encodeURI() + " " + x.score);
                 });
                 continue;
