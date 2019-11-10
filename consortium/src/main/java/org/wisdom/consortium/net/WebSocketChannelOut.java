@@ -1,21 +1,18 @@
 package org.wisdom.consortium.net;
 
 import lombok.AllArgsConstructor;
+import org.java_websocket.WebSocket;
 import org.wisdom.consortium.proto.Message;
-
-import javax.websocket.Session;
-import java.io.IOException;
 
 @AllArgsConstructor
 public class WebSocketChannelOut implements ChannelOut{
-    private Session session;
+    private WebSocket conn;
 
     @Override
     public void write(Message message) {
         try {
-            session.getBasicRemote()
-                    .sendBinary(message.toByteString().asReadOnlyByteBuffer());
-        } catch (IOException e) {
+            conn.send(message.toByteArray());
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -23,8 +20,8 @@ public class WebSocketChannelOut implements ChannelOut{
     @Override
     public void close() {
         try {
-            session.close();
-        } catch (IOException e) {
+            conn.close();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

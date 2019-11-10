@@ -38,6 +38,8 @@ dependencies {
     compile "com.google.guava:guava:${guavaVersion}"
     compile "commons-cli:commons-cli:${commonsCliVersion}"
     compile "io.grpc:grpc-all:${gRPCVersion}"
+    compile "org.java-websocket:Java-WebSocket:${webSocketVersion}"
+
 }
 
 task runTestCommunicationTool(type: JavaExec){

@@ -1,55 +1,79 @@
 package org.wisdom.consortium.net;
 
-import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
+import org.java_websocket.WebSocket;
+import org.java_websocket.handshake.ClientHandshake;
+import org.java_websocket.server.WebSocketServer;
 import org.wisdom.consortium.proto.Message;
 
-import javax.websocket.*;
-import javax.websocket.server.ServerEndpoint;
+import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 
-@ServerEndpoint("/move")
-public class WebSocketPeerServer extends AbstractPeerServer{
-    @OnMessage
-    public void onMessage(Session session, String message) {
-        ProtoChannel ch = CHANNELS.get(session);
-        if(ch == null) return;
-        try {
-            ch.message(Message.parseFrom(ByteString.copyFrom(message, StandardCharsets.UTF_8)));
-        } catch (InvalidProtocolBufferException e) {
-            e.printStackTrace();
+public class WebSocketPeerServer extends AbstractPeerServer {
+    private static class Server extends WebSocketServer {
+        final Map<WebSocket, ProtoChannel> channels = new ConcurrentHashMap<>();
+
+        private Client client;
+        private WebSocketPeerServer server;
+
+        public Server(int port, Client client, WebSocketPeerServer server) {
+            super(new InetSocketAddress(port));
+            this.client = client;
+            this.server = server;
+        }
+
+        @Override
+        public void onOpen(WebSocket conn, ClientHandshake handshake) {
+            ProtoChannel ch = new ProtoChannel();
+            ch.setOut(new WebSocketChannelOut(conn));
+            ch.addListener(client, server);
+            channels.put(conn, ch);
+        }
+
+        @Override
+        public void onClose(WebSocket conn, int code, String reason, boolean remote) {
+            ProtoChannel ch = channels.get(conn);
+            if (ch == null) return;
+            ch.close();
+            channels.remove(conn);
+        }
+
+        @Override
+        public void onMessage(WebSocket conn, String message) {
+            ProtoChannel ch = channels.get(conn);
+            if (ch == null) return;
+            try {
+                Message msg = Message.parseFrom(message.getBytes(StandardCharsets.UTF_8));
+                ch.message(msg);
+            } catch (InvalidProtocolBufferException e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        @Override
+        public void onError(WebSocket conn, Exception ex) {
+            ProtoChannel ch = channels.get(conn);
+            if (ch == null) return;
+            ch.error(ex);
+        }
+
+        @Override
+        public void onStart() {
+
         }
     }
 
-    static final Map<Session, ProtoChannel> CHANNELS = new ConcurrentHashMap<>();
-
-    @OnOpen
-    public void open(Session session) {
-        ProtoChannel ch = new ProtoChannel();
-        ch.addListener(client, this);
-        ch.setOut(new WebSocketChannelOut(session));
-        CHANNELS.put(session, ch);
-    }
-
-    @OnError
-    public void error(Session session, Throwable t) {
-        ProtoChannel ch = CHANNELS.get(session);
-        if(ch == null) return;
-        ch.error(t);
-    }
-
-    @OnClose
-    public void closedConnection(Session session) {
-        ProtoChannel ch = CHANNELS.get(session);
-        if(ch == null) return;
-        ch.close();
+    public WebSocketPeerServer() {
+        channelBuilder = new WebSocketChannelBuilder();
     }
 
     @Override
     void startListening() {
-
+        Server s = new Server(self.getPort(), client, this);
+        s.start();
     }
 }
