@@ -178,14 +178,14 @@ public class GRpcClient implements Channel.ChannelListener {
         channel.getRemote()
                     .filter(x -> !peersCache.hasBlocked(x))
                     .ifPresent(x -> peersCache.half(x));
-        log.error("error found " + throwable.getMessage());
+//        log.error("error found " + throwable.getMessage());
     }
 
     @Override
     public void onClose(Channel channel) {
         Optional<PeerImpl> remote = channel.getRemote();
         if (!remote.isPresent()) return;
-        log.error("close channel to " + remote.get());
+//        log.error("close channel to " + remote.get());
         peersCache.remove(remote.get());
     }
 
