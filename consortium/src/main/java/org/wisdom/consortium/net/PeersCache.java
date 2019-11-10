@@ -151,25 +151,20 @@ public class PeersCache {
 
     // decrease score of all peer
     public void half() {
-        List<PeerImpl> toRemove = new ArrayList<>();
-        Stream.of(peers).filter(Objects::nonNull)
+        List<PeerImpl> toRemoves = Stream.of(peers).filter(Objects::nonNull)
                 .flatMap(x -> x.channels.keySet().stream())
-                .forEach(p -> {
+                .filter(p -> {
                     p.score /= 2;
-                    if (p.score == 0){
-                        toRemove.add(p);
-                    }
-                });
-
-        List<PeerImpl> toRestore = new ArrayList<>();
-        toRemove.forEach(this::remove);
-        for (PeerImpl p : blocked.keySet()) {
-            p.score /= 2;
-            if (p.score == 0) {
-                toRestore.add(p);
-            }
-        }
-        toRestore.forEach(p -> blocked.remove(p));
+                    return p.score == 0;
+                }).collect(Collectors.toList());
+        toRemoves.forEach(this::remove);
+        List<PeerImpl> toRestores
+                = blocked.keySet().stream()
+                .filter(p -> {
+                    p.score /= 2;
+                    return p.score == 0;
+                }).collect(Collectors.toList());
+        toRestores.forEach(p -> blocked.remove(p));
     }
 
     public boolean isFull() {
