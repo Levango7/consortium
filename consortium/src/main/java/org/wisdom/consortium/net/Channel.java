@@ -2,7 +2,6 @@ package org.wisdom.consortium.net;
 
 import org.wisdom.consortium.proto.Message;
 
-import java.io.Closeable;
 import java.util.Optional;
 
 // channel for message transports
@@ -15,6 +14,12 @@ public interface Channel {
 
     // check whether the channel is closed
     boolean isClosed();
+
+    // notify listeners new message received
+    void message(Message message);
+
+    // notify listeners error
+    void error(Throwable throwable);
 
     interface ChannelListener {
         // triggered when channel is open, only once in the life cycle of the channel

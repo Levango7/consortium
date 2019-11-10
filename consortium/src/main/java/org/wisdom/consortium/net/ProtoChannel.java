@@ -1,6 +1,5 @@
 package org.wisdom.consortium.net;
 
-import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 import org.wisdom.consortium.proto.Message;
 
@@ -12,22 +11,22 @@ import java.util.Optional;
 
 // communicating channel with peer
 @Slf4j
-public class ProtoChannel implements StreamObserver<Message>, Channel {
+public class ProtoChannel implements Channel {
     private boolean closed;
     private PeerImpl remote;
-    private StreamObserver<Message> out;
+    private ChannelOut out;
     private boolean pinged;
     private List<ChannelListener> listeners = new ArrayList<>();
 
     public ProtoChannel() {
     }
 
-    public void setOut(StreamObserver<Message> out) {
+    public void setOut(ChannelOut out) {
         this.out = out;
     }
 
     @Override
-    public void onNext(Message message) {
+    public void message(Message message) {
         if(closed) return;
         handlePing(message);
         if(listeners == null) return;
@@ -54,7 +53,7 @@ public class ProtoChannel implements StreamObserver<Message>, Channel {
     }
 
     @Override
-    public void onError(Throwable throwable) {
+    public void error(Throwable throwable) {
         if(closed || listeners == null) return;
         for(ChannelListener listener: listeners){
             if(closed) return;
@@ -62,10 +61,6 @@ public class ProtoChannel implements StreamObserver<Message>, Channel {
         }
     }
 
-    @Override
-    public void onCompleted() {
-        close();
-    }
 
     public void close() {
         if(closed) return;
@@ -74,7 +69,7 @@ public class ProtoChannel implements StreamObserver<Message>, Channel {
         listeners.forEach(l -> l.onClose(this));
         listeners = null;
         try{
-            out.onCompleted();
+            out.close();
         }catch (Exception ignore){}
     }
 
@@ -84,11 +79,11 @@ public class ProtoChannel implements StreamObserver<Message>, Channel {
             return;
         }
         try {
-            out.onNext(message);
+            out.write(message);
         } catch (Throwable e) {
             log.error(e.getMessage());
             if(listeners == null) return;
-            onError(e);
+            error(e);
         }
     }
 

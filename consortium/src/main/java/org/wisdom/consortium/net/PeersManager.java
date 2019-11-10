@@ -3,7 +3,6 @@ package org.wisdom.consortium.net;
 import com.google.common.base.Functions;
 import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.extern.slf4j.Slf4j;
-import org.wisdom.consortium.Start;
 import org.wisdom.consortium.proto.*;
 
 import java.util.Optional;
@@ -26,7 +25,7 @@ public class PeersManager implements Plugin {
 
     @Override
     public void onMessage(ContextImpl context, ProtoPeerServer server) {
-        GRpcClient client = server.getClient();
+        Client client = server.getClient();
         PeersCache cache = client.peersCache;
         MessageBuilder builder = client.messageBuilder;
         context.keep();
@@ -57,7 +56,7 @@ public class PeersManager implements Plugin {
     @Override
     public void onStart(ProtoPeerServer server) {
         this.server = server;
-        GRpcClient client = server.getClient();
+        Client client = server.getClient();
         PeersCache cache = client.peersCache;
         MessageBuilder builder = client.messageBuilder;
 
@@ -83,7 +82,7 @@ public class PeersManager implements Plugin {
     }
 
     private void lookup(){
-        GRpcClient client = server.getClient();
+        Client client = server.getClient();
         PeersCache cache = client.peersCache;
         MessageBuilder builder = client.messageBuilder;
 

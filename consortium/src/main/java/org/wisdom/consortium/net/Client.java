@@ -1,29 +1,25 @@
 package org.wisdom.consortium.net;
 
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
-import io.grpc.stub.StreamObserver;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.wisdom.consortium.proto.*;
 import org.wisdom.common.Peer;
 
 import java.net.URI;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
-public class GRpcClient implements Channel.ChannelListener {
+public class Client implements Channel.ChannelListener {
     private Channel.ChannelListener listener;
     private PeerServerConfig config;
     MessageBuilder messageBuilder;
     PeersCache peersCache;
+    ChannelBuilder channelBuilder;
 
     @AllArgsConstructor
     private abstract static class AbstractChannelListener implements Channel.ChannelListener{
-        protected GRpcClient client;
+        protected Client client;
         protected Channel.ChannelListener listener;
 
         @Override
@@ -49,7 +45,7 @@ public class GRpcClient implements Channel.ChannelListener {
     }
 
     private static class BootstrapChannelListener extends AbstractChannelListener {
-        private BootstrapChannelListener(GRpcClient client, Channel.ChannelListener listener) {
+        private BootstrapChannelListener(Client client, Channel.ChannelListener listener) {
             super(client, listener);
         }
 
@@ -67,7 +63,7 @@ public class GRpcClient implements Channel.ChannelListener {
     }
 
     private static class TrustedChannelListener extends AbstractChannelListener {
-        public TrustedChannelListener(GRpcClient client, Channel.ChannelListener listener) {
+        public TrustedChannelListener(Client client, Channel.ChannelListener listener) {
             super(client, listener);
         }
         @Override
@@ -83,13 +79,19 @@ public class GRpcClient implements Channel.ChannelListener {
         }
     }
 
-    public GRpcClient(PeerImpl self, PeerServerConfig config) {
+    public Client(
+            PeerImpl self,
+            PeerServerConfig config,
+            MessageBuilder messageBuilder,
+            ChannelBuilder channelBuilder
+    ) {
         this.peersCache = new PeersCache(self, config);
         this.config = config;
-        this.messageBuilder = new MessageBuilder(self);
+        this.messageBuilder = messageBuilder;
+        this.channelBuilder = channelBuilder;
     }
 
-    GRpcClient withListener(Channel.ChannelListener listener) {
+    Client withListener(Channel.ChannelListener listener) {
         this.listener = listener;
         return this;
     }
@@ -125,31 +127,7 @@ public class GRpcClient implements Channel.ChannelListener {
     }
 
     private Optional<Channel> createChannel(String host, int port, Channel.ChannelListener... listeners) {
-        try {
-            ManagedChannel ch = ManagedChannelBuilder
-                    .forAddress(host, port).usePlaintext().build();
-            EntryGrpc.EntryStub stub = EntryGrpc.newStub(ch);
-            ProtoChannel channel = new ProtoChannel();
-            channel.addListener(
-                    Arrays.stream(listeners)
-                            .filter(Objects::nonNull)
-                            .toArray(Channel.ChannelListener[]::new
-                            )
-            );
-            channel.setOut(stub.entry(channel));
-            channel.write(messageBuilder.buildPing());
-            return Optional.of(channel);
-        } catch (Throwable ignored) {
-            return Optional.empty();
-        }
-    }
-
-    ProtoChannel createChannel(StreamObserver<Message> out) {
-        ProtoChannel channel = new ProtoChannel();
-        channel.addListener(this);
-        if (listener != null) channel.addListener(listener);
-        channel.setOut(out);
-        return channel;
+        return channelBuilder.createChannel(host, port, listeners);
     }
 
     @Override
