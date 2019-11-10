@@ -8,6 +8,7 @@ import org.wisdom.consortium.proto.*;
 
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -61,34 +62,25 @@ public class PeersManager implements Plugin {
         MessageBuilder builder = client.messageBuilder;
 
         // keep self alive
-        Start.APPLICATION_THREAD_POOL.execute(() -> {
-            while (true){
-                try{
-                    TimeUnit.SECONDS.sleep(DISCOVERY_RATE);
-                }catch (Exception ignored){}
-                client.broadcast(
+        Executors.newSingleThreadScheduledExecutor()
+                .schedule(() -> client.broadcast(
                         builder.buildPing()
-                );
-            }
-        });
-        Start.APPLICATION_THREAD_POOL.execute(() -> {
-            while (true){
-                try{
-                    TimeUnit.SECONDS.sleep(DISCOVERY_RATE);
-                }catch (Exception ignored){}
-                lookup();
-                cache.half();
-                if(!config.isEnableDiscovery()) continue;
-                pending.keySet()
-                        .stream()
-                        .filter(x -> !cache.has(x))
-                        .limit(config.getMaxPeers())
-                        .forEach(
-                            p -> client.dial(p, builder.buildPing())
-                        );
-                pending.clear();
-            }
-        });
+                ), DISCOVERY_RATE, TimeUnit.SECONDS);
+
+        Executors.newSingleThreadScheduledExecutor()
+                .schedule(() -> {
+                    lookup();
+                    cache.half();
+                    if(!config.isEnableDiscovery()) return;
+                    pending.keySet()
+                            .stream()
+                            .filter(x -> !cache.has(x))
+                            .limit(config.getMaxPeers())
+                            .forEach(
+                                    p -> client.dial(p, builder.buildPing())
+                            );
+                    pending.clear();
+                }, DISCOVERY_RATE, TimeUnit.SECONDS);
     }
 
     private void lookup(){
