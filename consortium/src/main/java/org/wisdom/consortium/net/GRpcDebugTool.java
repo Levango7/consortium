@@ -11,12 +11,17 @@ import org.wisdom.common.Peer;
 import org.wisdom.common.PeerServer;
 import org.wisdom.common.PeerServerListener;
 import org.wisdom.consortium.PeerServerProperties;
-import org.wisdom.consortium.proto.Code;
-import org.wisdom.consortium.proto.Ping;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+/**
+ * debug configs
+ * node0: X_ADDRESS=node://03c39e13db3f6c39fbefc2ca9a067bf6b9dde6c574908e805a9688752a9a43b3a47030bc7b031dbc85e5bb5a2a14d836c0eab79633654dd51413062e9d92cfc2@192.168.1.3:9090;X_ENABLE_DISCOVERY=true
+ * node1: X_ADDRESS=node://027291ff72e196d831e08ffe01380524b00526a85f89be94c3e7c2fdcdb56d3b3b3bc60e2c8df7a01c5158a7b2791b9e2ebd3c3f04067c90fbe27237bac39d36@192.168.1.3:9091;X_BOOTSTRAPS=node://localhost:9090;X_ENABLE_DISCOVERY=true
+ * node2: X_ADDRESS=node://00cc8638befa7841a6dd0273a6cd38bf44ad6434c3efe7e2f554f9ae60980ddaa8d1dcf9a06a4d8446cc7a9b52474b0ba980ea50fb95f4ae0b176bc0da7320d6@192.168.1.3:9092;X_BOOTSTRAPS=node://localhost:9090;X_ENABLE_DISCOVERY=true
+ * node3: X_ADDRESS=node://0b21136053e38a0d4affa5c5fac7e82ac1d8efeb2b5d535a18fb609015b6b38eeebdc2d355ef478875f8d6344131f83cf23756ad59caa60c30afb46e3bed7143@192.168.1.3:9093;X_BOOTSTRAPS=node://localhost:9090;X_ENABLE_DISCOVERY=false;X_TRUSTED=node://localhost:9091
+ */
 
 @Slf4j
 public class GRpcDebugTool {
