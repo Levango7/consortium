@@ -142,11 +142,16 @@ public class PeersCache {
 
     // decrease score of peer
     public void half(PeerImpl peer) {
-        peer.score /= 2;
-        if (peer.score == 0) {
-            remove(peer);
-            blocked.remove(peer);
-        }
+        int idx = self.subTree(peer);
+        if (peers[idx] == null) return;
+        peers[idx].channels.keySet()
+                .stream().filter(p -> p.equals(peer))
+                .findFirst()
+                .filter(p -> {
+                    p.score /= 2;
+                    return p.score == 0;
+                })
+                .ifPresent(this::remove);
     }
 
     // decrease score of all peer
