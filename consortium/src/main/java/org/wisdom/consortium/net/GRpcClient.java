@@ -191,7 +191,7 @@ public class GRpcClient implements Channel.ChannelListener {
 
     void relay(Message message, PeerImpl receivedFrom) {
         peersCache.getChannels()
-                .filter(x -> !x.getRemote().map(p -> p.equals(receivedFrom)).orElse(false))
+                .filter(x -> x.getRemote().map(p -> !p.equals(receivedFrom)).orElse(false))
                 .forEach(c -> c.write(messageBuilder.buildRelay(message)));
     }
 }
