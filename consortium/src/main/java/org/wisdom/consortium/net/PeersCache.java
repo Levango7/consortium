@@ -1,7 +1,6 @@
 package org.wisdom.consortium.net;
 
 import org.wisdom.common.HexBytes;
-import org.wisdom.common.Peer;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -197,12 +196,11 @@ public class PeersCache {
     Optional<Channel> getChannel(HexBytes id){
         int idx = self.subTree(id.getBytes());
         if (peers[idx] == null) return Optional.empty();
-        for(PeerImpl p: peers[idx].channels.keySet()){
-            if (p.getID().equals(id)){
-                return Optional.ofNullable(peers[idx].channels.get(p));
-            }
-        }
-        return Optional.empty();
+        return peers[idx].channels.keySet().stream()
+                .filter(p -> p.getID().equals(id))
+                .findAny()
+                .map(p -> peers[idx].channels.get(p))
+                ;
     }
 
     boolean hasBlocked(PeerImpl peer){
