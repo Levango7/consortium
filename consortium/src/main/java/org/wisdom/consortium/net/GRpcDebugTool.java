@@ -32,7 +32,7 @@ public class GRpcDebugTool {
             }
         });
         // port listening on
-        GRpcPeerServer server = new GRpcPeerServer();
+        ProtoPeerServer server = new WebSocketPeerServer();
         Properties properties = new PeerServerProperties();
         properties.setProperty("address", System.getenv("X_ADDRESS"));
         if(System.getenv("X_BOOTSTRAPS") != null){
@@ -95,9 +95,7 @@ public class GRpcDebugTool {
             String line = scanner.nextLine().trim();
             if(line.equals("peers")){
                 cache.getPeers().forEach(x -> System.out.println(x.encodeURI() + " " + x.score));
-                cache.blocked.keySet().forEach(x -> {
-                    System.out.println(x.encodeURI() + " " + x.score);
-                });
+                cache.blocked.keySet().forEach(x -> System.out.println(x.encodeURI() + " " + x.score));
                 continue;
             }
             if(line.equals("clear")){

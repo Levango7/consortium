@@ -18,8 +18,10 @@ public class WebSocketChannelBuilder implements ChannelBuilder {
             ProtoChannel ch = new ProtoChannel();
             Client client = new Client(host, port, ch);
             ch.addListener(listeners);
+            client.connect();
             return Optional.of(client.getChannel());
         }catch (Exception e){
+            e.printStackTrace();
             return Optional.empty();
         }
     }
