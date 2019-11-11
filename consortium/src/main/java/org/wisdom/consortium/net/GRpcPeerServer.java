@@ -9,8 +9,9 @@ import org.wisdom.consortium.proto.Message;
 import java.io.IOException;
 
 public class GRpcPeerServer extends AbstractPeerServer {
-    public GRpcPeerServer() {
-        channelBuilder = new GRpcChannelBuilder();
+    @Override
+    ChannelBuilder getChannelBuilder() {
+        return new GRpcChannelBuilder();
     }
 
     @Override

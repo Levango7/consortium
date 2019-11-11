@@ -18,7 +18,6 @@ public abstract class AbstractPeerServer implements Channel.ChannelListener, Pro
     protected Client client;
     protected PeerImpl self;
     protected MessageBuilder builder;
-    protected ChannelBuilder channelBuilder;
 
     @Override
     public Peer getSelf() {
@@ -55,6 +54,8 @@ public abstract class AbstractPeerServer implements Channel.ChannelListener, Pro
     }
 
     abstract void startListening();
+
+    abstract ChannelBuilder getChannelBuilder();
 
     @Override
     public void start() {
@@ -115,7 +116,7 @@ public abstract class AbstractPeerServer implements Channel.ChannelListener, Pro
             throw new PeerServerLoadException("failed to load peer server invalid address " + config.getAddress());
         }
         builder = new MessageBuilder(self);
-        client = new Client(self, config, builder, channelBuilder).withListener(this);
+        client = new Client(self, config, builder, getChannelBuilder()).withListener(this);
 
         // loading plugins
         plugins.add(new MessageFilter(config));

@@ -72,13 +72,14 @@ public class WebSocketPeerServer extends AbstractPeerServer {
         }
     }
 
-    public WebSocketPeerServer() {
-        channelBuilder = new WebSocketChannelBuilder();
-    }
-
     @Override
     void startListening() {
         Server s = new Server(self.getPort(), client, this);
         s.start();
+    }
+
+    @Override
+    ChannelBuilder getChannelBuilder() {
+        return new WebSocketChannelBuilder();
     }
 }
