@@ -71,7 +71,7 @@ public class Start {
         String name = consensusProperties.getProperty(ConsensusProperties.CONSENSUS_NAME);
         name = name == null ? "" : name;
         final ConsensusEngine engine;
-        switch (name.toLowerCase()) {
+        switch (name.trim().toLowerCase()) {
             // none consensus selected, used for unit test
             case ApplicationConstants.CONSENSUS_NONE:
                 log.warn("none consensus engine selected, please ensure you are in test mode");
@@ -124,7 +124,7 @@ public class Start {
     public PeerServer peerServer(PeerServerProperties properties, ConsensusEngine engine) throws Exception{
         PeerServer peerServer;
         String name = Optional.ofNullable(properties.getProperty("name")).orElse("");
-        switch (name){
+        switch (name.trim().toLowerCase()){
             case "websocket":
                 peerServer = new WebSocketPeerServer();
                 break;
