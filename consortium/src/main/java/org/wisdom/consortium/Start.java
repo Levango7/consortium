@@ -15,6 +15,7 @@ import org.wisdom.common.*;
 import org.wisdom.consortium.consensus.None;
 import org.wisdom.consortium.consensus.poa.PoA;
 import org.wisdom.consortium.net.GRpcPeerServer;
+import org.wisdom.consortium.net.WebSocketPeerServer;
 
 import java.util.Map;
 import java.util.Optional;
@@ -121,7 +122,15 @@ public class Start {
     // create peer server from properties
     @Bean
     public PeerServer peerServer(PeerServerProperties properties, ConsensusEngine engine) throws Exception{
-        PeerServer peerServer = new GRpcPeerServer();
+        PeerServer peerServer;
+        String name = Optional.ofNullable(properties.getProperty("name")).orElse("");
+        switch (name){
+            case "websocket":
+                peerServer = new WebSocketPeerServer();
+                break;
+            default:
+                peerServer = new GRpcPeerServer();
+        }
         peerServer.load(properties);
         peerServer.use(engine.handler());
         peerServer.start();

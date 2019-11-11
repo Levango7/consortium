@@ -8,8 +8,9 @@ import org.java_websocket.handshake.ServerHandshake;
 import org.wisdom.consortium.proto.Message;
 
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
+import java.nio.ByteBuffer;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 public class WebSocketChannelBuilder implements ChannelBuilder {
     @Override
@@ -17,8 +18,8 @@ public class WebSocketChannelBuilder implements ChannelBuilder {
         try{
             ProtoChannel ch = new ProtoChannel();
             Client client = new Client(host, port, ch);
-            ch.addListener(listeners);
-            client.connect();
+            client.getChannel().addListener(listeners);
+            client.connectBlocking(1, TimeUnit.SECONDS);
             return Optional.of(client.getChannel());
         }catch (Exception e){
             e.printStackTrace();
@@ -53,16 +54,19 @@ public class WebSocketChannelBuilder implements ChannelBuilder {
 
         @Override
         public void onOpen(ServerHandshake ignored) {
+        }
 
+        @Override
+        public void onMessage(ByteBuffer bytes) {
+            try {
+                this.channel.message(Message.parseFrom(bytes));
+            } catch (InvalidProtocolBufferException e) {
+                e.printStackTrace();
+            }
         }
 
         @Override
         public void onMessage(String message) {
-            try {
-                this.channel.message(Message.parseFrom(message.getBytes(StandardCharsets.UTF_8)));
-            } catch (InvalidProtocolBufferException e) {
-                e.printStackTrace();
-            }
         }
 
         @Override

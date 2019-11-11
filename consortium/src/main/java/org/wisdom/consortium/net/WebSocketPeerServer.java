@@ -7,6 +7,7 @@ import org.java_websocket.server.WebSocketServer;
 import org.wisdom.consortium.proto.Message;
 
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,15 +43,20 @@ public class WebSocketPeerServer extends AbstractPeerServer {
         }
 
         @Override
-        public void onMessage(WebSocket conn, String message) {
+        public void onMessage(WebSocket conn, ByteBuffer message) {
             ProtoChannel ch = channels.get(conn);
             if (ch == null) return;
             try {
-                Message msg = Message.parseFrom(message.getBytes(StandardCharsets.UTF_8));
+                Message msg = Message.parseFrom(message);
                 ch.message(msg);
             } catch (InvalidProtocolBufferException e) {
                 e.printStackTrace();
             }
+
+        }
+
+        @Override
+        public void onMessage(WebSocket conn, String message) {
 
         }
 

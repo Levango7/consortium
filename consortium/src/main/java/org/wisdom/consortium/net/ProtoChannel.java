@@ -81,6 +81,7 @@ public class ProtoChannel implements Channel {
         try {
             out.write(message);
         } catch (Throwable e) {
+            e.printStackTrace();
             log.error(e.getMessage());
             if(listeners == null) return;
             error(e);
