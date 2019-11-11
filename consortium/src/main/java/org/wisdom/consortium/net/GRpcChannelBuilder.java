@@ -11,8 +11,6 @@ import java.util.Optional;
 
 @AllArgsConstructor
 public class GRpcChannelBuilder implements ChannelBuilder{
-    MessageBuilder messageBuilder;
-
     @Override
     public Optional<Channel> createChannel(String host, int port, Channel.ChannelListener... listeners) {
         try {
@@ -29,7 +27,6 @@ public class GRpcChannelBuilder implements ChannelBuilder{
             channel.setOut(new GRpcChannelOut(stub.entry(
                     new ChannelWrapper(channel)
             )));
-            channel.write(messageBuilder.buildPing());
             return Optional.of(channel);
         } catch (Throwable ignored) {
             return Optional.empty();

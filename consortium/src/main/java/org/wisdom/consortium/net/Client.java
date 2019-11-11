@@ -127,7 +127,9 @@ public class Client implements Channel.ChannelListener {
     }
 
     private Optional<Channel> createChannel(String host, int port, Channel.ChannelListener... listeners) {
-        return channelBuilder.createChannel(host, port, listeners);
+        Optional<Channel> ch = channelBuilder.createChannel(host, port, listeners);
+        ch.ifPresent(c -> c.write(messageBuilder.buildPing()));
+        return ch;
     }
 
     @Override

@@ -10,7 +10,7 @@ import java.io.IOException;
 
 public class GRpcPeerServer extends AbstractPeerServer {
     public GRpcPeerServer() {
-        channelBuilder = new GRpcChannelBuilder(builder);
+        channelBuilder = new GRpcChannelBuilder();
     }
 
     @Override
